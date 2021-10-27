@@ -4,17 +4,20 @@ FACTS(Alpha) {
   FACT_FMT('c',<=,'b',"%c");
 }
 
-FACTS(Numeric1) {
-  FACT(1,==,2);
+FACTS(Integer) {
+  int a=1,b=2;
+  FACT(a,==,b);
 }
 
-FACTS(Numeric2) {
-  FACT(1.0,==,2.0);
+FACTS(Double) {
+  double a=1.3, b=2.4;
+  FACT(a,==,b);
 }
 
 FACTS_FINISHED
 
 void main() {
+  FactsInclude("*");
   FactsExclude("*ph*a*");
   FactsCheck();
 }

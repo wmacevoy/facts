@@ -44,7 +44,7 @@ extern int facts_fictions;
 extern int facts_truths;
 #endif
 
-#define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s(%?) " #op " %s(%?) is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
+#define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s (=%?) " #op " %s (=%?) is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
 #define FACT_FMT(a,op,b,fmt) if (!CHECK_FMT(a,op,b,fmt)) return
 #define CHECK(a,op,b) CHECK_FMT(a,op,b,FACTS_FMT(a))
 #define FACT(a,op,b) FACT_FMT(a,op,b,FACTS_FMT(a))
