@@ -19,11 +19,10 @@ struct FactsStruct {
 };
 
 void FactsPrint(const char *fmt,...);
-void FactsInit(Facts *me,const char *name,void (*function)(Facts *facts));
-void FactsFind(unsigned char *begin,unsigned char *end);
+void FactsFindInMemory(unsigned char *begin,unsigned char *end);
 void FactsInclude(const char *pattern);
 void FactsExclude(const char *pattern);
-void FactsRun();
+void FactsCheck();
 void FactsFiction(const char *file, int line,Facts *facts);
 
 double FactsAbsErr(double a, double b);
@@ -33,26 +32,27 @@ double FactsRelErr(double a, double b);
 #define FAIL facts->status = -1
 
 #define FACTS_FMT(X) _Generic((X),		    \
-			     char: "%c"		    \
-			     int: "%d"		    \
-			     long: "%ld",	    \
-			     float: "%lg",	    \
-			     double: "%lg",	    \
-			     const char *: "%s" )
+			      char: "%c",	    \
+			      int: "%d",	    \
+			      long: "%ld",	    \
+			      float: "%lg",	    \
+			      double: "%lg",	    \
+			      const char *: "%s" )
 
+#ifndef FACTS_C
 extern int facts_fictions;
 extern int facts_truths;
+#endif
 
 #define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s(%?) " #op " %s(%?) is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
 #define FACT_FMT(a,op,b,fmt) if (!CHECK_FMT(a,op,b,fmt)) return
 #define CHECK(a,op,b) CHECK_FMT(a,op,b,FACTS_FMT(a))
 #define FACT(a,op,b) FACT_FMT(a,op,b,FACTS_FMT(a))
 
-#define FACTS(name) void facts_ ##name## _function (Facts *facts); static Facts facts_ ##name## _data = { FACTS_SIG, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+#define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
-#define FACTS_END   
-
+#ifndef FACTS_C
 FACTS(0000_BEGIN) {}
+#endif
 
-#define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegister(unsigned char *begin,unsigned char *end) { FactsFind((unsigned char*)&facts_0000_BEGIN_data, (unsigned char *)&facts_zzzz_END_data); }
-
+#define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegister() { FactsFindInMemory((unsigned char*)&facts_0000_BEGIN_data, (unsigned char *)&facts_zzzz_END_data); }

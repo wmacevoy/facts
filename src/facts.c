@@ -2,12 +2,14 @@
 #include <math.h>
 #include <assert.h>
 #include <stdint.h>
+
+#define FACTS_C 1
 #include "facts.h"
-static Facts *head = 0, *tail=0;
+static Facts *head = NULL, *tail=NULL;
 
 int facts_fictions = 0;
-int facts_facts = 0;
-
+int facts_truths = 0;
+void FactsRegister();
 
 static int matches(const char *str, const char *pattern) {
   uint8_t np = strlen(pattern);
@@ -62,19 +64,8 @@ void FactsFiction(const char *file, int line, Facts *facts) {
 }
 
 
-void FactsInit(Facts *me,
-	      const char *name,
-	      void (*function)(Facts *facts)) {
-  me->name=name;
-  me->function=function;
-  me->status=0;
-  me->prev=tail;
-  me->next=NULL;
-  if (tail != NULL) tail->next=me;
-  if (head == NULL) head = me;
-}
-
 void FactsInclude(const char *pattern) {
+  if (head == NULL) { FactsRegister(); }  
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
     if (matches(facts->name,pattern)) {
       facts->status = 0;
@@ -83,6 +74,7 @@ void FactsInclude(const char *pattern) {
 }
 
 void FactsExclude(const char *pattern) {
+  if (head == NULL) { FactsRegister(); }  
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
     if (matches(facts->name,pattern)) {
       facts->status = -2;
@@ -90,13 +82,13 @@ void FactsExclude(const char *pattern) {
   }
 }
 
-void FactsFind(unsigned char *begin, unsigned char *end) {
-  head = NULL;
-  tail = NULL;
+void FactsFindInMemory(unsigned char *begin, unsigned char *end) {
+  int reversed = 0;
   if (end < begin) {
     void *tmp = end;
     end = begin;
     begin = tmp;
+    reversed = 1;
   }
   end = end - 16;
   
@@ -111,12 +103,20 @@ void FactsFind(unsigned char *begin, unsigned char *end) {
 
       if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL) {
 	if (strcmp(facts->name,"0000_BEGIN")==0) continue;
-	if (strcmp(facts->name,"zzzz_END")==0) continue;	
-	facts->prev = tail;
-	facts->next = NULL;
-	if (tail != NULL) { tail->next = facts; }
-	if (head == NULL) { head = facts; }
-	tail = facts;
+	if (strcmp(facts->name,"zzzz_END")==0) continue;
+	if (reversed) {
+	  facts->next = head;
+	  facts->prev = NULL;
+	  if (head != NULL) { head->prev = facts; }
+	  if (tail == NULL) { tail = facts; }
+	  head = facts;
+	} else {
+	  facts->prev = tail;
+	  facts->next = NULL;
+	  if (tail != NULL) { tail->next = facts; }
+	  if (head == NULL) { head = facts; }
+	  tail = facts;
+	}
       }
     }
   }
@@ -154,16 +154,8 @@ void FactsPrint(const char *format,...) {
   va_end(ap);
 }
 
-extern void FactsRegister();
-
-void FactsRun() {
-  
-  static int registered = 0;
-  if (registered == 0) {
-    registered = 1;
-    FactsRegister();
-  }
-
+void FactsCheck() {
+  if (head == NULL) { FactsRegister(); }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
     if (facts->status == 0) {
       fprintf(stderr,"facts %s started\n",facts->name);
