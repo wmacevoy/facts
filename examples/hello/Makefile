@@ -1,5 +1,4 @@
 CFLAGS=-g
-LDFLAGS=-lm
+LDLIBS=-lm
 
 hello : hello.c facts.c
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
