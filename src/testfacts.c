@@ -16,8 +16,5 @@ FACTS(Double) {
 
 FACTS_FINISHED
 
-void main() {
-  FactsInclude("*");
-  FactsExclude("*ph*a*");
-  FactsCheck();
-}
+FACTS_MAIN
+

@@ -11,6 +11,8 @@ typedef struct FactsStruct Facts;
 
 struct FactsStruct {
   unsigned char sig[16];
+  const char *file;
+  int line;
   const char *name;
   void (*function)(Facts *facts);
   int status;
@@ -28,8 +30,8 @@ void FactsFiction(const char *file, int line,Facts *facts);
 double FactsAbsErr(double a, double b);
 double FactsRelErr(double a, double b);
 
-#define PASS facts->status =  1
-#define FAIL facts->status = -1
+int FactsMain(int argc, const char *argv[]);
+
 
 #define FACTS_FMT(X) _Generic((X),		    \
 			      char: "%c",	    \
@@ -44,15 +46,17 @@ extern int facts_fictions;
 extern int facts_truths;
 #endif
 
-#define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s (=%?) " #op " %s (=%?) is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
+#define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
 #define FACT_FMT(a,op,b,fmt) if (!CHECK_FMT(a,op,b,fmt)) return
 #define CHECK(a,op,b) CHECK_FMT(a,op,b,FACTS_FMT(a))
 #define FACT(a,op,b) FACT_FMT(a,op,b,FACTS_FMT(a))
 
-#define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+#define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
 #ifndef FACTS_C
 FACTS(0000_BEGIN) {}
 #endif
 
 #define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegister() { FactsFindInMemory((unsigned char*)&facts_0000_BEGIN_data, (unsigned char *)&facts_zzzz_END_data); }
+
+#define FACTS_MAIN int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
