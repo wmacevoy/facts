@@ -2,7 +2,7 @@ CSTD?=c11
 CDBG?=-g
 COPT?=-O2
 CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
-LDFLAGS=-lm
+LDLIBS=-lm
 
 examples/hello/facts.c : src/facts.c
 	cp $< $@
@@ -23,7 +23,7 @@ tmp/testfacts.o: src/testfacts.c include/facts.h
 
 bin/testfacts : tmp/testfacts.o tmp/facts.o
 	mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 examples : examples/hello/facts.c examples/hello/facts.h examples/hello/hello
 
