@@ -32,15 +32,24 @@ double FactsRelErr(double a, double b);
 
 int FactsMain(int argc, const char *argv[]);
 
-
-#define FACTS_FMT(X) _Generic((X),		    \
-			      char: "%c",	    \
-			      int: "%d",	    \
-			      long: "%ld",	    \
-			      float: "%lg",	    \
-			      double: "%lg",	    \
-			      const char *: "%s" )
-
+// https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
+#define FACTS_FMT(X) _Generic((X),				\
+			      unsigned char: "%hhu",		\
+			      unsigned short: "%hu",		\
+			      unsigned int: "%u",		\
+			      unsigned long: "%lu",		\
+			      unsigned long long: "%llu",	\
+			      signed char: "%hhd",	\
+			      short: "%hd",		\
+			      int: "%d",		\
+			      long: "%ld",		\
+			      long long: "%lld",	\
+			      float: "%g",		\
+			      double: "%g",		\
+			      long double: "%Lg",	\
+			      const char *: "%s",	\
+			      const void *: "%p")
+  
 #ifndef FACTS_C
 extern int facts_fictions;
 extern int facts_truths;
