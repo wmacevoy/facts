@@ -1,7 +1,7 @@
 #include "facts.h"
 
 FACTS(Alpha) {
-  FACT_FMT('c',<=,'b',"%c");
+  FACT_PRINT('c',<=,'b',"%c");
 }
 
 FACTS(Integer) {

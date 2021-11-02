@@ -1,5 +1,10 @@
 #pragma once
 
+
+#ifdef __cplusplus
+#include <iostream>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -33,32 +38,42 @@ double FactsRelErr(double a, double b);
 int FactsMain(int argc, const char *argv[]);
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
-#define FACTS_FMT(X) _Generic((X),				\
-			      unsigned char: "%hhu",		\
-			      unsigned short: "%hu",		\
-			      unsigned int: "%u",		\
-			      unsigned long: "%lu",		\
-			      unsigned long long: "%llu",	\
-			      signed char: "%hhd",	\
-			      short: "%hd",		\
-			      int: "%d",		\
-			      long: "%ld",		\
-			      long long: "%lld",	\
-			      float: "%g",		\
-			      double: "%g",		\
-			      long double: "%Lg",	\
-			      const char *: "%s",	\
-			      const void *: "%p")
+#define FACTS_PRINT_FORMAT(X) _Generic((X),			\
+				       unsigned char: "%hhu",	\
+				       unsigned short: "%hu",	\
+				       unsigned int: "%u",	\
+				       unsigned long: "%lu",	\
+				       unsigned long long: "%llu",	\
+				       signed char: "%hhd",		\
+				       short: "%hd",			\
+				       int: "%d",			\
+				       long: "%ld",			\
+				       long long: "%lld",		\
+				       float: "%g",			\
+				       double: "%g",			\
+				       long double: "%Lg",		\
+				       const char *: "%s",		\
+				       const void *: "%p")
   
 #ifndef FACTS_C
 extern int facts_fictions;
 extern int facts_truths;
 #endif
 
-#define CHECK_FMT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
-#define FACT_FMT(a,op,b,fmt) if (!CHECK_FMT(a,op,b,fmt)) return
-#define CHECK(a,op,b) CHECK_FMT(a,op,b,FACTS_FMT(a))
-#define FACT(a,op,b) FACT_FMT(a,op,b,FACTS_FMT(a))
+#define CHECK_PRINT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
+#define FACT_PRINT(a,op,b,fmt) if (!CHECK_PRINT(a,op,b,fmt)) return
+
+#define CHECK_CERR(a,op,b) (((a) op (b)) ? (++facts_truths,1) : (std::cerr << __FILE__ << " " << __LINE__ << ": " << #a << "{=" << (a) << "} " << #op << #b << " {=" << (b) << "} is fiction" << std::endl, status=-1, FactsFiction(__FILE__,__LINE__,facts),0))
+#define FACT_CERR(a,op,b) if (!CHECK_CERR(a,op,b)) return
+
+
+#ifdef __cplusplus
+#define FACT(a,op,b) FACT_CERR(a,op,b)
+#define CHECK(a,op,b) CHECK_CERR(a,op,b)
+#else
+#define CHECK(a,op,b) CHECK_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
+#define FACT(a,op,b) FACT_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
+#endif
 
 #define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
