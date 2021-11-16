@@ -38,11 +38,11 @@ double FactsRelErr(double a, double b);
 int FactsMain(int argc, const char *argv[]);
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
-#define FACTS_PRINT_FORMAT(X) _Generic((X),			\
-				       unsigned char: "%hhu",	\
-				       unsigned short: "%hu",	\
-				       unsigned int: "%u",	\
-				       unsigned long: "%lu",	\
+#define FACTS_PRINT_FORMAT(X) _Generic((X),				\
+    unsigned char: "%hhu",						\
+				       unsigned short: "%hu",		\
+				       unsigned int: "%u",		\
+				       unsigned long: "%lu",		\
 				       unsigned long long: "%llu",	\
 				       signed char: "%hhd",		\
 				       short: "%hd",			\
@@ -53,7 +53,11 @@ int FactsMain(int argc, const char *argv[]);
 				       double: "%g",			\
 				       long double: "%Lg",		\
 				       const char *: "%s",		\
-				       const void *: "%p")
+				       const unsigned char *: "%s",	\
+				       const void *: "%p",		\
+				       char *: "%s",			\
+				       unsigned char *: "%s",		\
+				       void *: "%p")
   
 #ifndef FACTS_C
 extern int facts_fictions;
