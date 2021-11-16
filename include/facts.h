@@ -39,7 +39,8 @@ int FactsMain(int argc, const char *argv[]);
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
 #define FACTS_PRINT_FORMAT(X) _Generic((X),				\
-    unsigned char: "%hhu",						\
+				       char: "%c",			\
+				       unsigned char: "%hhu",		\
 				       unsigned short: "%hu",		\
 				       unsigned int: "%u",		\
 				       unsigned long: "%lu",		\
