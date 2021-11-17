@@ -5,7 +5,18 @@ compatible with C++.
 
 ## Why
 
-## Use
+Test frameworks have become a barrier to testing.  They are too complicated and require understaing their notation too much.  Eventually you may want more, you can get a lot out of simple fact checking.
+
+Also, the big test frameworks are, well, big.  This makes them hard to use when building the test framework is harder than building your code.
+
+## Overview
+
+Here really three things to know:
+1. `FACT(a,op,b)` is a fact check in a `FACTS(AboutThing)` group.  Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.
+2. After stating (what you think) are facts, you end your fact-checking with `FACTS_FINISHED`
+3. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_FINISHED`.
+
+Below are these steps in more detail.
 
 ### Step 1 - Write FACT checks in FACTS groups
 
@@ -128,6 +139,7 @@ gdb sample_facts
 > b FactsFiction
 > r
 > up
+```
 
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b `facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
 
