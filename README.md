@@ -130,7 +130,7 @@ To check only "AboutLogic", you can run,
 ./sample_facts --facts_exclude="*" --facts_include="AboutLogic"
 ```
 
-You can combine include/exclude with wildcards to pick facts to checkif you name your facts groups nicely.
+You can combine include/exclude with wildcards to pick facts to check if you name your facts groups nicely.
 
 ### Step 3 - Debugging
 
