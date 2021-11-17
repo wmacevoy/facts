@@ -12,7 +12,8 @@ Facts is a less-is-more C/C++ test framework.  There is intentionally not much h
 
 ## Overview
 
-Here really three things to know:
+There are three new things to know:
+
 1. `FACT(a,op,b)` is a fact check in a `FACTS(AboutThing)` group.  Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.
 2. After stating (what you think) are facts, you end your fact-checking with `FACTS_FINISHED`
 3. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_FINISHED`.
