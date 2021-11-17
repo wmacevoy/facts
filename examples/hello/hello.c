@@ -16,6 +16,7 @@ FACTS(AboutF) {
 
 int g(int x) {
   int y=2*x-3;
+  return y;
 }
 
 FACTS(AboutG) {
