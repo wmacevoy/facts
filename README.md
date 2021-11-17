@@ -3,7 +3,11 @@
 This is a really simple test framework written in C (C11 standard) and is
 compatible with C++.
 
-# Use
+## Why
+
+## Use
+
+### Step 1 - Write FACT checks in FACTS groups
 
 Fact check (test) files include the "fact.h" header file and define fact check
 functions with
@@ -77,6 +81,8 @@ FACTS_FINISHED
 FACTS_MAIN
 ```
 
+### Step 2 - Compile fact checks into an executable
+
 If the "facts.h" and "facts.c" source files are in the same folder as "sample_facts.c", they can be compiled into one executable with (cc is usally the c compiler, -g is the debug option, and -lm asks for the math library which facts.c uses):
 ```sh
 cc -g -o sample_facts sample_facts.c facts.c -lm
@@ -86,6 +92,8 @@ Alternatively, if you are writing C++, you can call this file "sample_facts.cpp"
 ```sh
 c++ -g -o sample_facts sample_facts.cpp facts.c -lm
 ```
+
+### Step 3 - Run the executable to fact check
 
 To check all the facts, you can now run the executable:
 ```sh
@@ -109,7 +117,9 @@ To check only "AboutLogic", you can run,
 ./sample_facts --facts_exclude="*" --facts_include="AboutLogic"
 ```
 
-## FactsFiction()
+You can combine include/exclude with wildcards to pick facts to checkif you name your facts groups nicely.
+
+### Step 3 - Debugging
 
 The `FactsFiction()` entry point is to easily set break points in a failed FACTS check.  The sample above has a failed test.  If you use `gdb`, the gnu debugger, you could do the following:
 
