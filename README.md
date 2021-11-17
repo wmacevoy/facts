@@ -1,13 +1,14 @@
 # Facts
 
-This is a really simple test framework written in C (C11 standard) and is
-compatible with C++.
+Facts is a less-is-more C/C++ test framework.
 
 ## Why
 
-Test frameworks have become a barrier to testing.  They are too complicated and require understaing their notation too much.  Eventually you may want more, you can get a lot out of simple fact checking.
+Test frameworks have become a barrier to testing.  They are too complicated and require understaing their notation too much.
 
 Also, the big test frameworks are, well, big.  This makes them hard to use when building the test framework is harder than building your code.
+
+Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With about 3 things to understand beyond the language itself, you can enjoy the benefits of a test framework that is on your side.
 
 ## Overview
 
