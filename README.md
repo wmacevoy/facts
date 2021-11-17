@@ -141,6 +141,7 @@ gdb sample_facts
 > b FactsFiction
 > r
 > up
+> p *facts
 ```
 
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b `facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
