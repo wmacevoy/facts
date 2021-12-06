@@ -82,6 +82,8 @@ extern int facts_truths;
 
 #define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
+#define FACTS_SKIPPED(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, -2, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+
 #ifndef FACTS_C
 FACTS(0000_BEGIN) {}
 #endif
