@@ -25,6 +25,13 @@ typedef struct FactsStruct Facts;
 
 #define FACTS_SIG_LEN 32
 
+#define FACTS_STATE_EXCLUDE -2
+#define FACTS_STATE_FAIL    -1
+#define FACTS_STATE_INCLUDE  0
+#define FACTS_STATE_PASS     1
+
+
+
 struct FactsStruct {
   unsigned char sig[FACTS_SIG_LEN];
   const char *file;
@@ -91,7 +98,10 @@ extern int facts_truths;
 #define FACT(a,op,b) FACT_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
 #endif
 
-#define FACTS(name) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, 0, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+#define FACTS_REGISTER(name,state) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, state, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+
+#define FACTS(name) FACTS_REGISTER(name,FACTS_STATE_INCLUDE)
+#define FACTS_EXCLUDE(name) FACTS_REGISTER(name,FACTS_STATE_EXCLUDE)
 
 #ifndef FACTS_C
 FACTS(0000_BEGIN) {}

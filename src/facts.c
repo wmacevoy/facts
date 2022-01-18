@@ -91,14 +91,14 @@ void FactsInclude(const char *pattern) {
   if (head == NULL) {
     FactsRegister();
     for (Facts *facts = head; facts != NULL; facts=facts->next) {
-      if (facts->status == 1) {
-	facts->status = 0;
+      if (facts->status == FACTS_STATE_INCLUDE) {
+	facts->status = FACTS_STATE_EXCLUDE;
       }
     }
   }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (matches(facts->name,pattern)) {
-      facts->status = 0;
+    if (facts->status == FACTS_STATE_EXCLUDE && matches(facts->name,pattern)) {
+      facts->status = FACTS_STATE_INCLUDE;
     }
   }
 }
@@ -109,8 +109,8 @@ void FactsInclude(const char *pattern) {
 void FactsExclude(const char *pattern) {
   if (head == NULL) { FactsRegister(); }  
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (matches(facts->name,pattern)) {
-      facts->status = -2;
+    if (facts->status == FACTS_STATE_INCLUDE && matches(facts->name,pattern)) {
+      facts->status = FACTS_STATE_EXCLUDE;
     }
   }
 }
@@ -215,39 +215,45 @@ void FactsCheck() {
   int fails = 0;
   if (head == NULL) { FactsRegister(); }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (facts->status == 0) {
+    if (facts->status == FACTS_STATE_INCLUDE) {
       fprintf(stderr,"%s %d: %s facts check started\n",
 	      facts->file,facts->line,facts->name);
       facts->function(facts);
-      if (facts->status == 0) { facts->status=1; }
-      if (facts->status == -1) ++fails;
+      if (facts->status == FACTS_STATE_INCLUDE) {
+	facts->status=FACTS_STATE_PASS;
+      }
+      if (facts->status == FACTS_STATE_FAIL) {
+	++fails;
+      }
       fprintf(stderr,"%s %d: %s facts check ended%s\n",
 	      facts->file,facts->line,facts->name,
-	      (facts->status == -1 ? " (badly)" : ""));
-    } else if (facts->status == -2) {
-      fprintf(stderr,"%s %d: %s facts check skipped.\n",
+	      (facts->status == FACTS_STATE_FAIL ? " (badly)" : ""));
+    } else if (facts->status == FACTS_STATE_EXCLUDE) {
+      fprintf(stderr,"%s %d: %s facts check excluded.\n",
 	      facts->file,facts->line,facts->name);
     }
   }
 
   fprintf(stderr,"facts summary.\n");
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (facts->status == 1) {
+    if (facts->status == FACTS_STATE_PASS) {
     	fprintf(stderr,"facts check %s passed\n",facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (facts->status == -1) {
+    if (facts->status == FACTS_STATE_FAIL) {
     	fprintf(stderr,"facts check %s failed\n",facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (facts->status == -2) {
-    	fprintf(stderr,"facts check %s skipped\n",facts->name);
+    if (facts->status == FACTS_STATE_EXCLUDE) {
+    	fprintf(stderr,"facts check %s excluded\n",facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
-    if (facts->status != 1 && facts->status != -1 && facts->status != -2) {
+    if (facts->status != FACTS_STATE_PASS &&
+	facts->status != FACTS_STATE_FAIL &&
+	facts->status != FACTS_STATE_EXCLUDE) {
       fprintf(stderr,"facts check %s status %d\n",facts->name,facts->status);
     } 
   }
