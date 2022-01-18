@@ -12,10 +12,21 @@
 struct FactsStruct;
 typedef struct FactsStruct Facts;
 
-#define FACTS_SIG {0xe3,0xb0,0xc4,0x42, 0x98,0xfc,0x1c,0x14, 0x9a,0xfb,0xf4,0x89, 0x96,0xfb,0x92,0x00}
+#define FACTS_SIG {							\
+    0xae, 0x1e, 0xe5, 0xab,						\
+      0xdf, 0x2c, 0x8f, 0xfd,						\
+      0x9d, 0x1e, 0xa7, 0x37,						\
+      0xc6, 0xf3, 0xe0, 0xe8,						\
+      0xb7, 0xdc, 0x56, 0x93,						\
+      0x08, 0xd8, 0xe3, 0x13,						\
+      0xe2, 0xe4, 0x43, 0x2d,						\
+      0x91, 0x4a, 0x32, 0x55						\
+      }
+
+#define FACTS_SIG_LEN 32
 
 struct FactsStruct {
-  unsigned char sig[16];
+  unsigned char sig[FACTS_SIG_LEN];
   const char *file;
   int line;
   const char *name;
@@ -68,7 +79,7 @@ extern int facts_truths;
 #define CHECK_PRINT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsFiction(__FILE__,__LINE__,facts),FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1,0))
 #define FACT_PRINT(a,op,b,fmt) if (!CHECK_PRINT(a,op,b,fmt)) return
 
-#define CHECK_CERR(a,op,b) (((a) op (b)) ? (++facts_truths,1) : (FactsFiction(__FILE__,__LINE__,facts),std::cerr << __FILE__ << " " << __LINE__ << ": " << #a << "{=" << (a) << "} " << #op << #b << " {=" << (b) << "} is fiction" << std::endl, status=-1,0))
+#define CHECK_CERR(a,op,b) (((a) op (b)) ? (++facts_truths,1) : (FactsFiction(__FILE__,__LINE__,facts),std::cerr << __FILE__ << " " << __LINE__ << ": " << #a << "{=" << (a) << "} " << #op << #b << " {=" << (b) << "} is fiction" << std::endl, facts->status=-1,0))
 #define FACT_CERR(a,op,b) if (!CHECK_CERR(a,op,b)) return
 
 

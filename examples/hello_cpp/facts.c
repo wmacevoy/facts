@@ -86,16 +86,11 @@ void FactsFiction(const char *file, int line, Facts *facts) {
 
 
 // Include FACTS to check with wildcard pattern.
-
+//
+// By default all facts are checked, so this is
+// useful only if some were excluded.
 void FactsInclude(const char *pattern) {
-  if (head == NULL) {
-    FactsRegister();
-    for (Facts *facts = head; facts != NULL; facts=facts->next) {
-      if (facts->status == 1) {
-	facts->status = 0;
-      }
-    }
-  }
+  if (head == NULL) { FactsRegister(); }  
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
     if (matches(facts->name,pattern)) {
       facts->status = 0;
