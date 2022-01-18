@@ -86,11 +86,16 @@ void FactsFiction(const char *file, int line, Facts *facts) {
 
 
 // Include FACTS to check with wildcard pattern.
-//
-// By default all facts are checked, so this is
-// useful only if some were excluded.
+
 void FactsInclude(const char *pattern) {
-  if (head == NULL) { FactsRegister(); }  
+  if (head == NULL) {
+    FactsRegister();
+    for (Facts *facts = head; facts != NULL; facts=facts->next) {
+      if (facts->status == 1) {
+	facts->status = 0;
+      }
+    }
+  }
   for (Facts *facts = head; facts != NULL; facts=facts->next) {
     if (matches(facts->name,pattern)) {
       facts->status = 0;
@@ -123,22 +128,20 @@ void FactsExclude(const char *pattern) {
 // calls this with two book-end tests that are ignored.
 //
 void FactsFindInMemory(unsigned char *begin, unsigned char *end) {
+  unsigned char *sig = begin;
   int reversed = 0;
   if (end < begin) {
-    void *tmp = end;
+    unsigned char *tmp = end;
     end = begin;
     begin = tmp;
     reversed = 1;
   }
-  end = end - 16;
+  end = end - FACTS_SIG_LEN;
   
   unsigned char *p = (unsigned char*) begin;
-  for (unsigned char *p = begin; p != NULL && p < end; p = (unsigned char*) memchr(p+16,0xe3,end-p)) {
-    if (p[ 0]==0xe3 && p[ 1]==0xb0 && p[ 2]==0xc4 && p[ 3]==0x42 &&
-	p[ 4]==0x98 && p[ 5]==0xfc && p[ 6]==0x1c && p[ 7]==0x14 &&
-	p[ 8]==0x9a && p[ 9]==0xfb && p[10]==0xf4 && p[11]==0x89 &&
-	p[12]==0x96 && p[13]==0xfb && p[14]==0x92 && p[15]==0x00) {
-
+  
+  for (unsigned char *p = begin; p != NULL && p < end; p = (unsigned char*) memchr(p+FACTS_SIG_LEN,sig[0],end-p)) {
+    if (memcmp(p,sig,FACTS_SIG_LEN)==0) {
       Facts *facts = (Facts*)p;
 
       if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL) {
