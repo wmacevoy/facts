@@ -1,4 +1,4 @@
 CXXFLAGS=-g -std=c++11
-LDLIBS=-lm
+LDLIBS=
 
 hello : hello.cpp facts.c

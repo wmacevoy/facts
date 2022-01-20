@@ -2,7 +2,7 @@ CSTD?=c11
 CDBG?=-g
 COPT?=-O2
 CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
-LDLIBS=-lm
+LDLIBS=
 
 examples/hello_c/facts.c : src/facts.c
 	cp $< $@

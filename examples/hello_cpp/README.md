@@ -1,11 +1,11 @@
 # Hello in C++ FACTS example
 
-For the simple command-line build, you should get away with (turn on debug with -g  and use the math librray with -lm):
+For the simple command-line build, you should get away with (-g for debug):
 
 
 ## Compile
 ```bash
-g++ -g *.cpp *.c -lm
+g++ *.cpp *.c
 ```
 
 ## Run all tests

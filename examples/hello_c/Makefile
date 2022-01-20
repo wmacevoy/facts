@@ -1,4 +1,4 @@
 CFLAGS=-g -std=c11
-LDLIBS=-lm
+LDLIBS=
 
 hello : hello.c facts.c

@@ -1,11 +1,11 @@
 # Hello in C FACTS example
 
-For the simple command-line build, you should get away with (turn on debug with -g  and use the math librray with -lm):
+For the simple command-line build, you should get away with (-g for debug):
 
 
 ## Compile
 ```bash
-gcc -g *.c -lm
+gcc -g *.c
 ```
 
 ## Run all tests
