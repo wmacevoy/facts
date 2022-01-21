@@ -44,9 +44,10 @@ struct FactsStruct {
 };
 
 void FactsPrint(const char *fmt,...);
-void FactsFindInMemory(unsigned char *begin,unsigned char *end);
+void FactsFindInMemory(Facts *begin,Facts *end);
 void FactsInclude(const char *pattern);
 void FactsExclude(const char *pattern);
+void FactsRegister(Facts *facts);
 void FactsCheck();
 void FactsFiction(const char *file, int line,Facts *facts);
 
@@ -98,15 +99,17 @@ extern int facts_truths;
 #define FACT(a,op,b) FACT_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
 #endif
 
-#define FACTS_REGISTER(name,state) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, state, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
+#define FACTS_DECLARE(name,state) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, state, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
-#define FACTS(name) FACTS_REGISTER(name,FACTS_STATE_INCLUDE)
-#define FACTS_EXCLUDE(name) FACTS_REGISTER(name,FACTS_STATE_EXCLUDE)
+#define FACTS(name) FACTS_DECLARE(name,FACTS_STATE_INCLUDE)
+#define FACTS_EXCLUDE(name) FACTS_DECLARE(name,FACTS_STATE_EXCLUDE)
 
 #ifndef FACTS_C
 FACTS(0000_BEGIN) {}
 #endif
 
-#define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegister() { FactsFindInMemory((unsigned char*)&facts_0000_BEGIN_data, (unsigned char *)&facts_zzzz_END_data); }
+#define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegisterAll() { FactsFindInMemory(&facts_0000_BEGIN_data, &facts_zzzz_END_data); }
+
+#define FACTS_REGISTER(name) FactsRegister(&facts_ ##name## _data)
 
 #define FACTS_MAIN int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }

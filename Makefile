@@ -1,6 +1,6 @@
 CSTD?=c11
 CDBG?=-g
-COPT?=-O2
+COPT?=
 CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
 LDLIBS=
 

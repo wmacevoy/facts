@@ -7,7 +7,7 @@ static Facts *head = NULL, *tail = NULL;
 
 int facts_fictions = 0;
 int facts_truths = 0;
-void FactsRegister();
+void FactsRegisterAll();
 
 // Wildcard pattern match.
 //
@@ -99,7 +99,7 @@ void FactsInclude(const char *pattern)
 {
   if (head == NULL)
   {
-    FactsRegister();
+    FactsRegisterAll();
     for (Facts *facts = head; facts != NULL; facts = facts->next)
     {
       if (facts->status == FACTS_STATE_INCLUDE)
@@ -124,7 +124,7 @@ void FactsExclude(const char *pattern)
 {
   if (head == NULL)
   {
-    FactsRegister();
+    FactsRegisterAll();
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
@@ -135,6 +135,22 @@ void FactsExclude(const char *pattern)
   }
 }
 
+void FactsRegister(Facts *facts) {
+  if (facts->prev == NULL && facts->next == NULL) {
+    facts->prev = tail;
+    facts->next = NULL;
+    if (tail != NULL)
+      {
+	tail->next = facts;
+      }
+    if (head == NULL)
+      {
+	head = facts;
+      }
+    tail = facts;
+  }
+}
+    
 // Fact find (internals).
 //
 // C does not provide a way to initialize a list of
@@ -147,32 +163,38 @@ void FactsExclude(const char *pattern)
 // at the end.  FACTS_FINISHED creates a function that
 // calls this with two book-end tests that are ignored.
 //
-void FactsFindInMemory(unsigned char *begin, unsigned char *end)
+
+void FactsFindInMemory(Facts *begin, Facts *end)
 {
-  unsigned char *sig = begin;
+  if (head != NULL || tail != NULL) {
+    return;
+  }
+  unsigned char *sig = &begin->sig[0];
+  int delta = sig - (unsigned char *) begin;
   int reversed = 0;
   if (end < begin)
   {
-    unsigned char *tmp = end;
+    Facts *tmp = end;
     end = begin;
     begin = tmp;
     reversed = 1;
   }
-  end = end - FACTS_SIG_LEN;
 
-  unsigned char *p = (unsigned char *)begin;
+  unsigned char *b = ((unsigned char *)begin);
+  unsigned char *e = ((unsigned char *)end) + sizeof(Facts);
 
-  for (unsigned char *p = begin; p != NULL && p < end; p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], end - p))
+  for (unsigned char *p = b;
+       p != NULL && p < e;
+       p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], e - p))
   {
     if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
     {
-      Facts *facts = (Facts *)p;
+      Facts *facts = (Facts *)(p-delta);
 
       if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL)
       {
-        if (strcmp(facts->name, "0000_BEGIN") == 0)
-          continue;
-        if (strcmp(facts->name, "zzzz_END") == 0)
+        if (strcmp(facts->name, "0000_BEGIN") == 0 ||
+	    strcmp(facts->name, "zzzz_END") == 0)
           continue;
         if (reversed)
         {
@@ -284,7 +306,7 @@ void FactsCheck()
   int fails = 0;
   if (head == NULL)
   {
-    FactsRegister();
+    FactsRegisterAll();
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {

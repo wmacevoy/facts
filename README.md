@@ -15,8 +15,15 @@ Facts is a less-is-more C/C++ test framework.  There is intentionally not much h
 There are three new things to know:
 
 1. `FACT(a,op,b)` is a fact check in a `FACTS(AboutThing)` group.  Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.
-2. After stating (what you think) are facts, you end your fact-checking with `FACTS_FINISHED`
-3. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_FINISHED`.
+2. After stating (what you think) are facts, you end your fact-checking with (replace name1, etc with all your FACTS(name) groups)
+```C
+void FactsRegisterAll() {
+  FACTS_REGISTER(name1);
+  FACTS_REGISTER(name2);
+  FACTS_REGISTER(name3);
+}
+```
+3. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FactsRegisterAll() {...}`.
 
 Below are these steps in more detail.
 
@@ -61,10 +68,12 @@ The `FactsFiction()` call makes it easy to set a break point in the debugger to 
 After describing all the `FACTS`, you __MUST__ mark the end of the facts with
 
 ```C
-FACTS_FINISHED
+void FactsRegisterAll() {
+     FACTS_REGISTER(name1);
+     FACTS_REGISTER(name2);
+     FACTS_REGISTER(name3);
+}
 ```
-
-This creates two marker facts (0000_BEGIN and zzzz_END, two fact groups you cannot use) so the facts framework can find your facts at run time.
 
 You can call the FactsMain(...) as your main (test-only) main with
 
@@ -90,20 +99,24 @@ FACTS(AboutInts) {
   FACT(INT_MAX+1,>,INT_MAX); // fiction
 }
 
-FACTS_FINISHED
+void FactsRegisterAll() {
+     FACTS_REGISTER(AboutLogic);
+     FACTS_REGISTER(AboutInts);
+}
+
 FACTS_MAIN
 ```
 
 ### Step 2 - Compile fact checks into an executable
 
-If the "facts.h" and "facts.c" source files are in the same folder as "sample_facts.c", they can be compiled into one executable with (cc is usally the c compiler, -g is the debug option, and -lm asks for the math library which facts.c uses):
+If the "facts.h" and "facts.c" source files are in the same folder as "sample_facts.c", they can be compiled into one executable with (cc is usally the c compiler, -g is the debug option):
 ```sh
-cc -g -o sample_facts sample_facts.c facts.c -lm
+cc -g -o sample_facts sample_facts.c facts.c
 ```
 
 Alternatively, if you are writing C++, you can call this file "sample_facts.cpp", and instead compile with:
 ```sh
-c++ -g -o sample_facts sample_facts.cpp facts.c -lm
+c++ -g -o sample_facts sample_facts.cpp facts.c
 ```
 
 ### Step 3 - Run the executable to fact check
@@ -147,3 +160,5 @@ gdb sample_facts
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
 
 Enjoy your fact checking!
+
+

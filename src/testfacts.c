@@ -14,7 +14,15 @@ FACTS(Double) {
   FACT(a,==,b);
 }
 
-FACTS_FINISHED
+// Works if optimizer does not rearrange memory... (uncomment)
+
+// FACTS_FINISHED
+
+// Works even if optimizer rearranges memory...
+void FactsRegisterAll() {
+  FACTS_REGISTER(Alpha);
+  FACTS_REGISTER(Integer);
+  FACTS_REGISTER(Double);
+}
 
 FACTS_MAIN
-
