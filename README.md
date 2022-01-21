@@ -4,18 +4,16 @@ Facts is a less-is-more C/C++ test framework.
 
 ## Why
 
-Test frameworks have become a barrier to testing.  They are too complicated and require understaing their notation too much.
+Test frameworks have become a barrier to testing.  They are too complicated to build and use.
 
-Also, the big test frameworks are, well, big.  This makes them hard to use when building the test framework is harder than building your code.
-
-Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With a few things to understand beyond the language itself, you can enjoy the benefits of a test framework that is on your side.
+Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With a few things to understand, you can enjoy the benefits of a test framework that is on your side.
 
 ## Overview
 
 Here are the things to know:
 
 1. `FACT(a,op,b)` is a fact check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is the statement that `x == 3` is a fact.
-2. Facts are in a `FACTS(AboutThing) {...} groups, or `FACTS_EXCLUDE(AboutThing)` groups.  `FACTS_EXCLUDE(...)` are (surprise!) excluded by default.
+2. Facts are in a `FACTS(AboutThing) {...} groups, or `FACTS_EXCLUDE(AboutExludedThing)` groups.
 3. End your fact-checking with (all your `FACTS`/`FACTS_EXCLUDE`):
 ```C
 FACTS_REGISTER_ALL() {
@@ -170,5 +168,3 @@ Enjoy your fact checking!
 Note the compiler may rearrange or eliminate `FACTS()` while optimizing code.  If that is true, `FACTS_REGISTER_AUTO` may fail to automatically find all the facts.  Making an explicit `FACTS_REGISTER_ALL` is reliable even if you are building tests with memory optimizations.
 
 Replacing `FACTS_REGISTER_ALL` with `FACTS_REGISTER_AUTO` will ignore the explict registration and scan memory facts groups.  This is nice when rapidly creating tests.  The `--facts_register_all` option will generate `FACTS_REGISTER_ALL` for portable testing.
-
-
