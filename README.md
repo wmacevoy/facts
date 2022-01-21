@@ -8,18 +8,18 @@ Test frameworks have become a barrier to testing.  They are too complicated and 
 
 Also, the big test frameworks are, well, big.  This makes them hard to use when building the test framework is harder than building your code.
 
-Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With about 3 things to understand beyond the language itself, you can enjoy the benefits of a test framework that is on your side.
+Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With a few things to understand beyond the language itself, you can enjoy the benefits of a test framework that is on your side.
 
 ## Overview
 
 Here are the things to know:
 
-1. `FACT(a,op,b)` is a fact check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is an assertion that `== 3`.
-2. Facts are in a `FACTS(AboutThing) {...} group, or a `FACTS_EXCLUDE(AboutThing)` group, which is excluded by default.
-3. End your fact-checking with (replace name1, etc with all your FACTS(name) groups)
+1. `FACT(a,op,b)` is a fact check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is the statement that `x == 3` is a fact.
+2. Facts are in a `FACTS(AboutThing) {...} groups, or `FACTS_EXCLUDE(AboutThing)` groups.  `FACTS_EXCLUDE(...)` are (surprise!) excluded by default.
+3. End your fact-checking with (all your `FACTS`/`FACTS_EXCLUDE`):
 ```C
 FACTS_REGISTER_ALL() {
-  FACTS_REGISTER(AboutThing1);
+  FACTS_REGISTER(AboutThing1); 
   FACTS_REGISTER(AboutThing2);
   FACTS_REGISTER(AboutThing3);
 }
@@ -64,7 +64,7 @@ if (not (eval(a) op eval(b))) {
 }
 ```
 
-Notice the __TWICE__.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no easy way to get around this and stick to the C language.
+Notice the __TWICE__.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no reliable way to get around this and stick to the C language.
 
 The `FactsFiction()` call makes it easy to set a break point in the debugger to inspect a failure.  Set a break point in FactsFiction() and the first failure will stop the debugger in the FACTS(...) that are being checked.
 
@@ -78,7 +78,7 @@ FACTS_REGISTER_ALL() {
 }
 ```
 
-You can call the FactsMain(...) as your main (test-only) main with
+You can call the FactsMain(...) as your (test-only) main with
 
 ```C
 FACTS_MAIN
