@@ -7,6 +7,7 @@ static Facts *head = NULL, *tail = NULL;
 
 int facts_fictions = 0;
 int facts_truths = 0;
+void FactsFind();
 void FactsRegisterAll();
 
 // Wildcard pattern match.
@@ -380,44 +381,79 @@ void FactsCheck()
 //
 int FactsMain(int argc, const char *argv[])
 {
-  int status = 2;
-  int checked = 0;
-  for (int argi = 1; argi <= argc; ++argi)
-  {
-    const char *arg = (argi < argc) ? argv[argi] : NULL;
+  int status = 0;
+  int check = 1;
+  for (int argi = 1; argi < argc; ++argi)
     {
-      const char *op = "--facts_include=";
-      if (arg != NULL && strncmp(arg, op, strlen(op)) == 0)
+      const char *arg = (argi < argc) ? argv[argi] : NULL;
       {
-        FactsInclude(arg + strlen(op));
-        continue;
+	const char *op = "--facts_include=";
+	if (strncmp(arg, op, strlen(op)) == 0)
+	  {
+	    FactsInclude(arg + strlen(op));
+	    continue;
+	  }
+      }
+      {
+	const char *op = "--facts_exclude=";
+	if (strncmp(arg, op, strlen(op)) == 0)
+	  {
+	    FactsExclude(arg + strlen(op));
+	    continue;
+	  }
+      }
+      {
+	const char *op = "--facts_find";
+	if (strcmp(arg, op) == 0)
+	  {
+	    FactsFind();
+	    continue;
+	  }
+      }
+      
+      {
+	const char *op = "--facts_register_all";
+	if (strcmp(arg, op) == 0)
+	  {
+	    check = 0;
+	    FactsFind();
+	    printf("FACTS_REGISTER_ALL() {\n");
+	    for (Facts *facts = head; facts != NULL; facts = facts->next)
+	      {
+		printf("    FACTS_REGISTER(%s);\n",facts->name);
+	      }
+	    printf("}\n");
+	    continue;
+	  }
+      }
+      {
+	const char *op = "--facts_skip";
+	if (strcmp(arg, op) == 0)
+	  {
+	    check = 0;
+	    continue;
+	  }
+      }
+      {
+	const char *op = "--facts_help";
+	if (strcmp(arg, op) == 0)
+	  {
+	    check = 0;
+	    printf("default is to check all registered facts\n");
+	    printf("    --facts_include=\"*wildcard pattern*\"\n --- include certain facts\n");
+	    printf("    --facts_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
+	    printf("    --facts_register_all --- auto* generate FACTS_REGISTER_ALL\n");
+	    printf("    --facts_find --- auto* find facts\n");
+	    printf("    --facts_skip --- don't fact check\n");
+	    printf("    --facts_help --- this help\n");
+	    printf("    * Optimized executables may miss auto facts.\n");
+	    printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
+	    continue;
+	  }
       }
     }
-    {
-      const char *op = "--facts_exclude=";
-      if (arg != NULL && strncmp(arg, op, strlen(op)) == 0)
-      {
-        FactsExclude(arg + strlen(op));
-        continue;
-      }
-    }
-    {
-      const char *op = "--facts_check";
-      if ((arg != NULL && strcmp(arg, op) == 0) || (arg == NULL && !checked))
-      {
-        FactsCheck();
-        checked = 1;
-        if (facts_fictions > 0)
-        {
-          status = 1;
-        }
-        if (facts_truths > 0 && status == 2)
-        {
-          status = 0;
-        }
-        continue;
-      }
-    }
-  }
-  return status;
+  
+  if (check) { FactsCheck(); }
+  
+  return (facts_fictions == 0) ? 0 : 1;
 }

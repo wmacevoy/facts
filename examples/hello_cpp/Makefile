@@ -1,4 +1,3 @@
-CXXFLAGS=-g -std=c++11
-LDLIBS=
-
+all : hello
 hello : hello.cpp facts.c
+	c++ -g -o $@ $^

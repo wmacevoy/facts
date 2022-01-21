@@ -94,22 +94,32 @@ extern int facts_truths;
 #ifdef __cplusplus
 #define FACT(a,op,b) FACT_CERR(a,op,b)
 #define CHECK(a,op,b) CHECK_CERR(a,op,b)
+#define FACTS_EXTERN extern "C"
 #else
 #define CHECK(a,op,b) CHECK_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
 #define FACT(a,op,b) FACT_PRINT(a,op,b,FACTS_PRINT_FORMAT(a))
+#define FACTS_EXTERN
 #endif
 
 #define FACTS_DECLARE(name,state) void facts_ ##name## _function (Facts *facts); Facts facts_ ##name## _data = { FACTS_SIG, __FILE__, __LINE__, #name, &facts_ ##name## _function, state, NULL, NULL }; void facts_ ##name## _function(Facts *facts)
 
-#define FACTS(name) FACTS_DECLARE(name,FACTS_STATE_INCLUDE)
+#define FACTS_INCLUDE(name) FACTS_DECLARE(name,FACTS_STATE_INCLUDE)
 #define FACTS_EXCLUDE(name) FACTS_DECLARE(name,FACTS_STATE_EXCLUDE)
+#define FACTS(name) FACTS_INCLUDE(name)
 
 #ifndef FACTS_C
 FACTS(0000_BEGIN) {}
 #endif
 
-#define FACTS_FINISHED FACTS(zzzz_END) {}; void FactsRegisterAll() { FactsFindInMemory(&facts_0000_BEGIN_data, &facts_zzzz_END_data); }
-
 #define FACTS_REGISTER(name) FactsRegister(&facts_ ##name## _data)
+
+#define FACTS_REGISTER_ALL					     \
+  FACTS(zzzz_END) {};						     \
+  void FactsFind() {						     \
+    FactsFindInMemory(&facts_0000_BEGIN_data, &facts_zzzz_END_data); \
+  }								     \
+  void FactsRegisterAll
+
+#define FACTS_REGISTER_AUTO FACTS_REGISTER_ALL() { FactsFind(); } void FactRegisterIgnored
 
 #define FACTS_MAIN int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }

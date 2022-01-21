@@ -12,18 +12,21 @@ Facts is a less-is-more C/C++ test framework.  There is intentionally not much h
 
 ## Overview
 
-There are three new things to know:
+Here are the things to know:
 
-1. `FACT(a,op,b)` is a fact check in a `FACTS(AboutThing)` group.  Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.
-2. After stating (what you think) are facts, you end your fact-checking with (replace name1, etc with all your FACTS(name) groups)
+1. `FACT(a,op,b)` is a fact check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is an assertion that `== 3`.
+2. Facts are in a `FACTS(AboutThing) {...} group, or a `FACTS_EXCLUDE(AboutThing)` group, which is excluded by default.
+3. End your fact-checking with (replace name1, etc with all your FACTS(name) groups)
 ```C
-void FactsRegisterAll() {
-  FACTS_REGISTER(name1);
-  FACTS_REGISTER(name2);
-  FACTS_REGISTER(name3);
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(AboutThing1);
+  FACTS_REGISTER(AboutThing2);
+  FACTS_REGISTER(AboutThing3);
 }
 ```
-3. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FactsRegisterAll() {...}`.
+4. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_ALL() {...}`.
+
+5. Running the executable will check all the (not excluded) facts by default.  There are command line options to do other things (--facts_help).
 
 Below are these steps in more detail.
 
@@ -68,7 +71,7 @@ The `FactsFiction()` call makes it easy to set a break point in the debugger to 
 After describing all the `FACTS`, you __MUST__ mark the end of the facts with
 
 ```C
-void FactsRegisterAll() {
+FACTS_REGISTER_ALL() {
      FACTS_REGISTER(name1);
      FACTS_REGISTER(name2);
      FACTS_REGISTER(name3);
@@ -99,7 +102,7 @@ FACTS(AboutInts) {
   FACT(INT_MAX+1,>,INT_MAX); // fiction
 }
 
-void FactsRegisterAll() {
+FACTS_REGISTER_ALL() {
      FACTS_REGISTER(AboutLogic);
      FACTS_REGISTER(AboutInts);
 }
@@ -160,5 +163,12 @@ gdb sample_facts
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
 
 Enjoy your fact checking!
+
+
+## Optional Automatic Fact Finding
+
+Note the compiler may rearrange or eliminate `FACTS()` while optimizing code.  If that is true, `FACTS_REGISTER_AUTO` may fail to automatically find all the facts.  Making an explicit `FACTS_REGISTER_ALL` is reliable even if you are building tests with memory optimizations.
+
+Replacing `FACTS_REGISTER_ALL` with `FACTS_REGISTER_AUTO` will ignore the explict registration and scan memory facts groups.  This is nice when rapidly creating tests.  The `--facts_register_all` option will generate `FACTS_REGISTER_ALL` for portable testing.
 
 

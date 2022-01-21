@@ -5,22 +5,22 @@ For the simple command-line build, you should get away with (-g for debug):
 
 ## Compile
 ```bash
-g++ *.cpp *.c
+g++ -o hello *.cpp *.c
 ```
 
 ## Run all tests
 ```bash
-./a.out
+./hello
 ```
 
 ## Run some tests
 ```bash
-./a.out --facts_include='*F'
+./hello --facts_include='*F'
 ```
 
 ## Skip some tests
 ```bash
-./a.out --facts_exclude='*F'
+./hello --facts_exclude='*F'
 ```
 
 

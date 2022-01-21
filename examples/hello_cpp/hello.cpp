@@ -21,7 +21,7 @@ FACTS(AboutG) {
   FACT(23,==,g(10)); // fails
 }
 
-void FactsRegisterAll() {
+FACTS_REGISTER_ALL() {
   FACTS_REGISTER(AboutF);
   FACTS_REGISTER(AboutG);
 }
