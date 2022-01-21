@@ -167,4 +167,4 @@ Enjoy your fact checking!
 
 Note the compiler may rearrange or eliminate `FACTS()` while optimizing code.  If that is true, `FACTS_REGISTER_AUTO` may fail to automatically find all the facts.  Making an explicit `FACTS_REGISTER_ALL` is reliable even if you are building tests with memory optimizations.
 
-Replacing `FACTS_REGISTER_ALL` with `FACTS_REGISTER_AUTO` will ignore the explict registration and scan memory facts groups.  This is nice when rapidly creating tests.  The `--facts_register_all` option will generate `FACTS_REGISTER_ALL` for portable testing.
+Replacing `FACTS_REGISTER_ALL` with `FACTS_REGISTER_AUTO` will ignore the explict registration and scan memory for facts groups.  This is nice when rapidly creating tests.  The `--facts_register_all` option will generate `FACTS_REGISTER_ALL` for portable testing.
