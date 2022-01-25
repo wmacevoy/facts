@@ -115,9 +115,9 @@ If the "facts.h" and "facts.c" source files are in the same folder as "sample_fa
 cc -g -o sample_facts sample_facts.c facts.c
 ```
 
-Alternatively, if you are writing C++, you can call this file "sample_facts.cpp", and instead compile with:
+Alternatively, if you are writing C++, you can call this file "sample_facts.cpp", and instead compile with (if "facts.h", "facts.c", and "facts.cpp" are in the same folder):
 ```sh
-c++ -g -o sample_facts sample_facts.cpp facts.c
+c++ -g -o sample_facts sample_facts.cpp facts.cpp
 ```
 
 ### Step 3 - Run the executable to fact check

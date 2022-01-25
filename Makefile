@@ -20,7 +20,10 @@ examples/hello_cpp/facts.h : include/facts.h
 examples/hello_cpp/facts.c : src/facts.c
 	cp $< $@
 
-examples/hello_cpp/hello : examples/hello_cpp/hello.cpp examples/hello_cpp/facts.c examples/hello_cpp/facts.h
+examples/hello_cpp/facts.cpp : src/facts.cpp
+	cp $< $@
+
+examples/hello_cpp/hello : examples/hello_cpp/hello.cpp examples/hello_cpp/facts.cpp examples/hello_cpp/facts.c examples/hello_cpp/facts.h
 	$(MAKE) -C examples/hello_cpp hello
 
 tmp/facts.o: src/facts.c include/facts.h

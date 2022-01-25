@@ -4,22 +4,22 @@ For the simple command-line build, you should get away with (-g for debug):
 
 
 ## Compile
-```bash
-g++ -o hello *.cpp *.c
+```sh
+c++ -o hello *.cpp
 ```
 
 ## Run all tests
-```bash
+```sh
 ./hello
 ```
 
 ## Run some tests
-```bash
+```sh
 ./hello --facts_include='*F'
 ```
 
 ## Skip some tests
-```bash
+```sh
 ./hello --facts_exclude='*F'
 ```
 

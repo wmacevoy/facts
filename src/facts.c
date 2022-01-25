@@ -1,14 +1,15 @@
 #include <stdarg.h>
-#include <stdint.h>
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 
 #define FACTS_C 1
 #include "facts.h"
 static Facts *head = NULL, *tail = NULL;
 
-int facts_fictions = 0;
-int facts_truths = 0;
-void FactsFind();
-void FactsRegisterAll();
+uint64_t facts_fictions = 0;
+uint64_t facts_truths = 0;
+FACTS_EXTERN void FactsFind();
+FACTS_EXTERN void FactsRegisterAll();
 
 // Wildcard pattern match.
 //
@@ -18,7 +19,7 @@ void FactsRegisterAll();
 // 5+2*sizeof(void*)+strlen(pattern)/4
 //
 // bytes of (stack) memory.
-static int matches(const char *str, const char *pattern)
+FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 {
   uint8_t np = strlen(pattern);
 
@@ -89,14 +90,14 @@ static int matches(const char *str, const char *pattern)
 // It is really provided as an easy debug break point when
 // tracing a fact check that fails.
 
-void FactsFiction(const char *file, int line, Facts *facts)
+FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts)
 {
   ++facts_fictions;
 }
 
 // Include FACTS to check with wildcard pattern.
 
-void FactsInclude(const char *pattern)
+FACTS_EXTERN void FactsInclude(const char *pattern)
 {
   if (head == NULL)
   {
@@ -111,7 +112,7 @@ void FactsInclude(const char *pattern)
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
-    if (facts->status == FACTS_STATE_EXCLUDE && matches(facts->name, pattern))
+    if (facts->status == FACTS_STATE_EXCLUDE && FactsMatches(facts->name, pattern))
     {
       facts->status = FACTS_STATE_INCLUDE;
     }
@@ -119,9 +120,8 @@ void FactsInclude(const char *pattern)
 }
 
 // Exclude facts with wildcard pattern.
-// Normally all FACTS are checked,
-// but
-void FactsExclude(const char *pattern)
+// Normally all FACTS are checked.
+FACTS_EXTERN void FactsExclude(const char *pattern)
 {
   if (head == NULL)
   {
@@ -129,14 +129,14 @@ void FactsExclude(const char *pattern)
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
-    if (facts->status == FACTS_STATE_INCLUDE && matches(facts->name, pattern))
+    if (facts->status == FACTS_STATE_INCLUDE && FactsMatches(facts->name, pattern))
     {
       facts->status = FACTS_STATE_EXCLUDE;
     }
   }
 }
 
-void FactsRegister(Facts *facts) {
+FACTS_EXTERN void FactsRegister(Facts *facts) {
   if (facts->prev == NULL && facts->next == NULL) {
     facts->prev = tail;
     facts->next = NULL;
@@ -165,7 +165,7 @@ void FactsRegister(Facts *facts) {
 // calls this with two book-end tests that are ignored.
 //
 
-void FactsFindInMemory(Facts *begin, Facts *end)
+FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
 {
   if (head != NULL || tail != NULL) {
     return;
@@ -231,7 +231,7 @@ void FactsFindInMemory(Facts *begin, Facts *end)
 }
 
 // Symmetric relative error.
-double FactsRelErr(double a, double b)
+FACTS_EXTERN double FactsRelErr(double a, double b)
 {
     double abserr = a >= b ? a-b : b-a;
   a = a >= 0 ? a : -a;
@@ -241,7 +241,7 @@ double FactsRelErr(double a, double b)
 }
 
 // Absolute error.
-double FactsAbsErr(double a, double b)
+FACTS_EXTERN double FactsAbsErr(double a, double b)
 {
   double abserr = a >= b ? a-b : b-a;
   return abserr;
@@ -254,7 +254,7 @@ double FactsAbsErr(double a, double b)
 // the remaing argmuments are processed with
 // the modified format string is passed to
 // vfprintf.
-void FactsPrint(const char *format, ...)
+FACTS_EXTERN void FactsPrint(const char *format, ...)
 {
   int i, j;
   int reformatSize=strlen(format)+1;
@@ -302,7 +302,7 @@ void FactsPrint(const char *format, ...)
 // a particular set.
 //
 //
-void FactsCheck()
+FACTS_EXTERN void FactsCheck()
 {
   int fails = 0;
   if (head == NULL)
@@ -368,7 +368,7 @@ void FactsCheck()
   }
   double checks = ((double) facts_truths) + ((double) facts_fictions);
   double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
-  fprintf(stderr, "%d (%1.1f%%) truths and %d (%1.1f%%) fictions checked.\n",
+  fprintf(stderr, "%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
           facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
 }
 
@@ -379,7 +379,7 @@ void FactsCheck()
 // least one FACT failed, and 2 means no facts were checked.
 //
 //
-int FactsMain(int argc, const char *argv[])
+FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 {
   int status = 0;
   int check = 1;

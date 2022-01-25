@@ -1,12 +1,13 @@
 #pragma once
 
-
 #ifdef __cplusplus
 #include <iostream>
+extern "C" {
 #endif
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 
 struct FactsStruct;
@@ -29,8 +30,6 @@ typedef struct FactsStruct Facts;
 #define FACTS_STATE_FAIL    -1
 #define FACTS_STATE_INCLUDE  0
 #define FACTS_STATE_PASS     1
-
-
 
 struct FactsStruct {
   unsigned char sig[FACTS_SIG_LEN];
@@ -80,8 +79,8 @@ int FactsMain(int argc, const char *argv[]);
 				       void *: "%p")
   
 #ifndef FACTS_C
-extern int facts_fictions;
-extern int facts_truths;
+extern uint64_t facts_fictions;
+extern uint64_t facts_truths;
 #endif
 
 #define CHECK_PRINT(a,op,b,fmt) (((a) op (b)) ? (++facts_truths,1) : (FactsFiction(__FILE__,__LINE__,facts),FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is fiction\n",fmt,fmt,__FILE__,__LINE__,#a,(a),#b,(b)), facts->status=-1,0))
@@ -115,11 +114,15 @@ FACTS(0000_BEGIN) {}
 
 #define FACTS_REGISTER_ALL					     \
   FACTS(zzzz_END) {};						     \
-  void FactsFind() {						     \
+  FACTS_EXTERN void FactsFind() {						     \
     FactsFindInMemory(&facts_0000_BEGIN_data, &facts_zzzz_END_data); \
   }								     \
-  void FactsRegisterAll
+  FACTS_EXTERN void FactsRegisterAll
 
 #define FACTS_REGISTER_AUTO FACTS_REGISTER_ALL() { FactsFind(); } void FactRegisterIgnored
 
 #define FACTS_MAIN int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
