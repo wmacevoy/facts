@@ -1,0 +1,14 @@
+src/testfacts.c 3: Alpha facts check started
+src/testfacts.c 4: 'c' {=c} <= 'b' {=b} is [1;31mfiction[0m
+src/testfacts.c 3: Alpha facts check ended [1;31mbadly[0m
+src/testfacts.c 7: Integer facts check started
+src/testfacts.c 9: a {=1} == b {=2} is [1;31mfiction[0m
+src/testfacts.c 7: Integer facts check ended [1;31mbadly[0m
+src/testfacts.c 12: Double facts check started
+src/testfacts.c 14: a {=1.3} == b {=2.4} is [1;31mfiction[0m
+src/testfacts.c 12: Double facts check ended [1;31mbadly[0m
+facts summary.
+facts check Alpha [1;31mfailed[0m
+facts check Integer [1;31mfailed[0m
+facts check Double [1;31mfailed[0m
+0 (0.0%) truths and 3 (100.0%) fictions checked.

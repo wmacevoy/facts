@@ -41,3 +41,6 @@ bin/testfacts : tmp/testfacts.o tmp/facts.o
 examples : examples/hello_c/hello examples/hello_cpp/hello
 
 all : bin/testfacts examples
+
+test : bin/testfacts
+	bin/testfacts 2>&1 | diff - testfacts.expected
