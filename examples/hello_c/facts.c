@@ -9,10 +9,6 @@ static Facts *head = NULL, *tail = NULL;
 uint64_t facts_fictions = 0;
 uint64_t facts_truths = 0;
 
-#define GREEN "\033[1;32m"
-#define RED "\033[1;31m"
-#define RESET "\033[0m"
-
 FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
 
@@ -331,11 +327,11 @@ FACTS_EXTERN void FactsCheck()
       }
       fprintf(stderr, "%s %d: %s facts check ended%s\n",
               facts->file, facts->line, facts->name,
-              (facts->status == FACTS_STATE_FAIL ? " " RED "badly" RESET : ""));
+              (facts->status == FACTS_STATE_FAIL ? " " FACTS_RED "badly" FACTS_RESET : ""));
     }
     else if (facts->status == FACTS_STATE_EXCLUDE)
     {
-      fprintf(stderr, "%s %d: %s facts check " RED "excluded" RESET ".\n",
+      fprintf(stderr, "%s %d: %s facts check " FACTS_RED "excluded" FACTS_RESET ".\n",
               facts->file, facts->line, facts->name);
     }
   }
@@ -345,21 +341,21 @@ FACTS_EXTERN void FactsCheck()
   {
     if (facts->status == FACTS_STATE_PASS)
     {
-      fprintf(stderr, "facts check %s " GREEN "passed" RESET "\n", facts->name);
+      fprintf(stderr, "facts check %s " FACTS_GREEN "passed" FACTS_RESET "\n", facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
     if (facts->status == FACTS_STATE_FAIL)
     {
-      fprintf(stderr, "facts check %s " RED "failed" RESET "\n", facts->name);
+      fprintf(stderr, "facts check %s " FACTS_RED "failed" FACTS_RESET "\n", facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
     if (facts->status == FACTS_STATE_EXCLUDE)
     {
-      fprintf(stderr, "facts check %s " RED "excluded" RESET "\n", facts->name);
+      fprintf(stderr, "facts check %s " FACTS_RED "excluded" FACTS_RESET "\n", facts->name);
     }
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
@@ -368,7 +364,7 @@ FACTS_EXTERN void FactsCheck()
         facts->status != FACTS_STATE_FAIL &&
         facts->status != FACTS_STATE_EXCLUDE)
     {
-      fprintf(stderr, "facts check %s " RED "status %d" RESET "\n", facts->name, facts->status);
+      fprintf(stderr, "facts check %s " FACTS_RED "status %d" FACTS_RESET "\n", facts->name, facts->status);
     }
   }
   double checks = ((double) facts_truths) + ((double) facts_fictions);
