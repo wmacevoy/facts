@@ -40,7 +40,11 @@ bin/testfacts : tmp/testfacts.o tmp/facts.o
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 
+.PHONY: all
 all : bin/testfacts examples
 
-test : bin/testfacts
+.PHONY: test
+test : all
 	bin/testfacts 2>&1 | diff - testfacts.expected
+	examples/hello_c/hello 2>&1 | diff - hello_c.expected
+	examples/hello_cpp/hello 2>&1 | diff - hello_cpp.expected

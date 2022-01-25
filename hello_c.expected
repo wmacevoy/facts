@@ -1,0 +1,9 @@
+hello.c 12: AboutF facts check started
+hello.c 12: AboutF facts check ended
+hello.c 22: AboutG facts check started
+hello.c 24: 23 {=23} == g(10) {=17} is [1;31mfiction[0m
+hello.c 22: AboutG facts check ended [1;31mbadly[0m
+facts summary.
+facts check AboutF [1;32mpassed[0m
+facts check AboutG [1;31mfailed[0m
+3 (75.0%) truths and 1 (25.0%) fictions checked.
