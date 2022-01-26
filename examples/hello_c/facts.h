@@ -57,7 +57,8 @@ extern "C"
   void FactsExclude(const char *pattern);
   void FactsRegister(Facts *facts);
   void FactsCheck();
-  void FactsFiction(const char *file, int line, Facts *facts);
+  void FactsFiction(const char *file, int line, Facts *facts,
+		    const char *a, const char *op, const char *b);
 
   double FactsAbsErr(double a, double b);
   double FactsRelErr(double a, double b);
@@ -113,12 +114,12 @@ extern "C"
   extern int facts_format;
 #endif
 
-#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts), FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is " FACTS_RED "fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, __LINE__, #a, (a), #b, (b)), facts->status = -1, 0))
+#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is " FACTS_RED "fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, __LINE__, #a, (a), #b, (b)), facts->status = -1, 0))
 #define FACT_PRINT(a, op, b, fmt)  \
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts), std::cout << __FILE__ << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is " FACTS_RED "fiction" FACTS_RESET << std::endl, facts->status = -1, 0))
+#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), std::cout << __FILE__ << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is " FACTS_RED "fiction" FACTS_RESET << std::endl, facts->status = -1, 0))
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return

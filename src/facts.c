@@ -18,10 +18,10 @@ int facts_format = FACTS_CONSOLE;
 FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
 
-// Wildcard pattern match.
+// Wildcard pattern matcher.
 //
-// Desiged to work on small
-// systems with possibly no regex library using
+// Desiged to work on small systems with possibly no regex library.
+//
 //
 // 5+2*sizeof(void*)+strlen(pattern)/4
 //
@@ -97,12 +97,29 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 // It is really provided as an easy debug break point when
 // tracing a fact check that fails.
 
-FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts)
+FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
+			       const char *a, const char *op, const char *b)
 {
+  if (strcmp(facts->file,file) == 0) {
+    printf("Debug facts_%s_function on line %d of file %s with a breakpoint on line %d to figure this out, for example with gdb:\n",
+	   facts->name,facts->line,facts->file,line);
+  } else {
+    printf("Debug facts_%s_function on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s" FACTS_RESET " to figure this out, for example in gdb:\n",
+	   facts->name,facts->line,facts->file,line,file);
+  }
+  
+  printf("break facts_%s_function\n",facts->name);
+  printf("break \"%s\":%d\n",file,line);
+  printf("run --facts_include %s\n",facts->name);
+  printf("continue");
+  printf("print %s\n",a);
+  printf("print %s\n",b);
+  printf("print (%s) %s (%s)\n",a,op,b);    
+  
   ++facts_fictions;
 }
 
-// Include FACTS to check with wildcard pattern.
+// Include FACTS to check with wildncard pattern.
 
 FACTS_EXTERN void FactsInclude(const char *pattern)
 {
