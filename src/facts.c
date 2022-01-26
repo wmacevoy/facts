@@ -137,22 +137,24 @@ FACTS_EXTERN void FactsExclude(const char *pattern)
   }
 }
 
-FACTS_EXTERN void FactsRegister(Facts *facts) {
-  if (facts->prev == NULL && facts->next == NULL) {
+FACTS_EXTERN void FactsRegister(Facts *facts)
+{
+  if (facts->prev == NULL && facts->next == NULL)
+  {
     facts->prev = tail;
     facts->next = NULL;
     if (tail != NULL)
-      {
-	tail->next = facts;
-      }
+    {
+      tail->next = facts;
+    }
     if (head == NULL)
-      {
-	head = facts;
-      }
+    {
+      head = facts;
+    }
     tail = facts;
   }
 }
-    
+
 // Fact find (internals).
 //
 // C does not provide a way to initialize a list of
@@ -168,11 +170,12 @@ FACTS_EXTERN void FactsRegister(Facts *facts) {
 
 FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
 {
-  if (head != NULL || tail != NULL) {
+  if (head != NULL || tail != NULL)
+  {
     return;
   }
   unsigned char *sig = &begin->sig[0];
-  int delta = sig - (unsigned char *) begin;
+  int delta = sig - (unsigned char *)begin;
   int reversed = 0;
   if (end < begin)
   {
@@ -191,12 +194,12 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
   {
     if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
     {
-      Facts *facts = (Facts *)(p-delta);
+      Facts *facts = (Facts *)(p - delta);
 
       if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL)
       {
         if (strcmp(facts->name, "0000_BEGIN") == 0 ||
-	    strcmp(facts->name, "zzzz_END") == 0)
+            strcmp(facts->name, "zzzz_END") == 0)
           continue;
         if (reversed)
         {
@@ -234,17 +237,17 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
 // Symmetric relative error.
 FACTS_EXTERN double FactsRelErr(double a, double b)
 {
-    double abserr = a >= b ? a-b : b-a;
+  double abserr = a >= b ? a - b : b - a;
   a = a >= 0 ? a : -a;
   b = b >= 0 ? b : -b;
   double maxabs = a >= b ? a : b;
-  return abserr/maxabs;
+  return abserr / maxabs;
 }
 
 // Absolute error.
 FACTS_EXTERN double FactsAbsErr(double a, double b)
 {
-  double abserr = a >= b ? a-b : b-a;
+  double abserr = a >= b ? a - b : b - a;
   return abserr;
 }
 
@@ -258,25 +261,27 @@ FACTS_EXTERN double FactsAbsErr(double a, double b)
 FACTS_EXTERN void FactsPrint(const char *format, ...)
 {
   int i, j;
-  int reformatSize=strlen(format)+1;
+  int reformatSize = strlen(format) + 1;
 
   va_list ap;
   va_start(ap, format);
-  for (i = 0, j=0; format[i] != 0;)
+  for (i = 0, j = 0; format[i] != 0;)
   {
     if (format[i] == '%' && format[i + 1] == '?')
     {
       const char *fs = va_arg(ap, const char *);
       reformatSize += strlen(fs);
       i += 2;
-    } else {
+    }
+    else
+    {
       i += 1;
     }
   }
 
   char reformat[reformatSize];
   va_start(ap, format);
-  for (i = 0, j=0; format[i] != 0;)
+  for (i = 0, j = 0; format[i] != 0;)
   {
     if (format[i] == '%' && format[i + 1] == '?')
     {
@@ -367,7 +372,7 @@ FACTS_EXTERN void FactsCheck()
       fprintf(stderr, "facts check %s " FACTS_RED "status %d" FACTS_RESET "\n", facts->name, facts->status);
     }
   }
-  double checks = ((double) facts_truths) + ((double) facts_fictions);
+  double checks = ((double)facts_truths) + ((double)facts_fictions);
   double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
   fprintf(stderr, "%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
           facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
@@ -385,76 +390,79 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
   int status = 0;
   int check = 1;
   for (int argi = 1; argi < argc; ++argi)
+  {
+    const char *arg = (argi < argc) ? argv[argi] : NULL;
     {
-      const char *arg = (argi < argc) ? argv[argi] : NULL;
+      const char *op = "--facts_include=";
+      if (strncmp(arg, op, strlen(op)) == 0)
       {
-	const char *op = "--facts_include=";
-	if (strncmp(arg, op, strlen(op)) == 0)
-	  {
-	    FactsInclude(arg + strlen(op));
-	    continue;
-	  }
-      }
-      {
-	const char *op = "--facts_exclude=";
-	if (strncmp(arg, op, strlen(op)) == 0)
-	  {
-	    FactsExclude(arg + strlen(op));
-	    continue;
-	  }
-      }
-      {
-	const char *op = "--facts_find";
-	if (strcmp(arg, op) == 0)
-	  {
-	    FactsFind();
-	    continue;
-	  }
-      }
-      
-      {
-	const char *op = "--facts_register_all";
-	if (strcmp(arg, op) == 0)
-	  {
-	    check = 0;
-	    FactsFind();
-	    printf("FACTS_REGISTER_ALL() {\n");
-	    for (Facts *facts = head; facts != NULL; facts = facts->next)
-	      {
-		printf("    FACTS_REGISTER(%s);\n",facts->name);
-	      }
-	    printf("}\n");
-	    continue;
-	  }
-      }
-      {
-	const char *op = "--facts_skip";
-	if (strcmp(arg, op) == 0)
-	  {
-	    check = 0;
-	    continue;
-	  }
-      }
-      {
-	const char *op = "--facts_help";
-	if (strcmp(arg, op) == 0)
-	  {
-	    check = 0;
-	    printf("default is to check all registered facts\n");
-	    printf("    --facts_include=\"*wildcard pattern*\"\n --- include certain facts\n");
-	    printf("    --facts_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
-	    printf("    --facts_register_all --- auto* generate FACTS_REGISTER_ALL\n");
-	    printf("    --facts_find --- auto* find facts\n");
-	    printf("    --facts_skip --- don't fact check\n");
-	    printf("    --facts_help --- this help\n");
-	    printf("    * Optimized executables may miss auto facts.\n");
-	    printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
-	    continue;
-	  }
+        FactsInclude(arg + strlen(op));
+        continue;
       }
     }
-  
-  if (check) { FactsCheck(); }
-  
+    {
+      const char *op = "--facts_exclude=";
+      if (strncmp(arg, op, strlen(op)) == 0)
+      {
+        FactsExclude(arg + strlen(op));
+        continue;
+      }
+    }
+    {
+      const char *op = "--facts_find";
+      if (strcmp(arg, op) == 0)
+      {
+        FactsFind();
+        continue;
+      }
+    }
+
+    {
+      const char *op = "--facts_register_all";
+      if (strcmp(arg, op) == 0)
+      {
+        check = 0;
+        FactsFind();
+        printf("FACTS_REGISTER_ALL() {\n");
+        for (Facts *facts = head; facts != NULL; facts = facts->next)
+        {
+          printf("    FACTS_REGISTER(%s);\n", facts->name);
+        }
+        printf("}\n");
+        continue;
+      }
+    }
+    {
+      const char *op = "--facts_skip";
+      if (strcmp(arg, op) == 0)
+      {
+        check = 0;
+        continue;
+      }
+    }
+    {
+      const char *op = "--facts_help";
+      if (strcmp(arg, op) == 0)
+      {
+        check = 0;
+        printf("default is to check all registered facts\n");
+        printf("    --facts_include=\"*wildcard pattern*\"\n --- include certain facts\n");
+        printf("    --facts_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
+        printf("    --facts_register_all --- auto* generate FACTS_REGISTER_ALL\n");
+        printf("    --facts_find --- auto* find facts\n");
+        printf("    --facts_skip --- don't fact check\n");
+        printf("    --facts_help --- this help\n");
+        printf("    * Optimized executables may miss auto facts.\n");
+        printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
+        continue;
+      }
+    }
+  }
+
+  if (check)
+  {
+    FactsCheck();
+  }
+
   return (facts_fictions == 0) ? 0 : 1;
 }
