@@ -45,18 +45,18 @@ examples : examples/hello_c/hello examples/hello_cpp/hello
 
 .PHONY: check
 check : all
-	bin/testfacts | diff - testfacts.expected
-	examples/hello_c/hello | diff - hello_c.expected
-	examples/hello_cpp/hello | diff - hello_cpp.expected
-	bin/testfacts --facts_junit | diff - testfacts.expected.junit
-	examples/hello_c/hello --facts_junit | diff - hello_c.expected.junit
-	examples/hello_cpp/hello --facts_junit | diff - hello_cpp.expected.junit
+	bin/testfacts | diff - expected/testfacts.out
+	examples/hello_c/hello | diff - expected/hello_c.out
+	examples/hello_cpp/hello | diff - expected/hello_cpp.out
+	bin/testfacts --facts_junit | diff - expected/testfacts_junit.out
+	examples/hello_c/hello --facts_junit | diff - expected/hello_c_junit.out
+	examples/hello_cpp/hello --facts_junit | diff - expected/hello_cpp_junit.out
 .PHONY: expected
 expected: all
-	bin/testfacts > testfacts.expected || true
-	examples/hello_c/hello > hello_c.expected || true
-	examples/hello_cpp/hello > hello_cpp.expected || true
-	bin/testfacts --facts_junit > testfacts.expected.junit || true
-	examples/hello_c/hello --facts_junit > hello_c.expected.junit || true
-	examples/hello_cpp/hello --facts_junit > hello_cpp.expected.junit || true
+	bin/testfacts > expected/testfacts.out || true
+	examples/hello_c/hello > expected/hello_c.out || true
+	examples/hello_cpp/hello > expected/hello_cpp.out || true
+	bin/testfacts --facts_junit > expected/testfacts_junit.out || true
+	examples/hello_c/hello --facts_junit > expected/hello_c_junit.out || true
+	examples/hello_cpp/hello --facts_junit > expected/hello_cpp_junit.out || true
 
