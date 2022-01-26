@@ -128,11 +128,21 @@ To check all the facts, you can now run the executable:
 ```
 Here is the output:
 ```
+bin/sample_facts_c
 sample_facts.c 4: AboutLogic facts check started
 sample_facts.c 4: AboutLogic facts check ended
 sample_facts.c 9: AboutInts facts check started
-sample_facts.c 13: 2147483647+1 {=-2147483648} > 2147483647 {=2147483647} is fiction
-sample_facts.c 9: AboutInts facts check ended (badly)
+sample_facts.c/AboutInts 13: 2147483647+1 {=-2147483648} > 2147483647 {=2147483647} is fiction
+Debug facts_AboutInts_function on line 9 of file sample_facts.c with a breakpoint on line 13. For example in gdb:
+break facts_AboutInts_function
+break "sample_facts.c":13
+run --facts_include AboutInts
+continue
+print 2147483647+1
+print 2147483647
+print (2147483647+1) > (2147483647)
+
+sample_facts.c 9: AboutInts facts check ended badly
 facts summary.
 facts check AboutLogic passed
 facts check AboutInts failed
