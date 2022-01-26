@@ -5,6 +5,7 @@ CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
 CFLAGS_DEBUG=-g -std=$(CSTD) -Iinclude
 LDLIBS=
 
+
 examples/hello_c/facts.c : src/facts.c
 	cp $< $@
 
