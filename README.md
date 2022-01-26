@@ -132,7 +132,8 @@ sample_facts.c 4: AboutLogic facts check started
 sample_facts.c 4: AboutLogic facts check ended
 sample_facts.c 9: AboutInts facts check started
 sample_facts.c/AboutInts 13: 2147483647+1 {=-2147483648} > 2147483647 {=2147483647} is fiction
-Debug facts_AboutInts_function on line 9 of file sample_facts.c with a breakpoint on line 13. For example in gdb:
+Debug facts_AboutInts_function on line 9 of file sample_facts.c with a breakpoint on line 13.
+For example in gdb:
 break facts_AboutInts_function
 break "sample_facts.c":13
 run --facts_include AboutInts
