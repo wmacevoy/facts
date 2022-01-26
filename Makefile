@@ -1,12 +1,14 @@
 CSTD?=c11
+CXXSTD?=c++11
 CDBG?=-g
 COPT?=
 CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
 CFLAGS_DEBUG=-g -std=$(CSTD) -Iinclude
+CXXFLAGS_DEBUG=-g -std=$(CXXSTD) -Iinclude
 LDLIBS=
 
 .PHONY: all
-all : bin/testfacts examples
+all : bin/testfacts bin/sample_facts_c bin/sample_facts_cpp examples
 
 examples/hello_c/facts.c : src/facts.c
 	cp $< $@
@@ -40,6 +42,15 @@ tmp/testfacts.o: src/testfacts.c include/facts.h
 bin/testfacts : tmp/testfacts.o tmp/facts.o
 	mkdir -p bin
 	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+bin/sample_facts_c : src/sample_facts.c src/facts.c include/facts.h
+	mkdir -p bin
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o bin/sample_facts_c src/sample_facts.c src/facts.c $(LDLIBS)
+
+bin/sample_facts_cpp : src/sample_facts.cpp src/facts.cpp src/facts.c include/facts.h
+	mkdir -p bin
+	cp src/sample_facts.cpp bin/sample_facts.cpp
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o bin/sample_facts_cpp src/sample_facts.cpp src/facts.cpp $(LDLIBS)
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 

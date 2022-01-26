@@ -326,7 +326,7 @@ FACTS_EXTERN void FactsPrint(const char *format, ...)
   va_end(ap);
 }
 
-#define FACTS_BLOCKSIZE 4096
+#define FACTS_BLOCKSIZE 1024
 // Execute facts checks.
 //
 // You can preceed this with FactsInclude and FactsExlude to pick out
