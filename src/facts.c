@@ -352,13 +352,11 @@ FACTS_EXTERN void FactsCheck()
   {
     if (facts_format == FACTS_JUNIT)
     {
-      fflush(stdout);
+      printf("<testcase name=\"%s\">\n", facts->name);
+      printf("<system-out>");      
       fflush(stderr);
-      assert((tmpout = tmpfile()) != NULL);
       assert((tmperr = tmpfile()) != NULL);
-      oldout = dup(STDOUT_FILENO);
       olderr = dup(STDERR_FILENO);
-      assert(dup2(fileno(tmpout), STDOUT_FILENO) >= 0);
       assert(dup2(fileno(tmperr), STDERR_FILENO) >= 0);
     }
     if (facts->status == FACTS_STATE_INCLUDE)
@@ -387,47 +385,33 @@ FACTS_EXTERN void FactsCheck()
     {
       fflush(stdout);
       fflush(stderr);
-      int64_t outlen = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+      printf("</system-out>\n");      
       int64_t errlen = lseek(STDERR_FILENO, 0, SEEK_CUR);
-      dup2(oldout, STDOUT_FILENO);
       dup2(olderr, STDERR_FILENO);
-      fseek(tmpout, 0L, SEEK_SET);
       fseek(tmperr, 0L, SEEK_SET);
-      printf("<testcase name=\"%s\">\n", facts->name);
+      if (errlen > 0) {
+	printf("<system-err>");
+	for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
+	  {
+	    char data[FACTS_BLOCKSIZE];
+	    int n = errlen - p;
+	    if (n > FACTS_BLOCKSIZE)
+	      n = FACTS_BLOCKSIZE;
+	    fread(data, n, 1, tmperr);
+	    fwrite(data, n, 1, stdout);
+	  }
+	printf("</system-err>\n");
+      }
       if (facts->status == FACTS_STATE_EXCLUDE)
       {
-        printf("  <skipped />\n");
+        printf("<skipped />\n");
       }
       if (facts->status == FACTS_STATE_FAIL)
       {
-        printf("  <failure>See stdout</failure>\n");
+        printf("<failure>See stdout</failure>\n");
       }
-      printf("  <system-out>");
-      for (int64_t p = 0; p < outlen; p += FACTS_BLOCKSIZE)
-      {
-        char data[FACTS_BLOCKSIZE];
-        int n = outlen - p;
-        if (n > FACTS_BLOCKSIZE)
-          n = FACTS_BLOCKSIZE;
-        fread(data, n, 1, tmpout);
-        fwrite(data, n, 1, stdout);
-      }
-      printf("</system-out>\n");
-      printf("  <system-err>");
-      for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
-      {
-        char data[FACTS_BLOCKSIZE];
-        int n = outlen - p;
-        if (n > FACTS_BLOCKSIZE)
-          n = FACTS_BLOCKSIZE;
-        fread(data, n, 1, tmperr);
-        fwrite(data, n, 1, stdout);
-      }
-      printf("</system-err>\n");
-      printf("</testcase>\n");
-      fclose(tmpout);
+      printf("</testcase>\n\n");
       fclose(tmperr);
-      close(oldout);
       close(olderr);
     }
   }

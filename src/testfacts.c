@@ -14,6 +14,21 @@ FACTS(Double) {
   FACT(a,==,b);
 }
 
+FACTS(Err) {
+  fprintf(stderr,"message to stderr.\n");
+}
+
+FACTS(LargeErr) {
+  for (int i=0; i<1000; ++i) {
+    fprintf(stderr,"message #%d to stderr.\n",i);
+  }
+}
+
+FACTS(Out) {
+  fprintf(stdout,"message to stderr.\n");
+}
+
+
 FACTS_REGISTER_AUTO() {
   FACTS_REGISTER(Alpha);
   FACTS_REGISTER(Integer);

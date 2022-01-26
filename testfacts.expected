@@ -34,7 +34,17 @@ print b
 print (a) == (b)
 
 src/testfacts.c 12: Double facts check ended [1;31mbadly[0m
+src/testfacts.c 17: Err facts check started
+src/testfacts.c 17: Err facts check ended
+src/testfacts.c 21: LargeErr facts check started
+src/testfacts.c 21: LargeErr facts check ended
+src/testfacts.c 27: Out facts check started
+message to stderr.
+src/testfacts.c 27: Out facts check ended
 facts summary.
+facts check Err [1;32mpassed[0m
+facts check LargeErr [1;32mpassed[0m
+facts check Out [1;32mpassed[0m
 facts check Alpha [1;31mfailed[0m
 facts check Integer [1;31mfailed[0m
 facts check Double [1;31mfailed[0m
