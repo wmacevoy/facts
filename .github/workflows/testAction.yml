@@ -8,10 +8,10 @@ on:
 
 jobs:
   build-and-test:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v2
-      - name: make all
-      run: make all
-      - name: make test
-      run: make test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: make all
+    run: make all
+    - name: make test
+    run: make test
