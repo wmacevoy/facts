@@ -5,6 +5,8 @@ CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
 CFLAGS_DEBUG=-g -std=$(CSTD) -Iinclude
 LDLIBS=
 
+.PHONY: all
+all : bin/testfacts examples
 
 examples/hello_c/facts.c : src/facts.c
 	cp $< $@
@@ -41,11 +43,8 @@ bin/testfacts : tmp/testfacts.o tmp/facts.o
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 
-.PHONY: all
-all : bin/testfacts examples
-
-.PHONY: test
-test : all
+.PHONY: check
+check : all
 	bin/testfacts | diff - testfacts.expected
 	examples/hello_c/hello | diff - hello_c.expected
 	examples/hello_cpp/hello | diff - hello_cpp.expected
