@@ -128,7 +128,6 @@ To check all the facts, you can now run the executable:
 ```
 Here is the output:
 ```
-bin/sample_facts_c
 sample_facts.c 4: AboutLogic facts check started
 sample_facts.c 4: AboutLogic facts check ended
 sample_facts.c 9: AboutInts facts check started
