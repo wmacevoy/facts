@@ -36,6 +36,9 @@ extern "C"
 #define FACTS_STATE_INCLUDE 0
 #define FACTS_STATE_PASS 1
 
+#define FACTS_CONSOLE 0
+#define FACTS_JUNIT 1
+
   struct FactsStruct
   {
     unsigned char sig[FACTS_SIG_LEN];
@@ -107,6 +110,7 @@ extern "C"
 #ifndef FACTS_C
   extern uint64_t facts_fictions;
   extern uint64_t facts_truths;
+  extern int facts_format;
 #endif
 
 #define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts), FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is " FACTS_RED "fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, __LINE__, #a, (a), #b, (b)), facts->status = -1, 0))
@@ -114,7 +118,7 @@ extern "C"
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts), std::cerr << __FILE__ << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is " FACTS_RED "fiction" FACTS_RESET << std::endl, facts->status = -1, 0))
+#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts), std::cout << __FILE__ << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is " FACTS_RED "fiction" FACTS_RESET << std::endl, facts->status = -1, 0))
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return

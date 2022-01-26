@@ -45,6 +45,9 @@ all : bin/testfacts examples
 
 .PHONY: test
 test : all
-	bin/testfacts 2>&1 | diff - testfacts.expected
-	examples/hello_c/hello 2>&1 | diff - hello_c.expected
-	examples/hello_cpp/hello 2>&1 | diff - hello_cpp.expected
+	bin/testfacts | diff - testfacts.expected
+	examples/hello_c/hello | diff - hello_c.expected
+	examples/hello_cpp/hello | diff - hello_cpp.expected
+	bin/testfacts --facts_junit | diff - testfacts.expected.junit
+	examples/hello_c/hello --facts_junit | diff - hello_c.expected.junit
+	examples/hello_cpp/hello --facts_junit | diff - hello_cpp.expected.junit

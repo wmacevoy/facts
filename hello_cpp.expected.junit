@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="facts">
+<testcase name="AboutF">
+  <system-out>hello.cpp 9: AboutF facts check started
+hello.cpp 9: AboutF facts check ended
+</system-out>
+  <system-err></system-err>
+</testcase>
+<testcase name="AboutG">
+  <failure>See stdout</failure>
+  <system-out>hello.cpp 19: AboutG facts check started
+hello.cpp 21: 23 {=23} == g(10) {=17} is [1;31mfiction[0m
+hello.cpp 19: AboutG facts check ended [1;31mbadly[0m
+</system-out>
+  <system-err></system-err>
+</testcase>
+</testsuite>
