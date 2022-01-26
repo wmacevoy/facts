@@ -51,3 +51,12 @@ check : all
 	bin/testfacts --facts_junit | diff - testfacts.expected.junit
 	examples/hello_c/hello --facts_junit | diff - hello_c.expected.junit
 	examples/hello_cpp/hello --facts_junit | diff - hello_cpp.expected.junit
+.PHONY: expected
+expected: all
+	bin/testfacts > testfacts.expected || true
+	examples/hello_c/hello > hello_c.expected || true
+	examples/hello_cpp/hello > hello_cpp.expected || true
+	bin/testfacts --facts_junit > testfacts.expected.junit || true
+	examples/hello_c/hello --facts_junit > hello_c.expected.junit || true
+	examples/hello_cpp/hello --facts_junit > hello_cpp.expected.junit || true
+

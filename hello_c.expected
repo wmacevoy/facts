@@ -1,7 +1,16 @@
 hello.c 12: AboutF facts check started
 hello.c 12: AboutF facts check ended
 hello.c 22: AboutG facts check started
-hello.c 24: 23 {=23} == g(10) {=17} is [1;31mfiction[0m
+[1;31mhello.c/AboutG 24: 23 {=23} == g(10) {=17} is fiction[0m
+[1;32mDebug facts_AboutG_function on line 22 of file hello.c with a breakpoint on line 24. For example in gdb:[0m
+break facts_AboutG_function
+break "hello.c":24
+run --facts_include AboutG
+continue
+print 23
+print g(10)
+print (23) == (g(10))
+
 hello.c 22: AboutG facts check ended [1;31mbadly[0m
 facts summary.
 facts check AboutF [1;32mpassed[0m

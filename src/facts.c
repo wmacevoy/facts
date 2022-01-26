@@ -101,20 +101,21 @@ FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
 			       const char *a, const char *op, const char *b)
 {
   if (strcmp(facts->file,file) == 0) {
-    printf("Debug facts_%s_function on line %d of file %s with a breakpoint on line %d to figure this out, for example with gdb:\n",
+    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d. For example in gdb:" FACTS_RESET "\n",
 	   facts->name,facts->line,facts->file,line);
   } else {
-    printf("Debug facts_%s_function on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s" FACTS_RESET " to figure this out, for example in gdb:\n",
+    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s." FACTS_GREEN " For example in gdb:" FACTS_RESET "\n",
 	   facts->name,facts->line,facts->file,line,file);
   }
   
   printf("break facts_%s_function\n",facts->name);
   printf("break \"%s\":%d\n",file,line);
   printf("run --facts_include %s\n",facts->name);
-  printf("continue");
+  printf("continue\n");
   printf("print %s\n",a);
   printf("print %s\n",b);
-  printf("print (%s) %s (%s)\n",a,op,b);    
+  printf("print (%s) %s (%s)\n",a,op,b);
+  printf("\n");
   
   ++facts_fictions;
 }

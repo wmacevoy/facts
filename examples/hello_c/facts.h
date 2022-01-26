@@ -114,12 +114,12 @@ extern "C"
   extern int facts_format;
 #endif
 
-#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), FactsPrint("%s %d: %s {=%?} " #op " %s {=%?} is " FACTS_RED "fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, __LINE__, #a, (a), #b, (b)), facts->status = -1, 0))
+#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsPrint(FACTS_RED "%s/%s %d: %s {=%?} " #op " %s {=%?} is fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, facts->name, __LINE__, #a, (a), #b, (b)), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, 0))
 #define FACT_PRINT(a, op, b, fmt)  \
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), std::cout << __FILE__ << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is " FACTS_RED "fiction" FACTS_RESET << std::endl, facts->status = -1, 0))
+#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (std::cout << FACTS_RED << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is fiction" FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, 0))
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return
