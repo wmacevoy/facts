@@ -1,4 +1,4 @@
-#include "fact.h"
+#include "factcheck.h"
 
 FACT_CHECK(Alpha) {
   FACT_PRINT('c',<=,'b',"%c");

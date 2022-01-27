@@ -9,13 +9,14 @@
 
 #define FACT_CHECK_C 1
 #include "factcheck.h"
-static FactCheck *head = NULL, *tail = NULL;
+
+static struct FactCheckStruct *head = NULL, *tail = NULL;
 
 uint64_t fact_fictions = 0;
 uint64_t fact_truths = 0;
 int fact_format = FACT_CONSOLE;
 
-FACT_EXTERN void FactCheckFind();
+FACT_EXTERN void FactCheckRegisterAuto();
 FACT_EXTERN void FactCheckRegisterAll();
 
 // Wildcard pattern matcher.
@@ -97,7 +98,7 @@ FACT_EXTERN int FactCheckMatches(const char *str, const char *pattern)
 // It is really provided as an easy debug break point when
 // tracing a fact check that fails.
 
-FACT_EXTERN void FactIsFiction(const char *file, int line, FactCheck *check,
+FACT_EXTERN void FactIsFiction(const char *file, int line, struct FactCheckStruct *check,
 			       const char *a, const char *op, const char *b)
 {
   if (strcmp(check->file,file) == 0) {
@@ -132,7 +133,7 @@ FACT_EXTERN void FactCheckInclude(const char *pattern)
   if (head == NULL)
   {
     FactCheckRegisterAll();
-    for (FactCheck *check = head; check != NULL; check = check->next)
+    for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
     {
       if (check->status == FACT_STATE_INCLUDE)
       {
@@ -140,7 +141,7 @@ FACT_EXTERN void FactCheckInclude(const char *pattern)
       }
     }
   }
-  for (FactCheck *check = head; check != NULL; check = check->next)
+  for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
   {
     if (check->status == FACT_STATE_EXCLUDE && FactCheckMatches(check->name, pattern))
     {
@@ -156,7 +157,7 @@ FACT_EXTERN void FactCheckExclude(const char *pattern)
   {
     FactCheckRegisterAll();
   }
-  for (FactCheck *check = head; check != NULL; check = check->next)
+  for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
   {
     if (check->status == FACT_STATE_INCLUDE && FactCheckMatches(check->name, pattern))
     {
@@ -165,7 +166,7 @@ FACT_EXTERN void FactCheckExclude(const char *pattern)
   }
 }
 
-FACT_EXTERN void FactCheckRegister(FactCheck *check)
+FACT_EXTERN void FactCheckRegister(struct FactCheckStruct *check)
 {
   if (check->prev == NULL && check->next == NULL)
   {
@@ -190,7 +191,7 @@ FACT_EXTERN void FactCheckRegister(FactCheck *check)
 // signature (a random byte pattern) each fact check
 // creates.
 
-FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
+FACT_EXTERN void FactCheckFindInMemory(struct FactCheckStruct *begin, struct FactCheckStruct *end)
 {
   if (head != NULL || tail != NULL)
   {
@@ -201,7 +202,7 @@ FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
   int reversed = 0;
   if (end < begin)
   {
-    FactCheck *tmp = end;
+    struct FactCheckStruct *tmp = end;
     end = begin;
     begin = tmp;
     reversed = 1;
@@ -214,9 +215,9 @@ FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
        p != NULL && p < e;
        p = (unsigned char *)memchr(p + FACT_SIG_LEN, sig[0], e - p))
   {
-    if (memcmp(p, sig, _SIG_LEN) == 0)
+    if (memcmp(p, sig, FACT_SIG_LEN) == 0)
     {
-      FactCheck *check = (FactCheck *)(p - delta);
+      struct FactCheckStruct *check = (struct FactCheckStruct *)(p - delta);
 
       if (check->name != NULL && check->function != NULL && check->prev == NULL && check->next == NULL)
       {
@@ -344,7 +345,7 @@ FACT_EXTERN void FactCheck()
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     printf("<testsuite name=\"fact\">\n");
   }
-  for (FactCheck *check = head; check != NULL; check = check->next)
+  for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
   {
     if (fact_format == FACT_JUNIT)
     {
@@ -415,28 +416,28 @@ FACT_EXTERN void FactCheck()
   if (fact_format == FACT_CONSOLE)
   {
     printf("Fact check summary.\n");
-    for (FactCheck *check = head; check != NULL; check = check->next)
+    for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
     {
       if (check->status == FACT_STATE_PASS)
       {
         printf("Fact check %s " FACT_GREEN "passed" FACT_RESET "\n", check->name);
       }
     }
-    for (FactCheck *check = head; check != NULL; check = check->next)
+    for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
     {
       if (check->status == FACT_STATE_FAIL)
       {
         printf("Fact check %s " FACT_RED "failed" FACT_RESET "\n", check->name);
       }
     }
-    for (FactCheck *check = head; check != NULL; check = check->next)
+    for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
     {
       if (check->status == FACT_STATE_EXCLUDE)
       {
         printf("Fact check %s " FACT_RED "excluded" FACT_RESET "\n", check->name);
       }
     }
-    for (FactCheck *check = head; check != NULL; check = check->next)
+    for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
     {
       if (check->status != FACT_STATE_PASS &&
           check->status != FACT_STATE_FAIL &&
@@ -483,35 +484,19 @@ FACT_EXTERN int FactCheckMain(int argc, const char *argv[])
         continue;
       }
     }
-    {
-      const char *op = "--check_find";
-      if (strcmp(arg, op) == 0)
-      {
-        FactCheckFind();
-        continue;
-      }
-    }
 
     {
       const char *op = "--check_register_all";
       if (strcmp(arg, op) == 0)
       {
         check = 0;
-        FactCheckFind();
+        FactCheckRegisterAuto();
         printf("FACT_CHECK_REGISTER_ALL() {\n");
-        for (FactCheck *check = head; check != NULL; check = check->next)
+        for (struct FactCheckStruct *check = head; check != NULL; check = check->next)
         {
           printf("    FACT_CHECK_REGISTER(%s);\n", check->name);
         }
         printf("}\n");
-        continue;
-      }
-    }
-    {
-      const char *op = "--check_skip";
-      if (strcmp(arg, op) == 0)
-      {
-        check = 0;
         continue;
       }
     }
@@ -532,8 +517,6 @@ FACT_EXTERN int FactCheckMain(int argc, const char *argv[])
         printf("    --check_include=\"*wildcard pattern*\"\n --- include certain fact checks\n");
         printf("    --check_exclude=\"*wildcard pattern*\"\n --- exclude certain fact checks\n");
         printf("    --check_register_all --- auto* generate FACT_CHECK_REGISTER_ALL\n");
-        printf("    --check_find --- auto* find fact checks\n");
-        printf("    --check_skip --- don't fact check\n");
         printf("    --check_help --- this help\n");
         printf("    --check_junit --- use junit format\n");
         printf("    * Optimized executables may miss auto fact checks.\n");
