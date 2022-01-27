@@ -3,8 +3,8 @@ src/testfacts.c 3: Alpha facts check started
 [1;32mDebug facts_Alpha_function on line 3 of file src/testfacts.c with a breakpoint on line 4.[0m
 For example in gdb:
 break facts_Alpha_function
-break "src/testfacts.c":4
 run --facts_include=Alpha
+break 4
 continue
 print 'c'
 print 'b'
@@ -16,8 +16,8 @@ src/testfacts.c 7: Integer facts check started
 [1;32mDebug facts_Integer_function on line 7 of file src/testfacts.c with a breakpoint on line 9.[0m
 For example in gdb:
 break facts_Integer_function
-break "src/testfacts.c":9
 run --facts_include=Integer
+break 9
 continue
 print a
 print b
@@ -29,8 +29,8 @@ src/testfacts.c 12: Double facts check started
 [1;32mDebug facts_Double_function on line 12 of file src/testfacts.c with a breakpoint on line 14.[0m
 For example in gdb:
 break facts_Double_function
-break "src/testfacts.c":14
 run --facts_include=Double
+break 14
 continue
 print a
 print b
