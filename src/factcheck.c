@@ -7,16 +7,16 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define FACTS_C 1
-#include "facts.h"
-static Facts *head = NULL, *tail = NULL;
+#define FACT_CHECK_C 1
+#include "factcheck.h"
+static FactCheck *head = NULL, *tail = NULL;
 
-uint64_t facts_fictions = 0;
-uint64_t facts_truths = 0;
-int facts_format = FACTS_CONSOLE;
+uint64_t fact_fictions = 0;
+uint64_t fact_truths = 0;
+int fact_format = FACT_CONSOLE;
 
-FACTS_EXTERN void FactsFind();
-FACTS_EXTERN void FactsRegisterAll();
+FACT_EXTERN void FactCheckFind();
+FACT_EXTERN void FactCheckRegisterAll();
 
 // Wildcard pattern matcher.
 //
@@ -26,7 +26,7 @@ FACTS_EXTERN void FactsRegisterAll();
 // 5+2*sizeof(void*)+strlen(pattern)/4
 //
 // bytes of (stack) memory.
-FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
+FACT_EXTERN int FactCheckMatches(const char *str, const char *pattern)
 {
   uint8_t np = strlen(pattern);
 
@@ -97,103 +97,100 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 // It is really provided as an easy debug break point when
 // tracing a fact check that fails.
 
-FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
+FACT_EXTERN void FactIsFiction(const char *file, int line, FactCheck *check,
 			       const char *a, const char *op, const char *b)
 {
-  if (strcmp(facts->file,file) == 0) {
-    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d." FACTS_RESET "\n",
-	   facts->name,facts->line,facts->file,line);
+  if (strcmp(check->file,file) == 0) {
+    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d." FACTS_RESET "\n",
+	   check->name,check->line,check->file,line);
   } else {
-    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s." FACTS_RESET "\n",
-	   facts->name,facts->line,facts->file,line,file);
+    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s." FACTS_RESET "\n",
+	   check->name,check->line,check->file,line,file);
   }
 
   printf("For example in gdb:\n");
-  printf("break facts_%s_function\n",facts->name);
-  printf("break \"%s\":%d\n",file,line);
-  printf("run --facts_include %s\n",facts->name);
+  printf("break fact_check_function_%s\n",check->name);
+  printf("run --check_include=%s\n",check->name);
   printf("continue\n");
+  if (strcmp(check->file,file)==0) {
+    printf("break %d\n",line);
+  } else {
+    printf("break \"%s\":%d\n",file,line);
+  }
   printf("print %s\n",a);
   printf("print %s\n",b);
   printf("print (%s) %s (%s)\n",a,op,b);
   printf("\n");
   
-  ++facts_fictions;
+  ++fact_fictions;
 }
 
-// Include FACTS to check with wildncard pattern.
+// Include fact checks with wildncard pattern.
 
-FACTS_EXTERN void FactsInclude(const char *pattern)
+FACT_EXTERN void FactCheckInclude(const char *pattern)
 {
   if (head == NULL)
   {
-    FactsRegisterAll();
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    FactCheckRegisterAll();
+    for (FactCheck *check = head; checks != NULL; check = check->next)
     {
-      if (facts->status == FACTS_STATE_INCLUDE)
+      if (check->status == FACT_STATE_INCLUDE)
       {
-        facts->status = FACTS_STATE_EXCLUDE;
+        check->status = FACT_STATE_EXCLUDE;
       }
     }
   }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  for (FactCheck *check = head; checks != NULL; check = check->next)
   {
-    if (facts->status == FACTS_STATE_EXCLUDE && FactsMatches(facts->name, pattern))
+    if (check->status == FACT_STATE_EXCLUDE && FactCheckMatches(check->name, pattern))
     {
-      facts->status = FACTS_STATE_INCLUDE;
+      check->status = FACT_STATE_INCLUDE;
     }
   }
 }
 
-// Exclude facts with wildcard pattern.
-// Normally all FACTS are checked.
-FACTS_EXTERN void FactsExclude(const char *pattern)
+// Exclude fact checks with wildcard pattern.
+FACT_EXTERN void FactCheckExclude(const char *pattern)
 {
   if (head == NULL)
   {
-    FactsRegisterAll();
+    FactCheckRegisterAll();
   }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  for (FactCheck *check = head; checks != NULL; check = check->next)
   {
-    if (facts->status == FACTS_STATE_INCLUDE && FactsMatches(facts->name, pattern))
+    if (check->status == FACT_STATE_INCLUDE && FactCheckMatches(check->name, pattern))
     {
-      facts->status = FACTS_STATE_EXCLUDE;
+      check->status = FACT_STATE_EXCLUDE;
     }
   }
 }
 
-FACTS_EXTERN void FactsRegister(Facts *facts)
+FACT_EXTERN void FactCheckRegister(FactCheck *check)
 {
-  if (facts->prev == NULL && facts->next == NULL)
+  if (check->prev == NULL && check->next == NULL)
   {
-    facts->prev = tail;
-    facts->next = NULL;
+    check->prev = tail;
+    check->next = NULL;
     if (tail != NULL)
     {
-      tail->next = facts;
+      tail->next = check;
     }
     if (head == NULL)
     {
-      head = facts;
+      head = check;
     }
-    tail = facts;
+    tail = check;
   }
 }
 
 // Fact find (internals).
 //
 // C does not provide a way to initialize a list of
-// FACTS checks.  So we search memory for them by the
-// signature (a random byte pattern) each FACTS check
+// fact checks.  So we search memory for them by the
+// signature (a random byte pattern) each fact check
 // creates.
-//
-// The test declarations are bracketed in source by
-// the #include "facts.h" to begin and FACTS_FINISHED
-// at the end.  FACTS_FINISHED creates a function that
-// calls this with two book-end tests that are ignored.
-//
 
-FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
+FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
 {
   if (head != NULL || tail != NULL)
   {
@@ -204,14 +201,14 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
   int reversed = 0;
   if (end < begin)
   {
-    Facts *tmp = end;
+    FactCheck *tmp = end;
     end = begin;
     begin = tmp;
     reversed = 1;
   }
 
   unsigned char *b = ((unsigned char *)begin);
-  unsigned char *e = ((unsigned char *)end) + sizeof(Facts);
+  unsigned char *e = ((unsigned char *)end) + sizeof(FactCheck);
 
   for (unsigned char *p = b;
        p != NULL && p < e;
@@ -219,40 +216,40 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
   {
     if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
     {
-      Facts *facts = (Facts *)(p - delta);
+      FactCheck *check = (FactCheck *)(p - delta);
 
-      if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL)
+      if (check->name != NULL && check->function != NULL && check->prev == NULL && check->next == NULL)
       {
-        if (strcmp(facts->name, "0000_BEGIN") == 0 ||
-            strcmp(facts->name, "zzzz_END") == 0)
+        if (strcmp(check->name, "0000_BEGIN") == 0 ||
+            strcmp(check->name, "zzzz_END") == 0)
           continue;
         if (reversed)
         {
-          facts->next = head;
-          facts->prev = NULL;
+          check->next = head;
+          check->prev = NULL;
           if (head != NULL)
           {
-            head->prev = facts;
+            head->prev = check;
           }
           if (tail == NULL)
           {
-            tail = facts;
+            tail = check;
           }
-          head = facts;
+          head = check;
         }
         else
         {
-          facts->prev = tail;
-          facts->next = NULL;
+          check->prev = tail;
+          check->next = NULL;
           if (tail != NULL)
           {
-            tail->next = facts;
+            tail->next = check;
           }
           if (head == NULL)
           {
-            head = facts;
+            head = check;
           }
-          tail = facts;
+          tail = check;
         }
       }
     }
@@ -260,7 +257,7 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
 }
 
 // Symmetric relative error.
-FACTS_EXTERN double FactsRelErr(double a, double b)
+FACT_EXTERN double FactsRelErr(double a, double b)
 {
   double abserr = a >= b ? a - b : b - a;
   a = a >= 0 ? a : -a;
@@ -270,7 +267,7 @@ FACTS_EXTERN double FactsRelErr(double a, double b)
 }
 
 // Absolute error.
-FACTS_EXTERN double FactsAbsErr(double a, double b)
+FACT_EXTERN double FactsAbsErr(double a, double b)
 {
   double abserr = a >= b ? a - b : b - a;
   return abserr;
@@ -283,7 +280,7 @@ FACTS_EXTERN double FactsAbsErr(double a, double b)
 // the remaing argmuments are processed with
 // the modified format string is passed to
 // vfprintf.
-FACTS_EXTERN void FactsPrint(const char *format, ...)
+FACT_EXTERN void FactPrint(const char *format, ...)
 {
   int i, j;
   int reformatSize = strlen(format) + 1;
@@ -327,62 +324,62 @@ FACTS_EXTERN void FactsPrint(const char *format, ...)
   va_end(ap);
 }
 
-#define FACTS_BLOCKSIZE 1024
+#define FACT_BLOCKSIZE 1024
 // Execute facts checks.
 //
 // You can preceed this with FactsInclude and FactsExlude to pick out
 // a particular set.
 //
 //
-FACTS_EXTERN void FactsCheck()
+FACT_EXTERN void FactCheck()
 {
   int fails = 0;
   if (head == NULL)
   {
-    FactsRegisterAll();
+    FactCheckRegisterAll();
   }
 
   FILE *tmpout = NULL, *tmperr = NULL;
   int oldout = -1, olderr = -1;
-  if (facts_format == FACTS_JUNIT)
+  if (fact_format == FACT_JUNIT)
   {
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    printf("<testsuite name=\"facts\">\n");
+    printf("<testsuite name=\"fact\">\n");
   }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  for (FactCheck *check = head; checks != NULL; check = check->next)
   {
-    if (facts_format == FACTS_JUNIT)
+    if (fact_format == FACT_JUNIT)
     {
-      printf("<testcase name=\"%s\">\n", facts->name);
+      printf("<testcase name=\"%s\">\n", check->name);
       printf("<system-out>");      
       fflush(stderr);
       assert((tmperr = tmpfile()) != NULL);
       olderr = dup(STDERR_FILENO);
       assert(dup2(fileno(tmperr), STDERR_FILENO) >= 0);
     }
-    if (facts->status == FACTS_STATE_INCLUDE)
+    if (check->status == FACT_STATE_INCLUDE)
     {
-      printf("%s %d: %s facts check started\n",
-             facts->file, facts->line, facts->name);
-      facts->function(facts);
-      if (facts->status == FACTS_STATE_INCLUDE)
+      printf("%s %d: fact check %s started\n",
+             check->file, check->line, check->name);
+      check->function(check);
+      if (check->status == FACT_STATE_INCLUDE)
       {
-        facts->status = FACTS_STATE_PASS;
+        check->status = FACT_STATE_PASS;
       }
-      if (facts->status == FACTS_STATE_FAIL)
+      if (check->status == FACT_STATE_FAIL)
       {
         ++fails;
       }
-      printf("%s %d: %s facts check ended%s\n",
-             facts->file, facts->line, facts->name,
-             (facts->status == FACTS_STATE_FAIL ? " " FACTS_RED "badly" FACTS_RESET : ""));
+      printf("%s %d: fact check %s ended%s\n",
+             check->file, check->line, check->name,
+             (check->status == FACT_STATE_FAIL ? " " FACT_RED "badly" FACT_RESET : ""));
     }
     else
     {
-      printf("%s %d: %s facts check " FACTS_RED "excluded" FACTS_RESET ".\n",
-             facts->file, facts->line, facts->name);
+      printf("%s %d: fact check %s " FACT_RED "excluded" FACT_RESET ".\n",
+             check->file, check->line, check->name);
     }
-    if (facts_format == FACTS_JUNIT)
+    if (fact_format == FACT_JUNIT)
     {
       fflush(stdout);
       fflush(stderr);
@@ -392,22 +389,22 @@ FACTS_EXTERN void FactsCheck()
       fseek(tmperr, 0L, SEEK_SET);
       if (errlen > 0) {
 	printf("<system-err>");
-	for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
+	for (int64_t p = 0; p < errlen; p += FACT_BLOCKSIZE)
 	  {
-	    char data[FACTS_BLOCKSIZE];
+	    char data[FACT_BLOCKSIZE];
 	    int n = errlen - p;
-	    if (n > FACTS_BLOCKSIZE)
-	      n = FACTS_BLOCKSIZE;
+	    if (n > FACT_BLOCKSIZE)
+	      n = FACT_BLOCKSIZE;
 	    fread(data, n, 1, tmperr);
 	    fwrite(data, n, 1, stdout);
 	  }
 	printf("</system-err>\n");
       }
-      if (facts->status == FACTS_STATE_EXCLUDE)
+      if (check->status == FACTS_STATE_EXCLUDE)
       {
         printf("<skipped />\n");
       }
-      if (facts->status == FACTS_STATE_FAIL)
+      if (check->status == FACTS_STATE_FAIL)
       {
         printf("<failure>See stdout</failure>\n");
       }
@@ -417,46 +414,46 @@ FACTS_EXTERN void FactsCheck()
     }
   }
 
-  if (facts_format == FACTS_CONSOLE)
+  if (fact_format == FACT_CONSOLE)
   {
-    printf("facts summary.\n");
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    printf("Fact check summary.\n");
+    for (FactCheck *check = head; check != NULL; check = check->next)
     {
-      if (facts->status == FACTS_STATE_PASS)
+      if (check->status == FACT_STATE_PASS)
       {
-        printf("facts check %s " FACTS_GREEN "passed" FACTS_RESET "\n", facts->name);
+        printf("Fact check %s " FACT_GREEN "passed" FACT_RESET "\n", check->name);
       }
     }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    for (FactCheck *check = head; check != NULL; check = check->next)
     {
-      if (facts->status == FACTS_STATE_FAIL)
+      if (check->status == FACT_STATE_FAIL)
       {
-        printf("facts check %s " FACTS_RED "failed" FACTS_RESET "\n", facts->name);
+        printf("Facts check %s " FACT_RED "failed" FACT_RESET "\n", check->name);
       }
     }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    for (FactCheck *check = head; check != NULL; check = check->next)
     {
-      if (facts->status == FACTS_STATE_EXCLUDE)
+      if (check->status == FACT_STATE_EXCLUDE)
       {
-        printf("facts check %s " FACTS_RED "excluded" FACTS_RESET "\n", facts->name);
+        printf("Fact check %s " FACT_RED "excluded" FACT_RESET "\n", check->name);
       }
     }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    for (FactCheck *check = head; check != NULL; check = check->next)
     {
-      if (facts->status != FACTS_STATE_PASS &&
-          facts->status != FACTS_STATE_FAIL &&
-          facts->status != FACTS_STATE_EXCLUDE)
+      if (facts->status != FACT_STATE_PASS &&
+          facts->status != FACT_STATE_FAIL &&
+          facts->status != FACT_STATE_EXCLUDE)
       {
-        printf("facts check %s " FACTS_RED "status %d" FACTS_RESET "\n", facts->name, facts->status);
+        printf("Fact check %s " FACTS_RED "status %d" FACTS_RESET "\n", check->name, check->status);
       }
     }
-    double checks = ((double)facts_truths) + ((double)facts_fictions);
+    double checks = ((double)fact_truths) + ((double)fact_fictions);
     double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
     printf("%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
-           facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
+           fact_truths, fact_truths * rate, fact_fictions, fact_fictions * rate);
   }
 
-  if (facts_format == FACTS_JUNIT)
+  if (fact_format == FACT_JUNIT)
   {
     printf("</testsuite>\n");
   }
@@ -469,7 +466,7 @@ FACTS_EXTERN void FactsCheck()
 // least one FACT failed, and 2 means no facts were checked.
 //
 //
-FACTS_EXTERN int FactsMain(int argc, const char *argv[])
+FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
 {
   int status = 0;
   int check = 1;
@@ -477,7 +474,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
   {
     const char *arg = (argi < argc) ? argv[argi] : NULL;
     {
-      const char *op = "--facts_include=";
+      const char *op = "--check_include=";
       if (strncmp(arg, op, strlen(op)) == 0)
       {
         FactsInclude(arg + strlen(op));
@@ -485,7 +482,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       }
     }
     {
-      const char *op = "--facts_exclude=";
+      const char *op = "--check_exclude=";
       if (strncmp(arg, op, strlen(op)) == 0)
       {
         FactsExclude(arg + strlen(op));
@@ -493,7 +490,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       }
     }
     {
-      const char *op = "--facts_find";
+      const char *op = "--check_find";
       if (strcmp(arg, op) == 0)
       {
         FactsFind();
@@ -502,22 +499,22 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
     }
 
     {
-      const char *op = "--facts_register_all";
+      const char *op = "--check_register_all";
       if (strcmp(arg, op) == 0)
       {
         check = 0;
         FactsFind();
-        printf("FACTS_REGISTER_ALL() {\n");
-        for (Facts *facts = head; facts != NULL; facts = facts->next)
+        printf("FACT_CHECK_REGISTER_ALL() {\n");
+        for (FactCheck *check = head; check != NULL; check = check->next)
         {
-          printf("    FACTS_REGISTER(%s);\n", facts->name);
+          printf("    FACT_CHECK_REGISTER(%s);\n", check->name);
         }
         printf("}\n");
         continue;
       }
     }
     {
-      const char *op = "--facts_skip";
+      const char *op = "--check_skip";
       if (strcmp(arg, op) == 0)
       {
         check = 0;
@@ -525,28 +522,28 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       }
     }
     {
-      const char *op = "--facts_junit";
+      const char *op = "--check_junit";
       if (strcmp(arg, op) == 0)
       {
-        facts_format = FACTS_JUNIT;
+        fact_format = FACT_JUNIT;
         continue;
       }
     }
     {
-      const char *op = "--facts_help";
+      const char *op = "--check_help";
       if (strcmp(arg, op) == 0)
       {
         check = 0;
         printf("default is to check all registered facts\n");
-        printf("    --facts_include=\"*wildcard pattern*\"\n --- include certain facts\n");
-        printf("    --facts_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
-        printf("    --facts_register_all --- auto* generate FACTS_REGISTER_ALL\n");
-        printf("    --facts_find --- auto* find facts\n");
-        printf("    --facts_skip --- don't fact check\n");
-        printf("    --facts_help --- this help\n");
-        printf("    --facts_junit --- use junit format\n");
+        printf("    --check_include=\"*wildcard pattern*\"\n --- include certain facts\n");
+        printf("    --check_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
+        printf("    --check_register_all --- auto* generate FACTS_REGISTER_ALL\n");
+        printf("    --check_find --- auto* find fact checks\n");
+        printf("    --check_skip --- don't fact check\n");
+        printf("    --check_help --- this help\n");
+        printf("    --check_junit --- use junit format\n");
         printf("    * Optimized executables may miss auto facts.\n");
-        printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
+        printf("      Use explicit FACT_CHECK_REGISTER_ALL() {...} for reliable fact checking.\n");
         continue;
       }
     }
@@ -554,8 +551,8 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 
   if (check)
   {
-    FactsCheck();
+    FactCheck();
   }
 
-  return (facts_fictions == 0) ? 0 : 1;
+  return (fact_fictions == 0) ? 0 : 1;
 }

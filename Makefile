@@ -8,66 +8,58 @@ CXXFLAGS_DEBUG=-g -std=$(CXXSTD) -Iinclude
 LDLIBS=
 
 .PHONY: all
-all : bin/testfacts bin/sample_facts_c bin/sample_facts_cpp examples
+all : bin/factcheck_factcheck bin/sample examples
 
-examples/hello_c/facts.c : src/facts.c
+examples/hello_c/factcheck.c : src/factcheck.c
 	cp $< $@
 
-examples/hello_c/facts.h : include/facts.h
+examples/hello_c/factcheck.h : include/factcheck.h
 	cp $< $@
 
-examples/hello_c/hello : examples/hello_c/hello.c examples/hello_c/facts.c examples/hello_c/facts.h
+examples/hello_c/hello : examples/hello_c/hello.c examples/hello_c/factcheck.c examples/hello_c/factcheck.h
 	$(MAKE) -C examples/hello_c hello
 
-examples/hello_cpp/facts.h : include/facts.h
+examples/hello_cpp/factcheck.h : include/factcheck.h
 	cp $< $@
 
-examples/hello_cpp/facts.c : src/facts.c
+examples/hello_cpp/factcheck.c : src/factcheck.c
 	cp $< $@
 
-examples/hello_cpp/facts.cpp : src/facts.cpp
+examples/hello_cpp/factcheck.cpp : src/factcheck.cpp
 	cp $< $@
 
-examples/hello_cpp/hello : examples/hello_cpp/hello.cpp examples/hello_cpp/facts.cpp examples/hello_cpp/facts.c examples/hello_cpp/facts.h
+examples/hello_cpp/hello : examples/hello_cpp/hello.cpp examples/hello_cpp/factcheck.cpp examples/hello_cpp/factcheck.c examples/hello_cpp/factcheck.h
 	$(MAKE) -C examples/hello_cpp hello
 
-tmp/facts.o: src/facts.c include/facts.h
-	mkdir -p tmp
-	$(CC) -c $(CFLAGS) -o $@ $<
-
-tmp/testfacts.o: src/testfacts.c include/facts.h
-	mkdir -p tmp
-	$(CC) -c $(CFLAGS_DEBUG) -o $@ $<
-
-bin/testfacts : tmp/testfacts.o tmp/facts.o
+bin/factcheck_factcheck : src/factcheck_factcheck.c src/factcheck.c include/factcheck.h
 	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ src/factcheck_factcheck.c src/factcheck.c $(LDLIBS)
 
-bin/sample_facts_c : src/sample_facts.c src/facts.c include/facts.h
+bin/factcheck_sample_c : src/factcheck_sample.c src/factcheck.c include/factcheck.h
 	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o bin/sample_facts_c src/sample_facts.c src/facts.c $(LDLIBS)
+	cp $^ bin
+	cd bin && $(CC) -g -o factcheck_sample_c factcheck_sample.c factcheck.c
 
-bin/sample_facts_cpp : src/sample_facts.cpp src/facts.cpp src/facts.c include/facts.h
+bin/factcheck_sample_cpp : src/factcheck_sample.cpp src/factcheck.cpp src/factcheck.c include/factcheck.h
 	mkdir -p bin
-	cp src/sample_facts.cpp bin/sample_facts.cpp
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o bin/sample_facts_cpp src/sample_facts.cpp src/facts.cpp $(LDLIBS)
+	cp $^ bin
+	cd bin && $(CXX) -g -o factcheck_sample_cpp factcheck_sample.cpp factcheck.cpp
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 
 .PHONY: check
 check : all
-	bin/testfacts | diff - expected/testfacts.out
+	bin/factcheck_factcheck | diff - expected/factcheck_factcheck.out
 	examples/hello_c/hello | diff - expected/hello_c.out
 	examples/hello_cpp/hello | diff - expected/hello_cpp.out
-	bin/testfacts --facts_junit | diff - expected/testfacts_junit.out
-	examples/hello_c/hello --facts_junit | diff - expected/hello_c_junit.out
-	examples/hello_cpp/hello --facts_junit | diff - expected/hello_cpp_junit.out
+	bin/factcheck_factcheck --check_junit | diff - expected/factcheck_factcheck_junit.out
+	examples/hello_c/hello --check_junit | diff - expected/hello_c_junit.out
+	examples/hello_cpp/hello --check_junit | diff - expected/hello_cpp_junit.out
 .PHONY: expected
 expected: all
 	bin/testfacts > expected/testfacts.out || true
 	examples/hello_c/hello > expected/hello_c.out || true
 	examples/hello_cpp/hello > expected/hello_cpp.out || true
-	bin/testfacts --facts_junit > expected/testfacts_junit.out || true
-	examples/hello_c/hello --facts_junit > expected/hello_c_junit.out || true
-	examples/hello_cpp/hello --facts_junit > expected/hello_cpp_junit.out || true
-
+	bin/factcheck_factcheck --check_junit > expected/factcheck_factcheck_junit.out || true
+	examples/hello_c/hello --check_junit > expected/hello_c_junit.out || true
+	examples/hello_cpp/hello --check_junit > expected/hello_cpp_junit.out || true

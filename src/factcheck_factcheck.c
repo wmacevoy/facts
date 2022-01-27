@@ -1,38 +1,31 @@
-#include "facts.h"
+#include "fact.h"
 
-FACTS(Alpha) {
+FACT_CHECK(Alpha) {
   FACT_PRINT('c',<=,'b',"%c");
 }
 
-FACTS(Integer) {
+FACT_CHECK(Integer) {
   int a=1,b=2;
   FACT(a,==,b);
 }
 
-FACTS(Double) {
+FACT_CHECK(Double) {
   double a=1.3, b=2.4;
   FACT(a,==,b);
 }
 
-FACTS(Err) {
+FACT_CHECK(Err) {
   fprintf(stderr,"message to stderr.\n");
 }
 
-FACTS(LargeErr) {
+FACT_CHECK(LargeErr) {
   for (int i=0; i<100; ++i) {
     fprintf(stderr,"message #%d to stderr.\n",i);
   }
 }
 
-FACTS(Out) {
+FACT_CHECK(Out) {
   fprintf(stdout,"message to stderr.\n");
 }
 
-
-FACTS_REGISTER_AUTO() {
-  FACTS_REGISTER(Alpha);
-  FACTS_REGISTER(Integer);
-  FACTS_REGISTER(Double);
-}
-
-FACTS_MAIN
+FACT_CHECK_DONE
