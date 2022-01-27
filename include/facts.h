@@ -166,8 +166,8 @@ extern "C"
 #define FACTS_MAIN \
   int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
 
-#define FACTS_DONE	  \
-  FACTS_REGISTER_AUTO(); {}			\
+#define FACTS_FINISHED	  \
+  FACTS_REGISTER_AUTO() {}			\
   FACTS_MAIN
 
 #ifdef __cplusplus

@@ -7,7 +7,7 @@
 For example in gdb:
 break facts_Alpha_function
 break "src/testfacts.c":4
-run --facts_include Alpha
+run --facts_include=Alpha
 continue
 print 'c'
 print 'b'
@@ -25,7 +25,7 @@ src/testfacts.c 3: Alpha facts check ended [1;31mbadly[0m
 For example in gdb:
 break facts_Integer_function
 break "src/testfacts.c":9
-run --facts_include Integer
+run --facts_include=Integer
 continue
 print a
 print b
@@ -43,7 +43,7 @@ src/testfacts.c 7: Integer facts check ended [1;31mbadly[0m
 For example in gdb:
 break facts_Double_function
 break "src/testfacts.c":14
-run --facts_include Double
+run --facts_include=Double
 continue
 print a
 print b

@@ -6,7 +6,7 @@ hello.cpp 19: AboutG facts check started
 For example in gdb:
 break facts_AboutG_function
 break "hello.cpp":21
-run --facts_include AboutG
+run --facts_include=AboutG
 continue
 print 23
 print g(10)

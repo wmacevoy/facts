@@ -13,7 +13,7 @@ hello.cpp 9: AboutF facts check ended
 For example in gdb:
 break facts_AboutG_function
 break "hello.cpp":21
-run --facts_include AboutG
+run --facts_include=AboutG
 continue
 print 23
 print g(10)

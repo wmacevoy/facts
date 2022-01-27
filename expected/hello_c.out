@@ -6,7 +6,7 @@ hello.c 22: AboutG facts check started
 For example in gdb:
 break facts_AboutG_function
 break "hello.c":24
-run --facts_include AboutG
+run --facts_include=AboutG
 continue
 print 23
 print g(10)
