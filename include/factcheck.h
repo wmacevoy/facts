@@ -167,7 +167,7 @@ extern "C"
 #define FACT_CHECK_MAIN \
   int main(int argc, const char *argv[]) { return FactCheckMain(argc,argv); }
 
-#define FACTS_DONE	  \
+#define FACT_CHECK_DONE	  \
   FACT_CHECK_REGISTER_AUTO(); {}			\
   FACT_CHECK_MAIN
 

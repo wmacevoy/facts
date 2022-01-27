@@ -101,10 +101,10 @@ FACT_EXTERN void FactIsFiction(const char *file, int line, FactCheck *check,
 			       const char *a, const char *op, const char *b)
 {
   if (strcmp(check->file,file) == 0) {
-    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d." FACTS_RESET "\n",
+    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d." FACT_RESET "\n",
 	   check->name,check->line,check->file,line);
   } else {
-    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s." FACTS_RESET "\n",
+    printf(FACT_GREEN "Debug fact_check_function_%s on line %d of file %s with a breakpoint on line %d " FACT_RED " of file %s." FACT_RESET "\n",
 	   check->name,check->line,check->file,line,file);
   }
 
@@ -132,7 +132,7 @@ FACT_EXTERN void FactCheckInclude(const char *pattern)
   if (head == NULL)
   {
     FactCheckRegisterAll();
-    for (FactCheck *check = head; checks != NULL; check = check->next)
+    for (FactCheck *check = head; check != NULL; check = check->next)
     {
       if (check->status == FACT_STATE_INCLUDE)
       {
@@ -140,7 +140,7 @@ FACT_EXTERN void FactCheckInclude(const char *pattern)
       }
     }
   }
-  for (FactCheck *check = head; checks != NULL; check = check->next)
+  for (FactCheck *check = head; check != NULL; check = check->next)
   {
     if (check->status == FACT_STATE_EXCLUDE && FactCheckMatches(check->name, pattern))
     {
@@ -156,7 +156,7 @@ FACT_EXTERN void FactCheckExclude(const char *pattern)
   {
     FactCheckRegisterAll();
   }
-  for (FactCheck *check = head; checks != NULL; check = check->next)
+  for (FactCheck *check = head; check != NULL; check = check->next)
   {
     if (check->status == FACT_STATE_INCLUDE && FactCheckMatches(check->name, pattern))
     {
@@ -212,9 +212,9 @@ FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
 
   for (unsigned char *p = b;
        p != NULL && p < e;
-       p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], e - p))
+       p = (unsigned char *)memchr(p + FACT_SIG_LEN, sig[0], e - p))
   {
-    if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
+    if (memcmp(p, sig, _SIG_LEN) == 0)
     {
       FactCheck *check = (FactCheck *)(p - delta);
 
@@ -257,7 +257,7 @@ FACT_EXTERN void FactCheckFindInMemory(FactCheck *begin, FactCheck *end)
 }
 
 // Symmetric relative error.
-FACT_EXTERN double FactsRelErr(double a, double b)
+FACT_EXTERN double FactRelErr(double a, double b)
 {
   double abserr = a >= b ? a - b : b - a;
   a = a >= 0 ? a : -a;
@@ -267,7 +267,7 @@ FACT_EXTERN double FactsRelErr(double a, double b)
 }
 
 // Absolute error.
-FACT_EXTERN double FactsAbsErr(double a, double b)
+FACT_EXTERN double FactAbsErr(double a, double b)
 {
   double abserr = a >= b ? a - b : b - a;
   return abserr;
@@ -325,12 +325,10 @@ FACT_EXTERN void FactPrint(const char *format, ...)
 }
 
 #define FACT_BLOCKSIZE 1024
-// Execute facts checks.
+// Execute fact checks.
 //
-// You can preceed this with FactsInclude and FactsExlude to pick out
+// You can preceed this with FactCheckInclude and FactCheckExlude to pick out
 // a particular set.
-//
-//
 FACT_EXTERN void FactCheck()
 {
   int fails = 0;
@@ -346,7 +344,7 @@ FACT_EXTERN void FactCheck()
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     printf("<testsuite name=\"fact\">\n");
   }
-  for (FactCheck *check = head; checks != NULL; check = check->next)
+  for (FactCheck *check = head; check != NULL; check = check->next)
   {
     if (fact_format == FACT_JUNIT)
     {
@@ -400,11 +398,11 @@ FACT_EXTERN void FactCheck()
 	  }
 	printf("</system-err>\n");
       }
-      if (check->status == FACTS_STATE_EXCLUDE)
+      if (check->status == FACT_STATE_EXCLUDE)
       {
         printf("<skipped />\n");
       }
-      if (check->status == FACTS_STATE_FAIL)
+      if (check->status == FACT_STATE_FAIL)
       {
         printf("<failure>See stdout</failure>\n");
       }
@@ -428,7 +426,7 @@ FACT_EXTERN void FactCheck()
     {
       if (check->status == FACT_STATE_FAIL)
       {
-        printf("Facts check %s " FACT_RED "failed" FACT_RESET "\n", check->name);
+        printf("Fact check %s " FACT_RED "failed" FACT_RESET "\n", check->name);
       }
     }
     for (FactCheck *check = head; check != NULL; check = check->next)
@@ -440,11 +438,11 @@ FACT_EXTERN void FactCheck()
     }
     for (FactCheck *check = head; check != NULL; check = check->next)
     {
-      if (facts->status != FACT_STATE_PASS &&
-          facts->status != FACT_STATE_FAIL &&
-          facts->status != FACT_STATE_EXCLUDE)
+      if (check->status != FACT_STATE_PASS &&
+          check->status != FACT_STATE_FAIL &&
+          check->status != FACT_STATE_EXCLUDE)
       {
-        printf("Fact check %s " FACTS_RED "status %d" FACTS_RESET "\n", check->name, check->status);
+        printf("Fact check %s " FACT_RED "status %d" FACT_RESET "\n", check->name, check->status);
       }
     }
     double checks = ((double)fact_truths) + ((double)fact_fictions);
@@ -460,13 +458,9 @@ FACT_EXTERN void FactCheck()
 }
 
 //
-// You can call this from your main to process facts
-// checks.  Return status 0 is good, it means a fact check was
-// called and passed all (at least one) FACT check, 1 means at
-// least one FACT failed, and 2 means no facts were checked.
-//
-//
-FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
+// You can call this from your main to process fact checks
+// checks.  Return status 0 is means no checked fact failed.
+FACT_EXTERN int FactCheckMain(int argc, const char *argv[])
 {
   int status = 0;
   int check = 1;
@@ -477,7 +471,7 @@ FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
       const char *op = "--check_include=";
       if (strncmp(arg, op, strlen(op)) == 0)
       {
-        FactsInclude(arg + strlen(op));
+        FactCheckInclude(arg + strlen(op));
         continue;
       }
     }
@@ -485,7 +479,7 @@ FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
       const char *op = "--check_exclude=";
       if (strncmp(arg, op, strlen(op)) == 0)
       {
-        FactsExclude(arg + strlen(op));
+        FactCheckExclude(arg + strlen(op));
         continue;
       }
     }
@@ -493,7 +487,7 @@ FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
       const char *op = "--check_find";
       if (strcmp(arg, op) == 0)
       {
-        FactsFind();
+        FactCheckFind();
         continue;
       }
     }
@@ -503,7 +497,7 @@ FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
       if (strcmp(arg, op) == 0)
       {
         check = 0;
-        FactsFind();
+        FactCheckFind();
         printf("FACT_CHECK_REGISTER_ALL() {\n");
         for (FactCheck *check = head; check != NULL; check = check->next)
         {
@@ -534,15 +528,15 @@ FACTS_EXTERN int FactCheckMain(int argc, const char *argv[])
       if (strcmp(arg, op) == 0)
       {
         check = 0;
-        printf("default is to check all registered facts\n");
-        printf("    --check_include=\"*wildcard pattern*\"\n --- include certain facts\n");
-        printf("    --check_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
-        printf("    --check_register_all --- auto* generate FACTS_REGISTER_ALL\n");
+        printf("default is to run all fact checks\n");
+        printf("    --check_include=\"*wildcard pattern*\"\n --- include certain fact checks\n");
+        printf("    --check_exclude=\"*wildcard pattern*\"\n --- exclude certain fact checks\n");
+        printf("    --check_register_all --- auto* generate FACT_CHECK_REGISTER_ALL\n");
         printf("    --check_find --- auto* find fact checks\n");
         printf("    --check_skip --- don't fact check\n");
         printf("    --check_help --- this help\n");
         printf("    --check_junit --- use junit format\n");
-        printf("    * Optimized executables may miss auto facts.\n");
+        printf("    * Optimized executables may miss auto fact checks.\n");
         printf("      Use explicit FACT_CHECK_REGISTER_ALL() {...} for reliable fact checking.\n");
         continue;
       }
