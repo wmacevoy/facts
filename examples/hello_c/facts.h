@@ -166,6 +166,10 @@ extern "C"
 #define FACTS_MAIN \
   int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
 
+#define FACTS_FAST				\
+  FACTS_REGISTER_AUTO(); {}			\
+  FACTS_MAIN
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
