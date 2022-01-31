@@ -1,5 +1,10 @@
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS 1
+#endif
+
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 1
+#endif
 
 #include <inttypes.h>
 #include <unistd.h>
