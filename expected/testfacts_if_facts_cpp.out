@@ -1,0 +1,54 @@
+bin/testfacts_if.cpp 3: Alpha facts check started
+[1;31mbin/testfacts_if.cpp/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction[0m
+[1;32mDebug facts_Alpha_function on line 3 of file bin/testfacts_if.cpp with a breakpoint on line 4.[0m
+For example in gdb:
+break facts_Alpha_function
+run --facts_include=Alpha
+break 4
+continue
+print 'c'
+print 'b'
+print ('c') <= ('b')
+
+bin/testfacts_if.cpp 3: Alpha facts check ended [1;31mbadly[0m
+bin/testfacts_if.cpp 7: Integer facts check started
+[1;31mbin/testfacts_if.cpp/Integer 9: a {=1} == b {=2} is fiction[0m
+[1;32mDebug facts_Integer_function on line 7 of file bin/testfacts_if.cpp with a breakpoint on line 9.[0m
+For example in gdb:
+break facts_Integer_function
+run --facts_include=Integer
+break 9
+continue
+print a
+print b
+print (a) == (b)
+
+bin/testfacts_if.cpp 7: Integer facts check ended [1;31mbadly[0m
+bin/testfacts_if.cpp 12: Double facts check started
+[1;31mbin/testfacts_if.cpp/Double 14: a {=1.3} == b {=2.4} is fiction[0m
+[1;32mDebug facts_Double_function on line 12 of file bin/testfacts_if.cpp with a breakpoint on line 14.[0m
+For example in gdb:
+break facts_Double_function
+run --facts_include=Double
+break 14
+continue
+print a
+print b
+print (a) == (b)
+
+bin/testfacts_if.cpp 12: Double facts check ended [1;31mbadly[0m
+bin/testfacts_if.cpp 17: Err facts check started
+bin/testfacts_if.cpp 17: Err facts check ended
+bin/testfacts_if.cpp 21: LargeErr facts check started
+bin/testfacts_if.cpp 21: LargeErr facts check ended
+bin/testfacts_if.cpp 27: Out facts check started
+message to cout.
+bin/testfacts_if.cpp 27: Out facts check ended
+facts summary.
+facts check Err [1;32mpassed[0m
+facts check LargeErr [1;32mpassed[0m
+facts check Out [1;32mpassed[0m
+facts check Alpha [1;31mfailed[0m
+facts check Integer [1;31mfailed[0m
+facts check Double [1;31mfailed[0m
+0 (0.0%) truths and 3 (100.0%) fictions checked.
