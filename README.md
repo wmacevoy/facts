@@ -16,35 +16,42 @@ Here are the things to know:
 2. Facts are in a `FACTS(AboutThing) {...} groups, or `FACTS_EXCLUDE(AboutExludedThing)` groups.
 3. End your fact-checking with (all your `FACTS`/`FACTS_EXCLUDE`):
 ```C
-FACTS_REGISTER_ALL() {
-  FACTS_REGISTER(AboutThing1); 
-  FACTS_REGISTER(AboutThing2);
-  FACTS_REGISTER(AboutThing3);
-}
+FACTS_FAST
 ```
-4. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_ALL() {...}`.
-
-5. Running the executable will check all the (not excluded) facts by default.  There are command line options to do other things (--facts_help).
+4. Running the executable will check all the (not excluded) facts by default.  There are command line options to do other things (--facts_help).
 
 Below are these steps in more detail.
 
+### Step 0 - Get the facts suport files
+
+Facts is intentionally written with no dependencies other than what is available in standard C 2011 (std=c11) and after.  You need `facts.h` and `facts.c` to test C programs, and in addition `facts.cpp` for C++ programs.  You can download these files from the repository (type ctrl-s on windows or command-s on macs to save these):
+
+1. https://raw.githubusercontent.com/wmacevoy/facts/main/include/facts.h
+1. https://raw.githubusercontent.com/wmacevoy/facts/main/src/facts.c
+1. https://raw.githubusercontent.com/wmacevoy/facts/main/src/facts.cpp
+
+At the simplest, they can be in the same directory as your program source code.
+
+Programs that have fact checks should have
+```C
+#include "facts.h"
+```
+as a header file they include.
+
 ### Step 1 - Write FACT checks in FACTS groups
 
-Fact check (test) files include the "fact.h" header file and define fact check
-functions with
-
+Write facts (or what you hope are eventually facts) in groups with:
 ```C
-FACTS(GroupName) { ... }
+FACTS(AboutThing) { ... }
 ```
 
-This defines a function `facts_GroupName_function` which can be used to fact
-check. The `{ ... }` should contain some fact statements or checks like:
+This defines a function `facts_AboutThing_function` which can be used to fact
+check. The `{ ... }` should contain some statements of fact like:
 
 ```C
 FACTS(AboutInts) {
-  FACT(0+1,==,1);
-  FACT(1+1,==,2);
-  FACT(2+1,==,3);
+  int x = 2, y = 3;
+  FACT(x,<,y);
 }
 ```
 
@@ -52,21 +59,32 @@ FACTS(AboutInts) {
 
 ```C
 if (not (eval(a) op eval(b))) {
-  // break point opportunity for debugger
-  FactsFiction();
-  
-  // If the fact-check fails, then a and b are evaluated __TWICE__
   printf(stderr,"str(a) {=eval(a)} str(op) str(b) {=eval(b)} is fiction.");
+  FactIsFiction();
   fail-test;
   return;
 }
 ```
 
-Notice the __TWICE__.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no reliable way to get around this and stick to the C language.
+Notice the eval __TWICE__ for both `a` and `b`.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no reliable way to get around this and stick to the C language.
 
 The `FactsFiction()` call makes it easy to set a break point in the debugger to inspect a failure.  Set a break point in FactsFiction() and the first failure will stop the debugger in the FACTS(...) that are being checked.
 
-After describing all the `FACTS`, you __MUST__ mark the end of the facts with
+`FACTS_FAST` is shorthand for
+```
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(AboutThing1); 
+  FACTS_REGISTER(AboutThing2);
+  FACTS_REGISTER(AboutThing3);
+}
+
+int main(int argc, const char *argv[]) {
+    return FactsMain(argc,argv);
+}
+```
+You should be explicit about this if you are optimising your tests (-O) which may cause the auto-register to fail because of memory optimizations, or if you want your main to do more than just check your facts.
+
+```Cyou __MUST__ mark the end of the facts with
 
 ```C
 FACTS_REGISTER_ALL() {

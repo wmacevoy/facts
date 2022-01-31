@@ -28,11 +28,4 @@ FACTS(Out) {
   fprintf(stdout,"message to stderr.\n");
 }
 
-
-FACTS_REGISTER_AUTO() {
-  FACTS_REGISTER(Alpha);
-  FACTS_REGISTER(Integer);
-  FACTS_REGISTER(Double);
-}
-
-FACTS_MAIN
+FACTS_FAST

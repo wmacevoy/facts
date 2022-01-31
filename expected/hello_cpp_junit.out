@@ -12,8 +12,8 @@ hello.cpp 9: AboutF facts check ended
 [1;32mDebug facts_AboutG_function on line 19 of file hello.cpp with a breakpoint on line 21.[0m
 For example in gdb:
 break facts_AboutG_function
-break "hello.cpp":21
-run --facts_include AboutG
+run --facts_include=AboutG
+break 21
 continue
 print 23
 print g(10)

@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp gcc:4.9 make -B all test
+docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp gcc:4.9 make -B check
 

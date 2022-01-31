@@ -110,8 +110,12 @@ FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
 
   printf("For example in gdb:\n");
   printf("break facts_%s_function\n",facts->name);
-  printf("break \"%s\":%d\n",file,line);
-  printf("run --facts_include %s\n",facts->name);
+  printf("run --facts_include=%s\n",facts->name);
+  if (strcmp(facts->file,file)==0) {
+    printf("break %d\n",line);
+  } else {
+    printf("break \"%s\":%d\n",file,line);
+  }
   printf("continue\n");
   printf("print %s\n",a);
   printf("print %s\n",b);

@@ -163,13 +163,31 @@ extern "C"
   FACTS_REGISTER_ALL() { FactsFind(); } \
   void FactRegisterIgnored
 
-#define FACTS_MAIN \
+#define FACTS_MAIN 						\
   int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
 
+#define FACTS_MAIN_IF(check)						\
+  int FactsMainElse(int argc, const char *argv[]);			\
+  int main(int argc, const char *argv[]) {				\
+    const char *facts=#check;						\
+    for (int argi=1; argi<argc; ++argi) {				\
+      const char *arg=argv[argi];					\
+      for (int c=0; arg[c] == facts[c]; ++c) {				\
+        if (arg[c] == 0) return FactsMain(argc, argv);			\
+      }									\
+    }									\
+    return FactsMainElse(argc,argv);					\
+  }									\
+  int FactsMainElse(int argc, const char *argv[])
+  
 #define FACTS_FAST				\
-  FACTS_REGISTER_AUTO(); {}			\
+  FACTS_REGISTER_AUTO() {}			\
   FACTS_MAIN
-
+  
+#define FACTS_FAST_IF(arg)			\
+  FACTS_REGISTER_AUTO() {}			\
+  FACTS_MAIN_IF(arg)
+    
 #ifdef __cplusplus
 } // extern "C"
 #endif
