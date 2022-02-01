@@ -405,10 +405,11 @@ FACTS_EXTERN void FactsCheck()
 	  {
 	    char data[FACTS_BLOCKSIZE];
 	    int n = errlen - p;
-	    if (n > FACTS_BLOCKSIZE)
+	    if (n > FACTS_BLOCKSIZE) {
 	      n = FACTS_BLOCKSIZE;
-	    fread(data, n, 1, tmperr);
-	    fwrite(data, n, 1, stdout);
+	    }
+	    assert(fread(data, n, 1, tmperr)==1);
+	    assert(fwrite(data, n, 1, stdout)==1);
 	  }
 	printf("</system-err>\n");
       }
