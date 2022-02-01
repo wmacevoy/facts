@@ -8,7 +8,7 @@ CXXFLAGS_DEBUG=-g -std=$(CXXSTD) -Iinclude
 LDLIBS=
 
 .PHONY: all
-all : bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp
+all : bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp examples
 
 examples/hello_c/facts.c : src/facts.c
 	cp $< $@
