@@ -57,8 +57,8 @@ bin/testfacts_if_cpp : bin/testfacts_if.cpp bin/facts.cpp bin/facts.c bin/facts.
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 
-.PHONY: check
-check : all
+.PHONY: test
+test : all
 	bin/testfacts_c | diff - expected/testfacts_c.out
 	bin/testfacts_cpp | diff - expected/testfacts_cpp.out
 	bin/testfacts_c --facts_junit | diff - expected/testfacts_c_junit.out
@@ -83,3 +83,6 @@ expected: all
 	examples/hello_c/hello >expected/hello_c.out || true
 	examples/hello_cpp/hello >expected/hello_cpp.out || true
 
+.PHONY: clean
+clean:
+	/bin/rm -rf bin/* tmp/*

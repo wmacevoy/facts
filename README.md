@@ -86,7 +86,9 @@ FACTS(AboutConversions) {
   int F = 59, C = 15;
   FACT(fahrenheit(C),==,F);
 }
+```
 
+```C++
 FACTS(AboutDucks) {
   Duck animal;
   FACT(animal.looks("duck"),==,true);
@@ -123,7 +125,7 @@ int main(int argc, const char *argv[]) {
     return FactsMain(argc,argv);
 }
 ```
-You should be explicit about this if you are optimising your tests (-O) which may cause the auto-register to fail because of memory optimizations, or if you want your main to do more than just check your facts.
+You should be explicit about this if you are optimising your tests (-O as a compile flag) which may cause the auto-register to fail because of memory optimizations, or if you want your main to do more than just check your facts.
 
 Here is a simple complete example (sample.cpp since it has a C++ struct):
 
@@ -143,7 +145,7 @@ struct Duck {
 
 FACTS(convert) {
   int ft = 3, int in = 36;
-  FACT(inches(ft),==in);
+  FACT(inches(ft),==,in);
 
   int F = 59, C = 15;
   FACT(fahrenheit(C),==,F);
