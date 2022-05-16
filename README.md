@@ -8,37 +8,81 @@ Test frameworks have become a barrier to testing.  They are too complicated to b
 
 Facts is a less-is-more C/C++ test framework.  There is intentionally not much here.  With a few things to understand, you can enjoy the benefits of a test framework that is on your side.
 
-## Overview
+## TL;DR
+`check.c` or `check.cpp`:
+```C
+#include "facts.h"
+
+FACTS(AboutLogic) {
+  FACT(! 0,==,1);
+  FACT(! 1,==,0);
+}
+
+FACTS(AboutInts) {
+  FACT(2+1,>,2);
+}
+
+FACTS_FAST
+```
+
+For `check.c` (assuming `facts.h`, `facts.c` are in the same folder):
+```sh
+> cc -g -o check check.c facts.c`
+> ./check
+> ./check --facts_include='*Ints'
+```
+
+For `check.cpp` (assuming `facts.h`, `facts.c` and `facts.cpp` are in the same folder):
+```sh
+> c++ -g -o check check.cpp facts.cpp`
+> ./check
+> ./check --facts_include='*Ints'
+```
+
+Happy fact-checking!  If you want to know about side-effects, and how to fix optimizers losing or re-arranging your facts, read basic facts next.
+
+## Basic Facts
 
 Here are the things to know:
 
-1. `FACT(a,op,b)` is a fact check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is the statement that `x == 3` is a fact.
-2. Facts are in a `FACTS(AboutThing) {...} groups, or `FACTS_EXCLUDE(AboutExludedThing)` groups.
-3. End your fact-checking with (all your `FACTS`/`FACTS_EXCLUDE`):
-```C
-FACTS_REGISTER_ALL() {
-  FACTS_REGISTER(AboutThing1); 
-  FACTS_REGISTER(AboutThing2);
-  FACTS_REGISTER(AboutThing3);
-}
-```
-4. If you want facts checking to be the `main()` thing, add `FACTS_MAIN` after `FACTS_ALL() {...}`.
+1. `FACT(a,op,b)` is a fact check, like `FACT(1+1,==,2)`.
 
-5. Running the executable will check all the (not excluded) facts by default.  There are command line options to do other things (--facts_help).
+    `op` is any logical relation, like `==` or `<`.
+
+2. Facts are in a `FACTS(AboutThing) {...}` checks.
+
+    If you want to temporarily exclude some fact checks, use `FACTS_EXCLUDE` instead of `FACTS` (=`FACTS_INCLUDE`).
+
+3. End your fact checks with `FACTS_FAST`.  This makes some boiler-plate that works if all you want is to fact check and you don't optimize out facts checks with (-O) compile options.
+
+    If your optimizer (-O) is cleaning/moving your facts, you can replace `FACTS_FAST` with the longer but always correct:
+
+    ```C
+    FACTS_REGISTER_ALL() {
+      FACTS_REGISTER(AboutThing1); 
+      FACTS_REGISTER(AboutThing2);
+      FACTS_REGISTER(AboutThing3);
+    }
+
+    FACTS_MAIN
+    ```
+
+    If you only want to fact check sometimes, then replace `FACTS_MAIN` with your own `main()` and call `FactCheckMain(argc,argv)` if you decide to check facts.
+    
+4. There are command line options to do other things (--facts_help).
 
 Below are these steps in more detail.
 
 ### Step 1 - Write FACT checks in FACTS groups
 
-Fact check (test) files include the "fact.h" header file and define fact check
+Fact check (test) files include the "facts.h" header file and define fact check
 functions with
 
 ```C
 FACTS(GroupName) { ... }
 ```
 
-This defines a function `facts_GroupName_function` which can be used to fact
-check. The `{ ... }` should contain some fact statements or checks like:
+This defines a function `facts_GroupName_function` which can be used to fact check. The `{ ... }` should contain some fact statements or checks like:
 
 ```C
 FACTS(AboutInts) {
@@ -51,12 +95,14 @@ FACTS(AboutInts) {
 `FACT(a,op,b)` becomes essentially
 
 ```C
-if (not (eval(a) op eval(b))) {
+// eval a & b once for fact check...
+if ((eval(a) op eval(b)) is false) { 
+
   // break point opportunity for debugger
   FactsFiction();
   
-  // If the fact-check fails, then a and b are evaluated __TWICE__
-  printf(stderr,"str(a) {=eval(a)} str(op) str(b) {=eval(b)} is fiction.");
+  // eval a & b TWICE if fact check fails...
+  printf(stderr,a {=eval(a)} op b {=eval(b)} is fiction.");
   fail-test;
   return;
 }
