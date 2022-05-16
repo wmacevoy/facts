@@ -17,7 +17,7 @@ extern "C"
 #define FACT_RED "\033[1;31m"
 #define FACT_RESET "\033[0m"
 
-#define FACT_SIG               \
+#define FACT_SIG                \
   {                             \
     0xae, 0x1e, 0xe5, 0xab,     \
         0xdf, 0x2c, 0x8f, 0xfd, \
@@ -58,7 +58,7 @@ extern "C"
   void FactCheckRegister(FactCheck *check);
   void FactCheck();
   void FactIsFiction(const char *file, int line, FactCheck *check,
-		    const char *a, const char *op, const char *b);
+                     const char *a, const char *op, const char *b);
 
   double FactAbsErr(double a, double b);
   double FactRelErr(double a, double b);
@@ -67,46 +67,46 @@ extern "C"
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
 #define FACT_PRINT_FORMAT(X) _Generic((X),                    \
-                                       char                    \
-                                       : "%c",                 \
-                                         unsigned char         \
-                                       : "%hhu",               \
-                                         unsigned short        \
-                                       : "%hu",                \
-                                         unsigned int          \
-                                       : "%u",                 \
-                                         unsigned long         \
-                                       : "%lu",                \
-                                         unsigned long long    \
-                                       : "%llu",               \
-                                         signed char           \
-                                       : "%hhd",               \
-                                         short                 \
-                                       : "%hd",                \
-                                         int                   \
-                                       : "%d",                 \
-                                         long                  \
-                                       : "%ld",                \
-                                         long long             \
-                                       : "%lld",               \
-                                         float                 \
-                                       : "%g",                 \
-                                         double                \
-                                       : "%g",                 \
-                                         long double           \
-                                       : "%Lg",                \
-                                         const char *          \
-                                       : "%s",                 \
-                                         const unsigned char * \
-                                       : "%s",                 \
-                                         const void *          \
-                                       : "%p",                 \
-                                         char *                \
-                                       : "%s",                 \
-                                         unsigned char *       \
-                                       : "%s",                 \
-                                         void *                \
-                                       : "%p")
+                                      char                    \
+                                      : "%c",                 \
+                                        unsigned char         \
+                                      : "%hhu",               \
+                                        unsigned short        \
+                                      : "%hu",                \
+                                        unsigned int          \
+                                      : "%u",                 \
+                                        unsigned long         \
+                                      : "%lu",                \
+                                        unsigned long long    \
+                                      : "%llu",               \
+                                        signed char           \
+                                      : "%hhd",               \
+                                        short                 \
+                                      : "%hd",                \
+                                        int                   \
+                                      : "%d",                 \
+                                        long                  \
+                                      : "%ld",                \
+                                        long long             \
+                                      : "%lld",               \
+                                        float                 \
+                                      : "%g",                 \
+                                        double                \
+                                      : "%g",                 \
+                                        long double           \
+                                      : "%Lg",                \
+                                        const char *          \
+                                      : "%s",                 \
+                                        const unsigned char * \
+                                      : "%s",                 \
+                                        const void *          \
+                                      : "%p",                 \
+                                        char *                \
+                                      : "%s",                 \
+                                        unsigned char *       \
+                                      : "%s",                 \
+                                        void *                \
+                                      : "%p")
 
 #ifndef FACT_CHECK_C
   extern uint64_t fact_fictions;
@@ -115,12 +115,12 @@ extern "C"
 #endif
 
 #define FACT_OR_FICTION_PRINT(a, op, b, fmt) (((a)op(b)) ? (++fact_truths, 1) : (FactPrint(FACT_RED "%s/%s %d: %s {=%?} " #op " %s {=%?} is fiction" FACT_RESET "\n", fmt, fmt, __FILE__, check->name, __LINE__, #a, (a), #b, (b)), FactIsFiction(__FILE__, __LINE__, check, #a, #op, #b), check->status = -1, 0))
-#define FACT_PRINT(a, op, b, fmt)  \
+#define FACT_PRINT(a, op, b, fmt)            \
   if (!FACT_OR_FICTION_PRINT(a, op, b, fmt)) \
   return
 
 #define FACT_OR_FICTION_COUT(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (std::cout << FACTS_RED << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is fiction" FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, 0))
-#define FACT_COUT(a, op, b)  \
+#define FACT_COUT(a, op, b)            \
   if (!FACT_OR_FICTION_COUT(a, op, b)) \
   return
 
@@ -134,10 +134,10 @@ extern "C"
 #define FACT_EXTERN
 #endif
 
-#define FACT_CHECK_DEFINE(name, state)                                                                                 \
-  void fact_check_function_##name##(FactCheck *check);                                                                      \
+#define FACT_CHECK_DEFINE(name, state)                                                                                           \
+  void fact_check_function_##name##(FactCheck * check);                                                                          \
   FactCheck fact_check_data_##name## = {FACTS_SIG, __FILE__, __LINE__, #name, &fact_check_function_##name##, state, NULL, NULL}; \
-  void fact_check_function_##name##(FactCheck *check)
+  void fact_check_function_##name##(FactCheck * check)
 
 #define FACT_CHECK_INCLUDE(name) FACT_CHECK_DEFINE(name, FACT_STATE_INCLUDE)
 #define FACT_CHECK_EXCLUDE(name) FACT_CHECK_DEFINE(name, FACT_STATE_EXCLUDE)
@@ -151,24 +151,37 @@ extern "C"
 
 #define FACT_CHECK_REGISTER(name) FactCheckRegister(&fact_check_data_##name##)
 
-#define FACT_CHECK_REGISTER_ALL                                           \
-  FACT_CHECK(zzzz_END){};                                                 \
-  FACT_EXTERN void FactsFind()                                      \
-  {                                                                  \
+#define FACT_CHECK_REGISTER_ALL                                                     \
+  FACT_CHECK(zzzz_END){};                                                           \
+  FACT_EXTERN void FactsFind()                                                      \
+  {                                                                                 \
     FactCheckFindInMemory(&fact_check_data_0000_BEGIN, &facts_check_data_zzzz_END); \
-  }                                                                  \
+  }                                                                                 \
   FACT_EXTERN void FactCheckRegisterAll
 
-#define FACT_CHECKS_REGISTER_AUTO             \
+#define FACT_CHECKS_REGISTER_AUTO                \
   FACT_CHECK_REGISTER_ALL() { FactCheckFind(); } \
   FACT_EXTERN void FactCheckRegisterIgnore
 
-#define FACT_CHECK_IF(arg) { int argi; for (argi=1; argi < argc; ++argi) { if (strcmp(argv[argi],#arg)==0) { return FactCheckMain(argv); }}}}
+#define FACT_CHECK_IF(arg)               \
+  {                                      \
+    int argi;                            \
+    for (argi = 1; argi < argc; ++argi)  \
+    {                                    \
+      if (strcmp(argv[argi], #arg) == 0) \
+      {                                  \
+        return FactCheckMain(argv);      \
+      }                                  \
+    }                                    \
+  }                                      \
+  }
 #define FACT_CHECK_MAIN \
-  int main(int argc, const char *argv[]) { return FactCheckMain(argc,argv); }
+  int main(int argc, const char *argv[]) { return FactCheckMain(argc, argv); }
 
-#define FACT_CHECK_DONE	  \
-  FACT_CHECK_REGISTER_AUTO(); {}			\
+#define FACT_CHECK_DONE       \
+  FACT_CHECK_REGISTER_AUTO(); \
+  {                           \
+  }                           \
   FACT_CHECK_MAIN
 
 #ifdef __cplusplus
