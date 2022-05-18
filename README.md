@@ -248,7 +248,7 @@ FACTS(...) {
 ```
 The `hello.cpp` example uses this to print additional information if a fact check fails.
 
-## Step 5 - WATCH (C++/gdb) only
+## Step 5 - Watch (C++/gdb) only
 
 You can use `FACTS_WATCH1(x)`, `FACTS_WATCH2(x,y)`, etc (C++ 20 allows `FACTS_WATCH(x,y,...)`).  This creates a nice TRACE for the watched values that display a `break if` to make a conditional break using gdb.  This is very useful for tests that use multiple cases. 
 
