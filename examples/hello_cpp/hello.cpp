@@ -21,15 +21,16 @@ int g(int x) {
 }
 
 FACTS(AboutG) {
-  // use a vector to check multiple cases in a loop (case#1 fails)
-  // C++ allows use of FACTS_TRACE to report additional info on a fiction.
-  vector<tuple<int,int>> expects = {{0,-3}, {1,0}, {2,1}};
-  for (int k=0; k<expects.size(); ++k) {
-    int x=get<0>(expects[k]);
-    int y=get<1>(expects[k]);
-    FACTS_TRACE("case #" << k << " expect g(" << x << ")=" << y);
-    FACT(g(x),==,y);
-  }
+  int x = 0;
+  int y = 3;
+
+  // TRACE is C++ 11 and above only
+  // traces are printed in reverse order if a fact is fiction.
+  FACTS_TRACE("x=" << x);
+  FACTS_TRACE("y=" << y);
+
+  // TRACE shorthand is WATCH<N>, like FACTS_WATCH2(x,y);
+  FACT(g(x),==,y);
 }
 
 FACTS_REGISTER_ALL() {

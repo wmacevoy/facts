@@ -232,10 +232,10 @@ gdb sample_facts
 
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
 
-## Step 4 - Tracing (C++ only)
+## Step 4 - Trace/Watch (C++ only)
 
 In a `FACTS(AboutThing) { ... }` fact-check function, you can (only in C++) add `FACTS_TRACE(your << info << here)`.  These are printed in reverse order if a fact-check fails.  This is helpful to include additional information (like the case if looping over cases).  For example:
-```
+```C++
 FACTS(...) {
   for (int i=0; i<3; ++i) {
     FACTS_TRACE("i=" << i);
@@ -246,6 +246,18 @@ FACTS(...) {
   }
 }
 ```
+This for C++ 20 and on, this can be simplified to
+```C++
+FACTS(...) {
+  for (int i=0; i<3; ++i) {
+    for (int j=i; j<3; ++j) {
+      FACTS_WATCH(i,j);  // same as FACTS_TRACE("i="<<i << " " << "j="<<j)
+      // FACT -check here
+    }
+  }
+}
+```
+
 
 The `hello.cpp` example uses this to trace multiple cases for the function `g`.
 

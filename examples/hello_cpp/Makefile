@@ -1,3 +1,3 @@
 all : hello
 hello : hello.cpp facts.cpp facts.c facts.h
-	c++ -std=c++17 -g -o hello hello.cpp facts.cpp
+	c++ -std=c++2a -g -o hello hello.cpp facts.cpp
