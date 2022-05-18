@@ -246,7 +246,8 @@ FACTS(...) {
   }
 }
 ```
-
 The `hello.cpp` example uses this to print additional information if a fact check fails.
+
+## Step 5 - WATCH (C++/gdb) only
 
 Enjoy your fact checking!

@@ -24,11 +24,8 @@ FACTS(AboutG) {
   int x = 0;
   int y = 3;
 
-  // TRACE is C++ 11 and above only
-  // traces are printed in reverse order if a fact is fiction.
-  
-  FACTS_WATCH(x,y);
-  // TRACE shorthand is WATCH<N>, like FACTS_WATCH2(x,y);
+  FACTS_WATCH2(x,y);  // get useful trace info on failure, C++ 20 allows FACTS_WATCH(x,y)
+
   FACT(g(x),==,y);
 }
 
