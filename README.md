@@ -250,4 +250,19 @@ The `hello.cpp` example uses this to print additional information if a fact chec
 
 ## Step 5 - WATCH (C++/gdb) only
 
+You can use `FACTS_WATCH1(x)`, `FACTS_WATCH2(x,y)`, etc (C++ 20 allows `FACTS_WATCH(x,y,...)`).  This creates a nice TRACE for the watched values that display a `break if` to make a conditional break using gdb.  This is very useful for tests that use multiple cases. 
+
+```C++
+FACTS(stuff) {
+  for (int i=0; i<3; ++i) {
+    for (int j=i; j<3; ++j) {
+      FACT_WATCH2(x,y); // FACT_WATCH(x,y); in C++ 20
+      // failures here will report a line like
+      // (gdb) break fact_stuff_function:fact_trace_0 if i==1 && j==2
+      // using this in gdb will stop the inner for loop just after the WATCH.
+    }
+  }
+}
+```
+
 Enjoy your fact checking!
