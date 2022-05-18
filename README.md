@@ -13,38 +13,39 @@ Facts is a less-is-more C/C++ test framework.  There is intentionally not much h
 Here are the things to know:
 
 1. Get files [facts.h](https://raw.githubusercontent.com/wmacevoy/facts/main/include/facts.h), [facts.c](https://raw.githubusercontent.com/wmacevoy/facts/main/src/facts.c), and [facts.cpp](https://raw.githubusercontent.com/wmacevoy/facts/main/src/facts.cpp).  Include the facts header file with `#include "facts.h"` with your other include statements.
-```C
-#include "facts.h"
-```
+    ```C
+    #include "facts.h"
+    ```
 
 2. Write some code you would like to check some facts about.  For example:
-```C
-int inc(int x) { return x+1; }
-```
+    ```C
+    int inc(int x) { return x+1; }
+    ```
 
-3. `FACT(a,op,b)` is a statement of fact. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is the statement that `x == 3` is a fact.  Statements of fact are in FACTS(AboutThing) groups.  For example:
-```C
-FACTS(AboutInc) {
-  int a = 5,b = 6;
-  FACT(inc(a),==,b);
-}
-```
+3. `FACT(a,op,b)` is a fact to check. Here `a` and `b` are simple expressions and `op` is any logical relation, like `==` or `<`.  So `FACT(x,==,3)` is the statement that `x == 3` is a fact to check.  Statements of fact are in FACTS(AboutThing) groups.  For example:
+    ```C
+    FACTS(AboutInc) {
+      int a = 5,b = 6;
+      FACT(inc(a),==,b);
+    }
+    ```
 
 4. End your fact-checking with:
-```C
-FACTS_FAST
-```
+    ```C
+    FACTS_FAST
+    ```
 
 5. Compile with the `facts.c` (C) or `facts.cpp` (C++) source file.
-```sh
-cc -g -o check *.c # C program
-c++ -g -o check *.cpp # C++ program
+    ```sh
+    cc -g -o check *.c # C program
+    c++ -g -o check *.cpp # C++ program
+    ```
 
-6. Running the executable (`./check`) will check all the facts.  There are command line options to do other things (--facts_help).
+6. Running the executable (`./check`) will check all the facts.  There are command line options to do other things (`./check --facts_help`).
 
 Below are these steps in more detail.
 
-### Step 1 - Get the facts files
+## Step 1 - Get the facts files
 
 Facts is intentionally written with no dependencies other than what is available in standard C 2011 (std=c11) and after.  You need `facts.h` and `facts.c` to test C programs, and in addition `facts.cpp` for C++ programs.  You can download these files from the repository (type ctrl-s on windows or command-s on macs to save these):
 
@@ -58,7 +59,15 @@ Programs that have fact checks should have
 ```C
 #include "facts.h"
 ```
-as a header file they include.  If you the compiler can't find this file, use the `-I <directory>` command (gcc/llvm).
+as a header file they include.  If you the compiler can't find this file, use the `-I <directory>` option (gcc/llvm), as in
+```sh
+c++ -I<facts-dir> -o check check.cpp <facts-dir>/facts.cpp
+```
+or
+```sh
+cc -I<facts-dir> -o check check.c <facts-dir>/facts.c
+```
+
 
 ### Step 2. Write code to fact check.
 
@@ -81,7 +90,7 @@ struct Duck {
 ```C
 FACTS(AboutConversions) {
   int ft = 3, int in = 36;
-  FACT(inches(ft),==in);
+  FACT(inches(ft),==,in);
 
   int F = 59, C = 15;
   FACT(fahrenheit(C),==,F);
@@ -102,7 +111,7 @@ This defines two functions `facts_AboutConversions_function` and `facts_AboutDuc
 
 ```C
 if (not (eval(a) op eval(b))) {
-  printf(stderr,"str(a) {=eval(a)} str(op) str(b) {=eval(b)} is fiction.");
+  printf(stderr,"a {=eval(a)} op b {=eval(b)} is fiction.");
   FactIsFiction();
   fail-test;
   return;
@@ -222,5 +231,19 @@ gdb sample_facts
 ```
 
 You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
+
+## Step 4 - Tracing (C++ only)
+
+In a `FACTS(AboutThing) { ... }` fact-check function, you can (only in C++) add `FACTS_TRACE(your << info << here)`.  These are printed in reverse order if a fact-check fails.  This is helpful to include additional information (like the case if looping over cases).  For example:
+```
+int f(int x) { return 2*x+3; }
+FACTS(AboutF) {
+  for (auto [x,y] : {{0,3},{1,5},{-1,0}}) {
+    FACTS_TRACE("x=" << x << " y=" << y);
+    FACT(f(x),==,y);
+  }
+}
+
+```
 
 Enjoy your fact checking!

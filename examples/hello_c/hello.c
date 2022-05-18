@@ -20,6 +20,7 @@ int g(int x) {
 }
 
 FACTS(AboutG) {
+  int x = 3, y = 4;
   FACT(-3,==,g(0));
   FACT(23,==,g(10)); // fails
 }

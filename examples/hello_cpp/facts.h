@@ -191,3 +191,26 @@ extern "C"
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
+#ifdef __cplusplus
+#include <functional>
+#include <iostream>
+ 
+  class FactsTrace
+  {
+    private: static FactsTrace *top;
+    private: static Facts *facts;
+    private: FactsTrace *up;
+    private: std::function<void(Facts *facts, std::ostream&)> note;
+
+    public: static void reset(Facts *_facts);
+    public: static void notes();
+
+    FactsTrace(std::function<void(Facts *facts, std::ostream&)> _note);
+    ~FactsTrace();
+  };
+  #define FACTS_TRACE_UNIQUE FACTS_TRACE_JOIN(facts_trace_,__COUNTER__)
+  #define FACTS_TRACE_JOIN( symbol1, symbol2 ) FACTS_TRACE_DO_JOIN( symbol1, symbol2 )
+  #define FACTS_TRACE_DO_JOIN( symbol1, symbol2 ) symbol1##symbol2
+  #define FACTS_TRACE(note)  FactsTrace FACTS_TRACE_UNIQUE([=](Facts *facts, std::ostream&out) { out << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << note << std::endl; })
+#endif

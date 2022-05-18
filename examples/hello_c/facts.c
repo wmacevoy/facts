@@ -105,6 +105,10 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
 			       const char *a, const char *op, const char *b)
 {
+  #ifdef __cplusplus
+      FactsTrace::notes();
+  #endif
+
   if (strcmp(facts->file,file) == 0) {
     printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d." FACTS_RESET "\n",
 	   facts->name,facts->line,facts->file,line);
@@ -373,6 +377,9 @@ FACTS_EXTERN void FactsCheck()
     {
       printf("%s %d: %s facts check started\n",
              facts->file, facts->line, facts->name);
+#ifdef __cplusplus
+      FactsTrace::reset(facts);
+#endif
       facts->function(facts);
       if (facts->status == FACTS_STATE_INCLUDE)
       {

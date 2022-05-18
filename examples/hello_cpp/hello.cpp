@@ -1,6 +1,10 @@
 // include the facts header file 
 #include "facts.h"
 
+#include <vector>
+
+using namespace std;
+
 int f(int x) {
   int y = 2*x+3;
   return y;
@@ -17,8 +21,15 @@ int g(int x) {
 }
 
 FACTS(AboutG) {
-  FACT(-3,==,g(0));
-  FACT(23,==,g(10)); // fails
+  // use a vector to check multiple cases in a loop (case#1 fails)
+  // C++ allows use of FACTS_TRACE to report additional info on a fiction.
+  vector<tuple<int,int>> expects = {{0,-3}, {1,0}, {2,1}};
+  for (int k=0; k<expects.size(); ++k) {
+    int x=get<0>(expects[k]);
+    int y=get<1>(expects[k]);
+    FACTS_TRACE("case #" << k << " expect g(" << x << ")=" << y);
+    FACT(g(x),==,y);
+  }
 }
 
 FACTS_REGISTER_ALL() {
