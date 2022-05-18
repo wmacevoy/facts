@@ -11,7 +11,7 @@ void FactsTrace::reset(Facts *_facts) { facts=_facts; }
 void FactsTrace::notes() {
     FactsTrace *at = top;
     while (at != 0) {
-        at->note(facts,std::cerr);
+        at->note(facts,std::cout);
         at=at->up;
     }
 }

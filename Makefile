@@ -31,29 +31,21 @@ examples/hello_cpp/facts.cpp : src/facts.cpp
 examples/hello_cpp/hello : examples/hello_cpp/hello.cpp examples/hello_cpp/facts.cpp examples/hello_cpp/facts.c examples/hello_cpp/facts.h
 	$(MAKE) -C examples/hello_cpp hello
 
-bin/% : src/%
+bin/testfacts_c : test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
-	cp $< $@
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.c src/facts.c $(LDLIBS)
 
-bin/% : include/%
+bin/testfacts_cpp : test/testfacts.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	cp $< $@
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.cpp src/facts.cpp $(LDLIBS)
 
-bin/testfacts_c : bin/testfacts.c bin/facts.c bin/facts.h
+bin/testfacts_if_c : test/testfacts_if.c src/facts.c include/facts.h
 	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ bin/testfacts.c bin/facts.c $(LDLIBS)
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.c src/facts.c $(LDLIBS)
 
-bin/testfacts_cpp : bin/testfacts.cpp bin/facts.cpp bin/facts.c bin/facts.h
+bin/testfacts_if_cpp : test/testfacts_if.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ bin/testfacts.cpp bin/facts.cpp $(LDLIBS)
-
-bin/testfacts_if_c : bin/testfacts_if.c bin/facts.c bin/facts.h
-	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ bin/testfacts_if.c bin/facts.c $(LDLIBS)
-
-bin/testfacts_if_cpp : bin/testfacts_if.cpp bin/facts.cpp bin/facts.c bin/facts.h
-	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ bin/testfacts_if.cpp bin/facts.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.cpp src/facts.cpp $(LDLIBS)
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 

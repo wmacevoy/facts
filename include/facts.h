@@ -209,41 +209,47 @@ extern "C"
     FactsTrace(std::function<void(Facts *facts, std::ostream&)> _note);
     ~FactsTrace();
   };
-  #define FACTS_TRACE_UNIQUE FACTS_TRACE_JOIN(facts_trace_,__COUNTER__)
-  #define FACTS_TRACE_JOIN( symbol1, symbol2 ) FACTS_TRACE_DO_JOIN( symbol1, symbol2 )
-  #define FACTS_TRACE_DO_JOIN( symbol1, symbol2 ) symbol1##symbol2
-  #define FACTS_TRACE(note)  FactsTrace FACTS_TRACE_UNIQUE([=](Facts *facts, std::ostream&out) { out << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << note << std::endl; })
+
+  #define FACTS_TRACE_SUFFIX(note,suffix) \
+    FactsTrace facts_trace##suffix([=](Facts *facts, std::ostream&out) { out << __FILE__ << "/" << facts->name << ":" << __LINE__ << " " << note << std::endl; }); \
+    facts_trace_##suffix:
+  #define FACTS_TRACE_COUNT(note,counter) FACTS_TRACE_SUFFIX(note,counter)
+  #define FACTS_TRACE(note) FACTS_TRACE_COUNT(note,__COUNTER__)
+
+  #define FACTS_WATCH_SUFFIX(note,suffix) FACTS_TRACE_SUFFIX(FACTS_GREEN << "(gdb)" << FACTS_RESET << " break facts_" << facts->name << "_function:facts_trace_" << suffix << " if " << note, suffix)
+  #define FACTS_WATCH_COUNT(note,counter) FACTS_WATCH_SUFFIX(note,counter)
+  #define FACTS_WATCH_IF(watch) FACTS_WATCH_COUNT(watch,__COUNTER__)
 
   #define FACTS_OSTREAM0(x,...) "!!! too many watch values, break-up on or before " << #x << " !!!"
-  #define FACTS_OSTREAM1(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM0(__VA_ARGS__))
-  #define FACTS_OSTREAM2(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM1(__VA_ARGS__))
-  #define FACTS_OSTREAM3(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM2(__VA_ARGS__))
-  #define FACTS_OSTREAM4(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM3(__VA_ARGS__))
-  #define FACTS_OSTREAM5(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM4(__VA_ARGS__))
-  #define FACTS_OSTREAM6(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM5(__VA_ARGS__))
-  #define FACTS_OSTREAM7(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM6(__VA_ARGS__))
-  #define FACTS_OSTREAM8(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM7(__VA_ARGS__))
-  #define FACTS_OSTREAM9(x,...) #x << "=" << (x) __VA_OPT__(<< " " <<  FACTS_OSTREAM8(__VA_ARGS__))
-  #define FACTS_WATCH(...) FACTS_TRACE(FACTS_OSTREAM9(__VA_ARGS__))
+  #define FACTS_OSTREAM1(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM0(__VA_ARGS__))
+  #define FACTS_OSTREAM2(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM1(__VA_ARGS__))
+  #define FACTS_OSTREAM3(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM2(__VA_ARGS__))
+  #define FACTS_OSTREAM4(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM3(__VA_ARGS__))
+  #define FACTS_OSTREAM5(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM4(__VA_ARGS__))
+  #define FACTS_OSTREAM6(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM5(__VA_ARGS__))
+  #define FACTS_OSTREAM7(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM6(__VA_ARGS__))
+  #define FACTS_OSTREAM8(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM7(__VA_ARGS__))
+  #define FACTS_OSTREAM9(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM8(__VA_ARGS__))
+  #define FACTS_WATCH(...) FACTS_WATCH_IF(FACTS_OSTREAM9(__VA_ARGS__))
 
-  #define FACTS_OLD_STREAM1(x)      #x << "=" << (x)
-  #define FACTS_OLD_STREAM2(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM1(__VA_ARGS__)
-  #define FACTS_OLD_STREAM3(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM2(__VA_ARGS__)
-  #define FACTS_OLD_STREAM4(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM3(__VA_ARGS__)
-  #define FACTS_OLD_STREAM5(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM4(__VA_ARGS__)
-  #define FACTS_OLD_STREAM6(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM5(__VA_ARGS__)
-  #define FACTS_OLD_STREAM7(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM6(__VA_ARGS__)
-  #define FACTS_OLD_STREAM8(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM7(__VA_ARGS__)
-  #define FACTS_OLD_STREAM9(x,...)  #x << "=" << (x) << " " <<  FACTS_OLD_STREAM8(__VA_ARGS__)
+  #define FACTS_OLD_STREAM1(x)      #x << "==" << (x)
+  #define FACTS_OLD_STREAM2(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM1(__VA_ARGS__)
+  #define FACTS_OLD_STREAM3(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM2(__VA_ARGS__)
+  #define FACTS_OLD_STREAM4(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM3(__VA_ARGS__)
+  #define FACTS_OLD_STREAM5(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM4(__VA_ARGS__)
+  #define FACTS_OLD_STREAM6(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM5(__VA_ARGS__)
+  #define FACTS_OLD_STREAM7(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM6(__VA_ARGS__)
+  #define FACTS_OLD_STREAM8(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM7(__VA_ARGS__)
+  #define FACTS_OLD_STREAM9(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM8(__VA_ARGS__)
 
-  #define FACTS_WATCH1(...) FACTS_TRACE(FACTS_OLD_STREAM1(__VA_ARGS__))
-  #define FACTS_WATCH2(...) FACTS_TRACE(FACTS_OLD_STREAM2(__VA_ARGS__))
-  #define FACTS_WATCH3(...) FACTS_TRACE(FACTS_OLD_STREAM3(__VA_ARGS__))
-  #define FACTS_WATCH4(...) FACTS_TRACE(FACTS_OLD_STREAM4(__VA_ARGS__))
-  #define FACTS_WATCH5(...) FACTS_TRACE(FACTS_OLD_STREAM5(__VA_ARGS__))
-  #define FACTS_WATCH6(...) FACTS_TRACE(FACTS_OLD_STREAM6(__VA_ARGS__))
-  #define FACTS_WATCH7(...) FACTS_TRACE(FACTS_OLD_STREAM7(__VA_ARGS__))
-  #define FACTS_WATCH8(...) FACTS_TRACE(FACTS_OLD_STREAM8(__VA_ARGS__))
-  #define FACTS_WATCH9(...) FACTS_TRACE(FACTS_OLD_STREAM9(__VA_ARGS__))
+  #define FACTS_WATCH1(...) FACTS_WATCH_IF(FACTS_OLD_STREAM1(__VA_ARGS__))
+  #define FACTS_WATCH2(...) FACTS_WATCH_IF(FACTS_OLD_STREAM2(__VA_ARGS__))
+  #define FACTS_WATCH3(...) FACTS_WATCH_IF(FACTS_OLD_STREAM3(__VA_ARGS__))
+  #define FACTS_WATCH4(...) FACTS_WATCH_IF(FACTS_OLD_STREAM4(__VA_ARGS__))
+  #define FACTS_WATCH5(...) FACTS_WATCH_IF(FACTS_OLD_STREAM5(__VA_ARGS__))
+  #define FACTS_WATCH6(...) FACTS_WATCH_IF(FACTS_OLD_STREAM6(__VA_ARGS__))
+  #define FACTS_WATCH7(...) FACTS_WATCH_IF(FACTS_OLD_STREAM7(__VA_ARGS__))
+  #define FACTS_WATCH8(...) FACTS_WATCH_IF(FACTS_OLD_STREAM8(__VA_ARGS__))
+  #define FACTS_WATCH9(...) FACTS_WATCH_IF(FACTS_OLD_STREAM9(__VA_ARGS__))
 
 #endif

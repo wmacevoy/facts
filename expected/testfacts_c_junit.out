@@ -1,70 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="facts">
 <testcase name="Alpha">
-<system-out>bin/testfacts.c 3: Alpha facts check started
-[1;31mbin/testfacts.c/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction[0m
-[1;32mDebug facts_Alpha_function on line 3 of file bin/testfacts.c with a breakpoint on line 4.[0m
-For example in gdb:
-break facts_Alpha_function
-run --facts_include=Alpha
-break 4
-continue
-print 'c'
-print 'b'
-print ('c') <= ('b')
-
-bin/testfacts.c 3: Alpha facts check ended [1;31mbadly[0m
+<system-out>test/testfacts.c 3: Alpha facts check started
+[1;31mtest/testfacts.c/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction[0m
+[1;32m(gdb)[0m break facts_Alpha_function
+[1;32m(gdb)[0m run --facts_include=Alpha
+test/testfacts.c 3: Alpha facts check ended [1;31mbadly[0m
 </system-out>
 <failure>See stdout</failure>
 </testcase>
 
 <testcase name="Integer">
-<system-out>bin/testfacts.c 7: Integer facts check started
-[1;31mbin/testfacts.c/Integer 9: a {=1} == b {=2} is fiction[0m
-[1;32mDebug facts_Integer_function on line 7 of file bin/testfacts.c with a breakpoint on line 9.[0m
-For example in gdb:
-break facts_Integer_function
-run --facts_include=Integer
-break 9
-continue
-print a
-print b
-print (a) == (b)
-
-bin/testfacts.c 7: Integer facts check ended [1;31mbadly[0m
+<system-out>test/testfacts.c 7: Integer facts check started
+[1;31mtest/testfacts.c/Integer 9: a {=1} == b {=2} is fiction[0m
+[1;32m(gdb)[0m break facts_Integer_function
+[1;32m(gdb)[0m run --facts_include=Integer
+test/testfacts.c 7: Integer facts check ended [1;31mbadly[0m
 </system-out>
 <failure>See stdout</failure>
 </testcase>
 
 <testcase name="Double">
-<system-out>bin/testfacts.c 12: Double facts check started
-[1;31mbin/testfacts.c/Double 14: a {=1.3} == b {=2.4} is fiction[0m
-[1;32mDebug facts_Double_function on line 12 of file bin/testfacts.c with a breakpoint on line 14.[0m
-For example in gdb:
-break facts_Double_function
-run --facts_include=Double
-break 14
-continue
-print a
-print b
-print (a) == (b)
-
-bin/testfacts.c 12: Double facts check ended [1;31mbadly[0m
+<system-out>test/testfacts.c 12: Double facts check started
+[1;31mtest/testfacts.c/Double 14: a {=1.3} == b {=2.4} is fiction[0m
+[1;32m(gdb)[0m break facts_Double_function
+[1;32m(gdb)[0m run --facts_include=Double
+test/testfacts.c 12: Double facts check ended [1;31mbadly[0m
 </system-out>
 <failure>See stdout</failure>
 </testcase>
 
 <testcase name="Err">
-<system-out>bin/testfacts.c 17: Err facts check started
-bin/testfacts.c 17: Err facts check ended
+<system-out>test/testfacts.c 17: Err facts check started
+test/testfacts.c 17: Err facts check ended
 </system-out>
 <system-err>message to stderr.
 </system-err>
 </testcase>
 
 <testcase name="LargeErr">
-<system-out>bin/testfacts.c 21: LargeErr facts check started
-bin/testfacts.c 21: LargeErr facts check ended
+<system-out>test/testfacts.c 21: LargeErr facts check started
+test/testfacts.c 21: LargeErr facts check ended
 </system-out>
 <system-err>message #0 to stderr.
 message #1 to stderr.
@@ -170,9 +146,9 @@ message #99 to stderr.
 </testcase>
 
 <testcase name="Out">
-<system-out>bin/testfacts.c 27: Out facts check started
+<system-out>test/testfacts.c 27: Out facts check started
 message to stderr.
-bin/testfacts.c 27: Out facts check ended
+test/testfacts.c 27: Out facts check ended
 </system-out>
 </testcase>
 

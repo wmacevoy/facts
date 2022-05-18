@@ -105,32 +105,13 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
 			       const char *a, const char *op, const char *b)
 {
+  printf(FACTS_GREEN "(gdb)" FACTS_RESET " break facts_%s_function\n",facts->name);
   #ifdef __cplusplus
       FactsTrace::notes();
   #endif
 
-  if (strcmp(facts->file,file) == 0) {
-    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d." FACTS_RESET "\n",
-	   facts->name,facts->line,facts->file,line);
-  } else {
-    printf(FACTS_GREEN "Debug facts_%s_function on line %d of file %s with a breakpoint on line %d " FACTS_RED " of file %s." FACTS_RESET "\n",
-	   facts->name,facts->line,facts->file,line,file);
-  }
+  printf(FACTS_GREEN "(gdb)" FACTS_RESET " run --facts_include=%s\n",facts->name);
 
-  printf("For example in gdb:\n");
-  printf("break facts_%s_function\n",facts->name);
-  printf("run --facts_include=%s\n",facts->name);
-  if (strcmp(facts->file,file)==0) {
-    printf("break %d\n",line);
-  } else {
-    printf("break \"%s\":%d\n",file,line);
-  }
-  printf("continue\n");
-  printf("print %s\n",a);
-  printf("print %s\n",b);
-  printf("print (%s) %s (%s)\n",a,op,b);
-  printf("\n");
-  
   ++facts_fictions;
 }
 
