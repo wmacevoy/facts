@@ -236,14 +236,17 @@ You are now in the FACTS function call that failed.  Usually you want to extract
 
 In a `FACTS(AboutThing) { ... }` fact-check function, you can (only in C++) add `FACTS_TRACE(your << info << here)`.  These are printed in reverse order if a fact-check fails.  This is helpful to include additional information (like the case if looping over cases).  For example:
 ```
-int f(int x) { return 2*x+3; }
-FACTS(AboutF) {
-  for (auto [x,y] : {{0,3},{1,5},{-1,0}}) {
-    FACTS_TRACE("x=" << x << " y=" << y);
-    FACT(f(x),==,y);
+FACTS(...) {
+  for (int i=0; i<3; ++i) {
+    FACTS_TRACE("i=" << i);
+    for (int j=i; j<3; ++j) {
+      FACTS_TRACE("j=" << j);
+      // FACT -check here
+    }
   }
 }
-
 ```
+
+The `hello.cpp` example uses this to trace multiple cases for the function `g`.
 
 Enjoy your fact checking!
