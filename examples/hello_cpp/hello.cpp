@@ -24,7 +24,7 @@ FACTS(AboutG) {
   int x = 0;
   int y = 3;
 
-  FACTS_WATCH2(x,y);  // get useful trace info on failure, C++ 20 allows FACTS_WATCH(x,y)
+  FACTS_WATCH2(x,y);  // get useful info on failure, C++ 20 allows FACTS_WATCH(x,y)
 
   FACT(g(x),==,y);
 }
