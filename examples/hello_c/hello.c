@@ -1,13 +1,20 @@
 #include <stdio.h>
-#include <math.h>
 
-// include the facts header file 
+// from include/facts.h in https://github.com/wmacevoy/facts/releases)
+// you will also need to compile/link against src/facts.c, 
+//
+// cc -g -std=c11 -o hello hello.c lib/facts/src/facts.c
+//
+// 
 #include "facts.h"
+
+// something to fact-check
 
 int f(int x) {
   int y = 2*x+3;
   return y;
 }
+
 
 FACTS(AboutF) {
   FACT(3,==,f(0));
