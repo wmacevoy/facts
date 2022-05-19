@@ -25,9 +25,4 @@ FACTS(AboutG) {
   FACT(23,==,g(10)); // fails
 }
 
-FACTS_REGISTER_ALL() {
-  FACTS_REGISTER(AboutF);
-  FACTS_REGISTER(AboutG);
-}
-
-FACTS_MAIN
+FACTS_FAST
