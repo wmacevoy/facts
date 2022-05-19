@@ -1,0 +1,30 @@
+test/testfacts.c 3: Alpha facts check started
+[1;31mtest/testfacts.c/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction[0m
+[1;32m(gdb)[0m break facts_Alpha_function
+[1;32m(gdb)[0m run --facts_include=Alpha
+test/testfacts.c 3: Alpha facts check ended [1;31mbadly[0m
+test/testfacts.c 7: Integer facts check started
+[1;31mtest/testfacts.c/Integer 9: a {=1} == b {=2} is fiction[0m
+[1;32m(gdb)[0m break facts_Integer_function
+[1;32m(gdb)[0m run --facts_include=Integer
+test/testfacts.c 7: Integer facts check ended [1;31mbadly[0m
+test/testfacts.c 12: Double facts check started
+[1;31mtest/testfacts.c/Double 14: a {=1.3} == b {=2.4} is fiction[0m
+[1;32m(gdb)[0m break facts_Double_function
+[1;32m(gdb)[0m run --facts_include=Double
+test/testfacts.c 12: Double facts check ended [1;31mbadly[0m
+test/testfacts.c 17: Err facts check started
+test/testfacts.c 17: Err facts check ended
+test/testfacts.c 21: LargeErr facts check started
+test/testfacts.c 21: LargeErr facts check ended
+test/testfacts.c 27: Out facts check started
+message to stderr.
+test/testfacts.c 27: Out facts check ended
+facts summary.
+facts check Err [1;32mpassed[0m
+facts check LargeErr [1;32mpassed[0m
+facts check Out [1;32mpassed[0m
+facts check Alpha [1;31mfailed[0m
+facts check Integer [1;31mfailed[0m
+facts check Double [1;31mfailed[0m
+0 (0.0%) truths and 3 (100.0%) fictions checked.

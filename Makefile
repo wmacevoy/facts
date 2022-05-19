@@ -77,10 +77,10 @@ expected: all
 
 .PHONY: clean
 clean:
-	/bin/rm -rf bin/* tmp/* build/`uname -s`-`uname -m`
+	/bin/rm -rf bin/* tmp/* build/`uname -s`-`uname -m` examples/hello_c/hello examples/hello_cpp/hello
 
 .PHONY: install
 install:
 	mkdir -p build/`uname -s`-`uname -m`
-	cd build/`uname -s`-`uname -m` && cmake ../.. && make && make install && ldconfig
+	cd build/`uname -s`-`uname -m` && cmake ../.. && $(MAKE) && $(MAKE) install && ldconfig
 
