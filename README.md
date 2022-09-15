@@ -82,7 +82,6 @@ or maybe (C++):
 struct Duck {
   bool like(string thing) { return thing == "duck"; }
   bool can(string action) { return action == "quack"; }
-  bool 
 };
 ```
 
@@ -118,7 +117,7 @@ if (not (eval(a) op eval(b))) {
 }
 ```
 
-Notice the eval __TWICE__ for both `a` and `b`.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no reliable way to get around this and stick to the C language.
+Notice the eval __TWICE__ for both `a` and `b` when the fact checking determins a fiction.  This means be careful about fact-checks that have side-effects (like `++x` or function calls that change things).  If the check fails, then the print will be different from the check.  There is no reliable way to get around this and stick to the C language.
 
 The `FactsFiction()` call makes it easy to set a break point in the debugger to inspect a failure.  Set a break point in FactsFiction() and the first failure will stop the debugger in the FACTS(...) that are being checked.
 
