@@ -1,7 +1,7 @@
 hello.c 19: AboutF facts check started
 hello.c 19: AboutF facts check ended
 hello.c 29: AboutG facts check started
-[1;31mhello.c/AboutG 32: 23 {=23} == g(10) {=17} is fiction[0m
+hello.c/AboutG 32: [1;31m23 {=23} == g(10) {=17} is fiction[0m
 [1;32m(gdb)[0m break facts_AboutG_function
 [1;32m(gdb)[0m run --facts_include=AboutG
 hello.c 29: AboutG facts check ended [1;31mbadly[0m

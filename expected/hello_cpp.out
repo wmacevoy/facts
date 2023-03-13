@@ -1,7 +1,7 @@
 hello.cpp 13: AboutF facts check started
 hello.cpp 13: AboutF facts check ended
 hello.cpp 23: AboutG facts check started
-[1;31mhello.cpp/AboutG 29: g(x) {=-3} == y {=3} is fiction[0m
+hello.cpp/AboutG 29: [1;31mg(x) {=-3} == y {=3} is fiction[0m
 [1;32m(gdb)[0m break facts_AboutG_function
 hello.cpp/AboutG:27 [1;32m(gdb)[0m break facts_AboutG_function:facts_trace_0 if x==0 && y==3
 [1;32m(gdb)[0m run --facts_include=AboutG

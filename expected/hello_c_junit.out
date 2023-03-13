@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="facts">
 <testcase name="AboutF">
-<system-out>hello.c 12: AboutF facts check started
-hello.c 12: AboutF facts check ended
+<system-out>hello.c 19: AboutF facts check started
+hello.c 19: AboutF facts check ended
 </system-out>
 </testcase>
 
 <testcase name="AboutG">
-<system-out>hello.c 22: AboutG facts check started
-[1;31mhello.c/AboutG 24: 23 {=23} == g(10) {=17} is fiction[0m
-[1;32mDebug facts_AboutG_function on line 22 of file hello.c with a breakpoint on line 24.[0m
-For example in gdb:
-break facts_AboutG_function
-run --facts_include=AboutG
-break 24
-continue
-print 23
-print g(10)
-print (23) == (g(10))
-
-hello.c 22: AboutG facts check ended [1;31mbadly[0m
+<system-out>hello.c 29: AboutG facts check started
+hello.c/AboutG 32: 23 {=23} == g(10) {=17} is fiction
+(gdb) break facts_AboutG_function
+(gdb) run --facts_include=AboutG
+hello.c 29: AboutG facts check ended badly
 </system-out>
 <failure>See stdout</failure>
 </testcase>

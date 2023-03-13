@@ -13,9 +13,9 @@ extern "C"
   struct FactsStruct;
   typedef struct FactsStruct Facts;
 
-#define FACTS_GREEN "\033[1;32m"
-#define FACTS_RED "\033[1;31m"
-#define FACTS_RESET "\033[0m"
+#define FACTS_GREEN ((FACTS_COLOR) ? "\033[1;32m" : "" )
+#define FACTS_RED ((FACTS_COLOR) ? "\033[1;31m" : "")
+#define FACTS_RESET ((FACTS_COLOR) ? "\033[0m" : "")
 
 #define FACTS_SIG               \
   {                             \
@@ -36,8 +36,9 @@ extern "C"
 #define FACTS_STATE_INCLUDE 0
 #define FACTS_STATE_PASS 1
 
-#define FACTS_CONSOLE 0
-#define FACTS_JUNIT 1
+#define FACTS_CONSOLE (((facts_format) & (1<<0)) == 0) 
+#define FACTS_JUNIT   (((facts_format) & (1<<0)) != 0) 
+#define FACTS_COLOR   (((facts_format) & 3) == 0)
 
   struct FactsStruct
   {
@@ -114,12 +115,12 @@ extern "C"
   extern int facts_format;
 #endif
 
-#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsPrint(FACTS_RED "%s/%s %d: %s {=%?} " #op " %s {=%?} is fiction" FACTS_RESET "\n", fmt, fmt, __FILE__, facts->name, __LINE__, #a, (a), #b, (b)), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, 0))
+#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsPrint("%s/%s %d: %s%s {=%?} " #op " %s {=%?} is fiction%s\n", fmt, fmt, __FILE__, facts->name, __LINE__, FACTS_RED, #a, (a), #b, (b), FACTS_RESET), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0))
 #define FACT_PRINT(a, op, b, fmt)  \
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (std::cout << FACTS_RED << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is fiction" FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, 0))
+#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0))
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return

@@ -3,7 +3,7 @@
 #
 
 cmake_minimum_required(VERSION 3.13)
-project(facts VERSION 1.2.0 DESCRIPTION "lightweight and beginner friendly C/C++ fact-checking library")
+project(facts VERSION 1.2.0 DESCRIPTION "lightweight and beginner friendly C/C++ testing library")
 include(GNUInstallDirs)
 add_library(facts SHARED src/facts.cpp)
 set_target_properties(facts PROPERTIES

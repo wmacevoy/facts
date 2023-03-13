@@ -1,15 +1,15 @@
 test/testfacts_if.cpp 3: Alpha facts check started
-[1;31mtest/testfacts_if.cpp/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction[0m
+test/testfacts_if.cpp/Alpha 4: [1;31m'c' {=c} <= 'b' {=b} is fiction[0m
 [1;32m(gdb)[0m break facts_Alpha_function
 [1;32m(gdb)[0m run --facts_include=Alpha
 test/testfacts_if.cpp 3: Alpha facts check ended [1;31mbadly[0m
 test/testfacts_if.cpp 7: Integer facts check started
-[1;31mtest/testfacts_if.cpp/Integer 9: a {=1} == b {=2} is fiction[0m
+test/testfacts_if.cpp/Integer 9: [1;31ma {=1} == b {=2} is fiction[0m
 [1;32m(gdb)[0m break facts_Integer_function
 [1;32m(gdb)[0m run --facts_include=Integer
 test/testfacts_if.cpp 7: Integer facts check ended [1;31mbadly[0m
 test/testfacts_if.cpp 12: Double facts check started
-[1;31mtest/testfacts_if.cpp/Double 14: a {=1.3} == b {=2.4} is fiction[0m
+test/testfacts_if.cpp/Double 14: [1;31ma {=1.3} == b {=2.4} is fiction[0m
 [1;32m(gdb)[0m break facts_Double_function
 [1;32m(gdb)[0m run --facts_include=Double
 test/testfacts_if.cpp 12: Double facts check ended [1;31mbadly[0m

@@ -51,29 +51,41 @@ examples : examples/hello_c/hello examples/hello_cpp/hello
 
 .PHONY: test
 test : all
-	bin/testfacts_c | diff - expected/testfacts_c.out
-	bin/testfacts_cpp | diff - expected/testfacts_cpp.out
+	bin/testfacts_c 2>/dev/null | diff - expected/testfacts_c.out
+	bin/testfacts_cpp 2>/dev/null | diff - expected/testfacts_cpp.out
+	bin/testfacts_c --facts_plain 2>/dev/null | diff - expected/testfacts_c_plain.out
+	bin/testfacts_cpp --facts_plain 2>/dev/null | diff - expected/testfacts_cpp_plain.out
 	bin/testfacts_c --facts_junit | diff - expected/testfacts_c_junit.out
 	bin/testfacts_cpp --facts_junit | diff - expected/testfacts_cpp_junit.out
-	bin/testfacts_if_c | diff - expected/testfacts_if_c.out
-	bin/testfacts_if_cpp | diff - expected/testfacts_if_cpp.out
-	bin/testfacts_if_c --facts | diff - expected/testfacts_if_facts_c.out
-	bin/testfacts_if_cpp --facts | diff - expected/testfacts_if_facts_cpp.out
-	examples/hello_c/hello | diff - expected/hello_c.out
-	examples/hello_cpp/hello | diff - expected/hello_cpp.out
+	bin/testfacts_if_c 2>/dev/null | diff - expected/testfacts_if_c.out
+	bin/testfacts_if_cpp 2>/dev/null | diff - expected/testfacts_if_cpp.out
+	bin/testfacts_if_c --facts 2>/dev/null | diff - expected/testfacts_if_facts_c.out
+	bin/testfacts_if_cpp --facts 2>/dev/null | diff - expected/testfacts_if_facts_cpp.out
+	examples/hello_c/hello 2>/dev/null | diff - expected/hello_c.out
+	examples/hello_cpp/hello 2>/dev/null | diff - expected/hello_cpp.out
+	examples/hello_c/hello --facts_plain 2>/dev/null | diff - expected/hello_c_plain.out
+	examples/hello_cpp/hello --facts_plain 2>/dev/null | diff - expected/hello_cpp_plain.out
+	examples/hello_c/hello --facts_junit | diff - expected/hello_c_junit.out
+	examples/hello_cpp/hello --facts_junit | diff - expected/hello_cpp_junit.out
 
 .PHONY: expected
 expected: all
-	bin/testfacts_c >expected/testfacts_c.out || true
-	bin/testfacts_cpp >expected/testfacts_cpp.out || true
+	bin/testfacts_c 2>/dev/null >expected/testfacts_c.out || true
+	bin/testfacts_cpp 2>/dev/null >expected/testfacts_cpp.out || true
+	bin/testfacts_c 2>/dev/null --facts_plain >expected/testfacts_c_plain.out || true
+	bin/testfacts_cpp 2>/dev/null --facts_plain >expected/testfacts_cpp_plain.out || true
 	bin/testfacts_c --facts_junit >expected/testfacts_c_junit.out || true
 	bin/testfacts_cpp --facts_junit >expected/testfacts_cpp_junit.out || true
-	bin/testfacts_if_c >expected/testfacts_if_c.out || true
-	bin/testfacts_if_cpp >expected/testfacts_if_cpp.out || true
-	bin/testfacts_if_c --facts >expected/testfacts_if_facts_c.out || true
-	bin/testfacts_if_cpp --facts >expected/testfacts_if_facts_cpp.out || true
-	examples/hello_c/hello >expected/hello_c.out || true
-	examples/hello_cpp/hello >expected/hello_cpp.out || true
+	bin/testfacts_if_c 2>/dev/null >expected/testfacts_if_c.out || true
+	bin/testfacts_if_cpp 2>/dev/null >expected/testfacts_if_cpp.out || true
+	bin/testfacts_if_c --facts 2>/dev/null >expected/testfacts_if_facts_c.out || true
+	bin/testfacts_if_cpp --facts 2>/dev/null >expected/testfacts_if_facts_cpp.out || true
+	examples/hello_c/hello 2>/dev/null >expected/hello_c.out || true
+	examples/hello_cpp/hello 2>/dev/null >expected/hello_cpp.out || true
+	examples/hello_c/hello --facts_plain 2>/dev/null >expected/hello_c_plain.out || true
+	examples/hello_cpp/hello --facts_plain 2>/dev/null >expected/hello_cpp_plain.out || true
+	examples/hello_c/hello --facts_junit >expected/hello_c_junit.out || true
+	examples/hello_cpp/hello  --facts_junit >expected/hello_cpp_junit.out || true
 
 .PHONY: clean
 clean:

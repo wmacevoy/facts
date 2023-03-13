@@ -18,7 +18,7 @@ static Facts *head = NULL, *tail = NULL;
 
 uint64_t facts_fictions = 0;
 uint64_t facts_truths = 0;
-int facts_format = FACTS_CONSOLE;
+int facts_format = 0;
 
 FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
@@ -105,14 +105,11 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
 			       const char *a, const char *op, const char *b)
 {
-  printf(FACTS_GREEN "(gdb)" FACTS_RESET " break facts_%s_function\n",facts->name);
+  printf("%s(gdb)%s break facts_%s_function\n",FACTS_GREEN,FACTS_RESET,facts->name);
   #ifdef __cplusplus
       FactsTrace::notes();
   #endif
-
-  printf(FACTS_GREEN "(gdb)" FACTS_RESET " run --facts_include=%s\n",facts->name);
-
-  ++facts_fictions;
+  printf("%s(gdb)%s run --facts_include=%s\n",FACTS_GREEN,FACTS_RESET,facts->name);
 }
 
 // Include FACTS to check with wildncard pattern.
@@ -330,7 +327,6 @@ FACTS_EXTERN void FactsPrint(const char *format, ...)
 //
 FACTS_EXTERN void FactsCheck()
 {
-  int fails = 0;
   if (head == NULL)
   {
     FactsRegisterAll();
@@ -338,14 +334,14 @@ FACTS_EXTERN void FactsCheck()
 
   FILE *tmpout = NULL, *tmperr = NULL;
   int oldout = -1, olderr = -1;
-  if (facts_format == FACTS_JUNIT)
+  if (FACTS_JUNIT)
   {
     printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     printf("<testsuite name=\"facts\">\n");
   }
   for (Facts *facts = head; facts != NULL; facts = facts->next)
   {
-    if (facts_format == FACTS_JUNIT)
+    if (FACTS_JUNIT)
     {
       printf("<testcase name=\"%s\">\n", facts->name);
       printf("<system-out>");      
@@ -366,20 +362,20 @@ FACTS_EXTERN void FactsCheck()
       {
         facts->status = FACTS_STATE_PASS;
       }
-      if (facts->status == FACTS_STATE_FAIL)
-      {
-        ++fails;
+      if (facts->status == FACTS_STATE_FAIL) {
+        printf("%s %d: %s facts check ended %sbadly%s\n",
+               facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
+      } else {
+        printf("%s %d: %s facts check ended\n",
+               facts->file, facts->line, facts->name);
       }
-      printf("%s %d: %s facts check ended%s\n",
-             facts->file, facts->line, facts->name,
-             (facts->status == FACTS_STATE_FAIL ? " " FACTS_RED "badly" FACTS_RESET : ""));
     }
     else
     {
-      printf("%s %d: %s facts check " FACTS_RED "excluded" FACTS_RESET ".\n",
-             facts->file, facts->line, facts->name);
+      printf("%s %d: %s facts check %sexcluded%s.\n",
+             facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
     }
-    if (facts_format == FACTS_JUNIT)
+    if (FACTS_JUNIT)
     {
       fflush(stdout);
       fflush(stderr);
@@ -415,28 +411,28 @@ FACTS_EXTERN void FactsCheck()
     }
   }
 
-  if (facts_format == FACTS_CONSOLE)
+  if (FACTS_CONSOLE)
   {
     printf("facts summary.\n");
     for (Facts *facts = head; facts != NULL; facts = facts->next)
     {
       if (facts->status == FACTS_STATE_PASS)
       {
-        printf("facts check %s " FACTS_GREEN "passed" FACTS_RESET "\n", facts->name);
+        printf("facts check %s %spassed%s\n", facts->name, FACTS_GREEN, FACTS_RESET);
       }
     }
     for (Facts *facts = head; facts != NULL; facts = facts->next)
     {
       if (facts->status == FACTS_STATE_FAIL)
       {
-        printf("facts check %s " FACTS_RED "failed" FACTS_RESET "\n", facts->name);
+        printf("facts check %s %sfailed%s\n", facts->name, FACTS_RED, FACTS_RESET);
       }
     }
     for (Facts *facts = head; facts != NULL; facts = facts->next)
     {
       if (facts->status == FACTS_STATE_EXCLUDE)
       {
-        printf("facts check %s " FACTS_RED "excluded" FACTS_RESET "\n", facts->name);
+        printf("facts check %s %sexcluded%s\n", facts->name, FACTS_RED, FACTS_RESET);
       }
     }
     for (Facts *facts = head; facts != NULL; facts = facts->next)
@@ -445,7 +441,7 @@ FACTS_EXTERN void FactsCheck()
           facts->status != FACTS_STATE_FAIL &&
           facts->status != FACTS_STATE_EXCLUDE)
       {
-        printf("facts check %s " FACTS_RED "status %d" FACTS_RESET "\n", facts->name, facts->status);
+        printf("facts check %s %s status %d%s\n", facts->name, facts->status);
       }
     }
     double checks = ((double)facts_truths) + ((double)facts_fictions);
@@ -454,7 +450,7 @@ FACTS_EXTERN void FactsCheck()
            facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
   }
 
-  if (facts_format == FACTS_JUNIT)
+  if (FACTS_JUNIT)
   {
     printf("</testsuite>\n");
   }
@@ -526,7 +522,15 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       const char *op = "--facts_junit";
       if (strcmp(arg, op) == 0)
       {
-        facts_format = FACTS_JUNIT;
+        facts_format |= 1; // FACTS_JUNIT FLAG
+        continue;
+      }
+    }
+    {
+      const char *op = "--facts_plain";
+      if (strcmp(arg, op) == 0)
+      {
+        facts_format |= 2; // FACTS NO COLORS FLAG
         continue;
       }
     }
@@ -543,6 +547,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
         printf("    --facts_skip --- don't fact check\n");
         printf("    --facts_help --- this help\n");
         printf("    --facts_junit --- use junit format\n");
+        printf("    --facts_plain --- no tty colors\n");
         printf("    * Optimized executables may miss auto facts.\n");
         printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
         continue;
