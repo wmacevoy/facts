@@ -1,0 +1,30 @@
+test/testfacts.cpp 3: Alpha facts check started
+test/testfacts.cpp/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction
+(gdb) break facts_Alpha_function
+(gdb) run --facts_include=Alpha
+test/testfacts.cpp 3: Alpha facts check ended badly
+test/testfacts.cpp 7: Integer facts check started
+test/testfacts.cpp/Integer 9: a {=1} == b {=2} is fiction
+(gdb) break facts_Integer_function
+(gdb) run --facts_include=Integer
+test/testfacts.cpp 7: Integer facts check ended badly
+test/testfacts.cpp 12: Double facts check started
+test/testfacts.cpp/Double 14: a {=1.3} == b {=2.4} is fiction
+(gdb) break facts_Double_function
+(gdb) run --facts_include=Double
+test/testfacts.cpp 12: Double facts check ended badly
+test/testfacts.cpp 17: Err facts check started
+test/testfacts.cpp 17: Err facts check ended
+test/testfacts.cpp 21: LargeErr facts check started
+test/testfacts.cpp 21: LargeErr facts check ended
+test/testfacts.cpp 27: Out facts check started
+message to cout.
+test/testfacts.cpp 27: Out facts check ended
+facts summary.
+facts check Err passed
+facts check LargeErr passed
+facts check Out passed
+facts check Alpha failed
+facts check Integer failed
+facts check Double failed
+0 (0.0%) truths and 3 (100.0%) fictions checked.
