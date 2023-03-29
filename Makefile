@@ -1,11 +1,12 @@
 CSTD?=c11
 CXXSTD?=c++11
 CDBG?=-g
-COPT?=
+COPT?=-O2
 CFLAGS=$(CDBG) $(COPT) -std=$(CSTD) -Iinclude
 CFLAGS_DEBUG=-g -std=$(CSTD) -Iinclude
 CXXFLAGS_DEBUG=-g -std=$(CXXSTD) -Iinclude
 LDLIBS=
+
 
 .PHONY: all
 all : bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp examples
@@ -93,6 +94,6 @@ clean:
 
 .PHONY: install
 install:
-	mkdir -p build/`uname -s`-`uname -m`
-	cd build/`uname -s`-`uname -m` && cmake ../.. && $(MAKE) && $(MAKE) install && ldconfig
+	mkdir -p tmp/`uname -s`-`uname -m`
+	cd tmp/`uname -s`-`uname -m` && cmake ../.. && $(MAKE) && $(MAKE) install && ldconfig
 

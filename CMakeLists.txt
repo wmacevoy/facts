@@ -3,7 +3,9 @@
 #
 
 cmake_minimum_required(VERSION 3.13)
-project(facts VERSION 1.2.0 DESCRIPTION "lightweight and beginner friendly C/C++ testing library")
+project(facts VERSION 1.3.0 DESCRIPTION "lightweight and beginner friendly C/C++ testing library")
+set(CMAKE_C_FLAGS_RELEASE "-g -O")
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O")
 include(GNUInstallDirs)
 add_library(facts SHARED src/facts.cpp src/facts.c)
 set_target_properties(facts PROPERTIES
