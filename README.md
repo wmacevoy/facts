@@ -62,7 +62,7 @@ Programs that have fact checks should have
 ```
 as a header file they include.  If you the compiler can't find this file, use the `-I <directory>` option (gcc/llvm), as in
 ```sh
-c++ -I<facts-dir> -o check check.cpp <facts-dir>/facts.cpp
+c++ -I<facts-dir> -o check check.cpp <facts-dir>/facts.cpp <facts-dir>/facts/facts.c
 ```
 or
 ```sh
@@ -179,7 +179,7 @@ cc -g -o sample sample_facts.c facts.c
 
 Alternatively, if you are writing C++, you can call this file "sample_facts.cpp", and instead compile with (if "facts.h", "facts.c", and "facts.cpp" are in the same folder):
 ```sh
-c++ -g -o sample_facts sample_facts.cpp facts.cpp
+c++ -g -o sample_facts sample_facts.cpp facts.cpp facts.c
 ```
 
 ### Step 3 - Run the executable to fact check
