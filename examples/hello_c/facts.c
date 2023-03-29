@@ -441,7 +441,7 @@ FACTS_EXTERN void FactsCheck()
           facts->status != FACTS_STATE_FAIL &&
           facts->status != FACTS_STATE_EXCLUDE)
       {
-        printf("facts check %s %s status %d%s\n", facts->name, facts->status);
+        printf("facts check %s status %d\n", facts->name, facts->status);
       }
     }
     double checks = ((double)facts_truths) + ((double)facts_fictions);

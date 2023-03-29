@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(facts VERSION 1.2.0 DESCRIPTION "lightweight and beginner friendly C/C++ testing library")
 include(GNUInstallDirs)
-add_library(facts SHARED src/facts.cpp)
+add_library(facts SHARED src/facts.cpp src/facts.c)
 set_target_properties(facts PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1

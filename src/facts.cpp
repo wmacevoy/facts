@@ -1,4 +1,5 @@
-#include "facts.c"
+#define FACTS_CPP
+#include "facts.h"
 
 FactsTrace* FactsTrace::top = 0;
 Facts* FactsTrace::facts = 0;

@@ -109,7 +109,7 @@ extern "C"
                                          void *                \
                                        : "%p")
 
-#ifndef FACTS_C
+#if !(defined(FACTS_C) || defined(FACTS_CPP))
   extern uint64_t facts_fictions;
   extern uint64_t facts_truths;
   extern int facts_format;
@@ -144,7 +144,7 @@ extern "C"
 #define FACTS_EXCLUDE(name) FACTS_DECLARE(name, FACTS_STATE_EXCLUDE)
 #define FACTS(name) FACTS_INCLUDE(name)
 
-#ifndef FACTS_C
+#if !(defined(FACTS_C) || defined(FACTS_CPP))
   FACTS(0000_BEGIN)
   {
   }
@@ -233,24 +233,14 @@ extern "C"
   #define FACTS_OSTREAM9(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM8(__VA_ARGS__))
   #define FACTS_WATCH(...) FACTS_WATCH_IF(FACTS_OSTREAM9(__VA_ARGS__))
 
-  #define FACTS_OLD_STREAM1(x)      #x << "==" << (x)
-  #define FACTS_OLD_STREAM2(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM1(__VA_ARGS__)
-  #define FACTS_OLD_STREAM3(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM2(__VA_ARGS__)
-  #define FACTS_OLD_STREAM4(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM3(__VA_ARGS__)
-  #define FACTS_OLD_STREAM5(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM4(__VA_ARGS__)
-  #define FACTS_OLD_STREAM6(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM5(__VA_ARGS__)
-  #define FACTS_OLD_STREAM7(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM6(__VA_ARGS__)
-  #define FACTS_OLD_STREAM8(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM7(__VA_ARGS__)
-  #define FACTS_OLD_STREAM9(x,...)  #x << "==" << (x) << " && " <<  FACTS_OLD_STREAM8(__VA_ARGS__)
-
-  #define FACTS_WATCH1(...) FACTS_WATCH_IF(FACTS_OLD_STREAM1(__VA_ARGS__))
-  #define FACTS_WATCH2(...) FACTS_WATCH_IF(FACTS_OLD_STREAM2(__VA_ARGS__))
-  #define FACTS_WATCH3(...) FACTS_WATCH_IF(FACTS_OLD_STREAM3(__VA_ARGS__))
-  #define FACTS_WATCH4(...) FACTS_WATCH_IF(FACTS_OLD_STREAM4(__VA_ARGS__))
-  #define FACTS_WATCH5(...) FACTS_WATCH_IF(FACTS_OLD_STREAM5(__VA_ARGS__))
-  #define FACTS_WATCH6(...) FACTS_WATCH_IF(FACTS_OLD_STREAM6(__VA_ARGS__))
-  #define FACTS_WATCH7(...) FACTS_WATCH_IF(FACTS_OLD_STREAM7(__VA_ARGS__))
-  #define FACTS_WATCH8(...) FACTS_WATCH_IF(FACTS_OLD_STREAM8(__VA_ARGS__))
-  #define FACTS_WATCH9(...) FACTS_WATCH_IF(FACTS_OLD_STREAM9(__VA_ARGS__))
+  #define FACTS_WATCH1(...) FACTS_WATCH_IF(FACTS_OSTREAM1(__VA_ARGS__))
+  #define FACTS_WATCH2(...) FACTS_WATCH_IF(FACTS_OSTREAM2(__VA_ARGS__))
+  #define FACTS_WATCH3(...) FACTS_WATCH_IF(FACTS_OSTREAM3(__VA_ARGS__))
+  #define FACTS_WATCH4(...) FACTS_WATCH_IF(FACTS_OSTREAM4(__VA_ARGS__))
+  #define FACTS_WATCH5(...) FACTS_WATCH_IF(FACTS_OSTREAM5(__VA_ARGS__))
+  #define FACTS_WATCH6(...) FACTS_WATCH_IF(FACTS_OSTREAM6(__VA_ARGS__))
+  #define FACTS_WATCH7(...) FACTS_WATCH_IF(FACTS_OSTREAM7(__VA_ARGS__))
+  #define FACTS_WATCH8(...) FACTS_WATCH_IF(FACTS_OSTREAM8(__VA_ARGS__))
+  #define FACTS_WATCH9(...) FACTS_WATCH_IF(FACTS_OSTREAM9(__VA_ARGS__))
 
 #endif

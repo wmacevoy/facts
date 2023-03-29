@@ -4,8 +4,9 @@ For the simple command-line build, you should get away with (-g for debug):
 
 
 ## Compile
+The -g is the debug flag, and the *.c captures the facts.c file that must also be built as part of the program:
 ```sh
-c++ -o hello *.cpp
+c++ -g -o hello *.cpp *.c
 ```
 
 ## Run all tests
@@ -22,6 +23,3 @@ c++ -o hello *.cpp
 ```sh
 ./hello --facts_exclude='*F'
 ```
-
-
-

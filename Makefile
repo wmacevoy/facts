@@ -37,7 +37,7 @@ bin/testfacts_c : test/testfacts.c src/facts.c include/facts.h
 
 bin/testfacts_cpp : test/testfacts.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.cpp src/facts.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.cpp src/facts.cpp src/facts.c $(LDLIBS)
 
 bin/testfacts_if_c : test/testfacts_if.c src/facts.c include/facts.h
 	mkdir -p bin
@@ -45,7 +45,7 @@ bin/testfacts_if_c : test/testfacts_if.c src/facts.c include/facts.h
 
 bin/testfacts_if_cpp : test/testfacts_if.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.cpp src/facts.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.cpp src/facts.cpp src/facts.c $(LDLIBS)
 
 examples : examples/hello_c/hello examples/hello_cpp/hello
 

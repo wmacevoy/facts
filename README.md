@@ -16,6 +16,7 @@ Here are the things to know:
     ```C
     #include "facts.h"
     ```
+  You can download a release of this repository as well [facts](https://github.com/wmacevoy/facts/releases)
 
 2. Write some code you would like to check some facts about.  For example:
     ```C
@@ -47,7 +48,7 @@ Below are these steps in more detail.
 
 ## Step 1 - Get the facts files
 
-Facts is intentionally written with no dependencies other than what is available in standard C 2011 (std=c11) and after.  You need `facts.h` and `facts.c` to test C programs, and in addition `facts.cpp` for C++ programs.  You can download these files from the repository (type ctrl-s on windows or command-s on macs to save these):
+You need `facts.h` and `facts.c` to test C programs, and in addition `facts.cpp` for C++ programs.  You can download these files from the repository (type ctrl-s on windows or command-s on macs to save these):
 
 1. https://raw.githubusercontent.com/wmacevoy/facts/main/include/facts.h
 1. https://raw.githubusercontent.com/wmacevoy/facts/main/src/facts.c
@@ -165,6 +166,7 @@ FACTS(duck) {
   FACT(animal.can("quack"),==,true);
 }
 
+/* this puts in a default fact-check main */
 FACTS_FAST
 ```
 
@@ -219,7 +221,7 @@ You can combine include/exclude with wildcards to pick facts to check if you nam
 
 ### Step 3 - Debugging
 
-The `FactIsFiction()` entry point is to easily set break points in a failed FACTS check.  The sample above has a failed test.  If you use `gdb`, the gnu debugger, you could do the following:
+The `FactsFiction()` entry point is to easily set break points in a failed FACTS check.  The sample above has a failed test.  If you use `gdb`, the gnu debugger, you could do the following:
 
 ```sh
 gdb sample_facts
@@ -229,7 +231,7 @@ gdb sample_facts
 > p *facts
 ```
 
-You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function`) and follow the steps into the failure there.
+You are now in the FACTS function call that failed.  Usually you want to extract the specific failure into a seperate FACTS check, so you can set a breakpoint for that  (`b facts_YOUR_AD_HERE_function` for `FACTS(YOUR_AD_HERE)`) and follow the steps into the failure there.
 
 ## Step 4 - Trace (C++ only)
 
