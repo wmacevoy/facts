@@ -42,7 +42,7 @@ jobs:
       run: cmake -B build -DFACTS_BUILD_TESTS=ON
 
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release -- /verbosity:detailed
 
     - name: Test
       run: ctest --test-dir build --build-config Release --output-on-failure
