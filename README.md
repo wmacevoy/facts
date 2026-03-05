@@ -121,9 +121,21 @@ default is to check all registered facts
     --facts_skip                  do not run facts
     --facts_junit                 emit JUnit XML to stdout
     --facts_plain                 disable ANSI colors
+    --facts_unsafe                run directly (skip fork/exec wrapper)
+    --facts_timeout=N             timeout in seconds (default 10)
 ```
 
 Exit code: 0 if no failures, 1 if any `FACT` failed. (If no facts ran, the exit code is 0.)
+
+## Safe execution
+
+By default, facts fork/exec's itself as a child process before running tests. This provides:
+
+- **Crash isolation** — segfaults, aborts, and other signals in tests are caught and reported cleanly instead of crashing your terminal.
+- **Timeout** — tests that hang are killed after 10 seconds (configurable with `--facts_timeout=N`).
+- **Niceness** — the child process runs at lower priority (`nice 10`) so runaway tests don't starve your system.
+
+Pass `--facts_unsafe` to skip the wrapper and run tests directly in the current process (useful for debugging under gdb/lldb).
 
 ## C++ extras
 

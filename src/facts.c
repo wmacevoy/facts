@@ -33,6 +33,8 @@
 #else
 #include <unistd.h>
 #include <dlfcn.h>
+#include <signal.h>
+#include <sys/wait.h>
 #ifndef RTLD_DEFAULT
 #define RTLD_DEFAULT ((void *)0)
 #endif
@@ -555,13 +557,143 @@ static void FactsScanFile(const char *filename, int register_mode) {
   fclose(f);
 }
 
+// Re-exec self as a child process with --facts_unsafe, monitoring for
+// crashes and timeouts.  Returns the exit code to propagate.
+static int FactsExecSafe(int argc, const char *argv[], int timeout) {
+  // Build new argv: argv[0] --facts_unsafe [rest of argv...]
+  const char **child_argv = (const char **)malloc((argc + 2) * sizeof(const char *));
+  if (!child_argv) return 2;
+  child_argv[0] = argv[0];
+  child_argv[1] = "--facts_unsafe";
+  for (int i = 1; i < argc; ++i)
+    child_argv[i + 1] = argv[i];
+  child_argv[argc + 1] = NULL;
+
+#ifdef _WIN32
+  // Build command line string for CreateProcess
+  char cmdline[32768];
+  int pos = 0;
+  for (int i = 0; child_argv[i] && pos < (int)sizeof(cmdline) - 2; ++i) {
+    if (i > 0) cmdline[pos++] = ' ';
+    // Quote each argument
+    cmdline[pos++] = '"';
+    for (const char *p = child_argv[i]; *p && pos < (int)sizeof(cmdline) - 3; ++p) {
+      if (*p == '"') cmdline[pos++] = '\\';
+      cmdline[pos++] = *p;
+    }
+    cmdline[pos++] = '"';
+  }
+  cmdline[pos] = '\0';
+
+  STARTUPINFOA si = {0};
+  PROCESS_INFORMATION pi = {0};
+  si.cb = sizeof(si);
+
+  if (!CreateProcessA(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+    fprintf(stderr, "facts: CreateProcess failed (%lu)\n", GetLastError());
+    free(child_argv);
+    return 2;
+  }
+  free(child_argv);
+
+  DWORD wait = WaitForSingleObject(pi.hProcess, timeout * 1000);
+  if (wait == WAIT_TIMEOUT) {
+    TerminateProcess(pi.hProcess, 1);
+    WaitForSingleObject(pi.hProcess, 1000);
+    fprintf(stderr, "\nfacts: TIMEOUT after %d seconds\n", timeout);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    return 2;
+  }
+
+  DWORD exit_code = 0;
+  GetExitCodeProcess(pi.hProcess, &exit_code);
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+
+  if (exit_code > 1) {
+    fprintf(stderr, "\nfacts: child exited with code %lu\n", (unsigned long)exit_code);
+  }
+  return (int)exit_code;
+
+#else // POSIX
+  pid_t pid = fork();
+  if (pid < 0) {
+    perror("facts: fork");
+    free(child_argv);
+    return 2;
+  }
+
+  if (pid == 0) {
+    // Child: lower priority and exec
+    nice(10);
+    execv(argv[0], (char *const *)child_argv);
+    // If exec fails, try /proc/self/exe (Linux)
+    execv("/proc/self/exe", (char *const *)child_argv);
+    perror("facts: exec");
+    _exit(2);
+  }
+
+  // Parent: wait with timeout
+  free(child_argv);
+
+  int remaining = timeout;
+  int wstatus;
+  pid_t result;
+
+  while (remaining > 0) {
+    result = waitpid(pid, &wstatus, WNOHANG);
+    if (result != 0) break;
+    sleep(1);
+    --remaining;
+  }
+
+  if (remaining <= 0) {
+    // Timeout: kill child
+    kill(pid, SIGKILL);
+    waitpid(pid, &wstatus, 0);
+    fprintf(stderr, "\nfacts: TIMEOUT after %d seconds\n", timeout);
+    return 2;
+  }
+
+  if (WIFSIGNALED(wstatus)) {
+    int sig = WTERMSIG(wstatus);
+    const char *signame = "unknown";
+    if (sig == SIGSEGV) signame = "SIGSEGV";
+    else if (sig == SIGABRT) signame = "SIGABRT";
+    else if (sig == SIGFPE) signame = "SIGFPE";
+    else if (sig == SIGBUS) signame = "SIGBUS";
+    fprintf(stderr, "\nfacts: child killed by signal %d (%s)\n", sig, signame);
+    return 2;
+  }
+
+  return WIFEXITED(wstatus) ? WEXITSTATUS(wstatus) : 2;
+#endif
+}
+
 FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 {
+  // Check for --facts_unsafe and --facts_timeout before anything else.
+  // If --facts_unsafe is absent, re-exec under a safe wrapper.
+  int unsafe = 0;
+  int timeout = 10;
+  for (int i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "--facts_unsafe") == 0) unsafe = 1;
+    else if (strncmp(argv[i], "--facts_timeout=", 16) == 0) timeout = atoi(argv[i] + 16);
+  }
+
+  if (!unsafe) {
+    return FactsExecSafe(argc, argv, timeout);
+  }
+
   int status = 0;
   int check = 1;
   for (int argi = 1; argi < argc; ++argi)
   {
     const char *arg = (argi < argc) ? argv[argi] : NULL;
+    if (strcmp(arg, "--facts_unsafe") == 0 ||
+        strncmp(arg, "--facts_timeout=", 16) == 0)
+      continue;
     {
       const char *op = "--facts_include=";
       if (strncmp(arg, op, strlen(op)) == 0)
@@ -640,6 +772,8 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
         printf("    --facts_help --- this help\n");
         printf("    --facts_junit --- use junit format\n");
         printf("    --facts_plain --- no tty colors\n");
+        printf("    --facts_unsafe --- run directly (skip fork/exec wrapper)\n");
+        printf("    --facts_timeout=N --- timeout in seconds (default 10)\n");
         continue;
       }
     }
