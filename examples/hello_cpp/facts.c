@@ -552,6 +552,57 @@ FACTS_EXTERN void FactsCheck()
 // least one FACT failed, and 2 means no facts were checked.
 //
 //
+// Scan a source file for FACTS(Name) declarations.
+// Prints FACTS_REGISTER(Name) lines to stdout.
+static void FactsScanFile(const char *filename) {
+  FILE *f = fopen(filename, "r");
+  if (!f) {
+    fprintf(stderr, "facts: cannot open %s\n", filename);
+    return;
+  }
+
+  char line[4096];
+  while (fgets(line, sizeof(line), f)) {
+    // skip preprocessor directives (#define, #include, etc.)
+    const char *trimmed = line;
+    while (*trimmed == ' ' || *trimmed == '\t') ++trimmed;
+    if (*trimmed == '#') continue;
+
+    const char *p = line;
+    while ((p = strstr(p, "FACTS(")) != NULL) {
+      // word boundary: previous char must not be identifier char
+      if (p > line) {
+        char c = p[-1];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') || c == '_') {
+          p += 6;
+          continue;
+        }
+      }
+
+      // extract identifier
+      const char *start = p + 6;
+      const char *end = start;
+      while ((*end >= 'A' && *end <= 'Z') || (*end >= 'a' && *end <= 'z') ||
+             (*end >= '0' && *end <= '9') || *end == '_')
+        ++end;
+
+      if (*end == ')' && end > start) {
+        int len = (int)(end - start);
+        // skip internal markers
+        if (!(len == 10 && strncmp(start, "0000_BEGIN", 10) == 0) &&
+            !(len == 8 && strncmp(start, "zzzz_END", 8) == 0)) {
+          printf("    FACTS_REGISTER(%.*s);\n", len, start);
+        }
+      }
+
+      p = (end > p) ? end : p + 1;
+    }
+  }
+
+  fclose(f);
+}
+
 FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 {
   int status = 0;
@@ -579,21 +630,17 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       const char *op = "--facts_find";
       if (strcmp(arg, op) == 0)
       {
-        FactsFind();
-        continue;
-      }
-    }
-
-    {
-      const char *op = "--facts_register_all";
-      if (strcmp(arg, op) == 0)
-      {
         check = 0;
-        FactsFind();
         printf("FACTS_REGISTER_ALL() {\n");
-        for (Facts *facts = head; facts != NULL; facts = facts->next)
-        {
-          printf("    FACTS_REGISTER(%s);\n", facts->name);
+        for (++argi; argi < argc; ++argi) {
+          if (strcmp(argv[argi], ";") == 0) break;
+          if (strcmp(argv[argi], "me") == 0) {
+            FactsFind();
+            for (Facts *facts = head; facts != NULL; facts = facts->next)
+              printf("    FACTS_REGISTER(%s);\n", facts->name);
+          } else {
+            FactsScanFile(argv[argi]);
+          }
         }
         printf("}\n");
         continue;
@@ -629,16 +676,17 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       {
         check = 0;
         printf("default is to check all registered facts\n");
-        printf("    --facts_include=\"*wildcard pattern*\"\n --- include certain facts\n");
-        printf("    --facts_exclude=\"*wildcard pattern*\"\n --- exclude certain facts\n");
-        printf("    --facts_register_all --- auto* generate FACTS_REGISTER_ALL\n");
-        printf("    --facts_find --- auto* find facts\n");
+        printf("    --facts_include=\"*wildcard pattern*\" --- include certain facts\n");
+        printf("    --facts_exclude=\"*wildcard pattern*\" --- exclude certain facts\n");
+        printf("    --facts_find me|files... \\; --- generate FACTS_REGISTER_ALL\n");
+        printf("        me          scan executable memory for facts\n");
+        printf("        file.c ...  scan source files for FACTS() declarations\n");
         printf("    --facts_skip --- don't fact check\n");
         printf("    --facts_help --- this help\n");
         printf("    --facts_junit --- use junit format\n");
         printf("    --facts_plain --- no tty colors\n");
-        printf("    * Optimized executables may miss auto facts.\n");
-        printf("      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.\n");
+        printf("    * Optimized executables may miss auto-discovered facts.\n");
+        printf("      Use source scanning or explicit FACTS_REGISTER_ALL() {...} instead.\n");
         continue;
       }
     }

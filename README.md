@@ -101,13 +101,14 @@ Printed by `--facts_help`:
 default is to check all registered facts
     --facts_include="*pattern*"   include matching groups
     --facts_exclude="*pattern*"   exclude matching groups
-    --facts_register_all          print an explicit FACTS_REGISTER_ALL block
-    --facts_find                  force auto‑discovery pass
+    --facts_find me|files... \;   generate FACTS_REGISTER_ALL
+        me          scan executable memory for facts
+        file.c ...  scan source files for FACTS() declarations
     --facts_skip                  do not run facts
     --facts_junit                 emit JUnit XML to stdout
     --facts_plain                 disable ANSI colors
-    * Optimized executables may miss auto facts.
-      Use explicit FACTS_REGISTER_ALL() {...} for reliable fact checking.
+    * Optimized executables may miss auto-discovered facts.
+      Use source scanning or explicit FACTS_REGISTER_ALL() {...} instead.
 ```
 
 Exit code: 0 if no failures, 1 if any `FACT` failed. (If no facts ran, the exit code is 0.)
@@ -143,7 +144,7 @@ FACTS(Scan) {
 
 ## Notes and limitations
 
-- Auto‑discovery scans static storage for `FACTS` signatures. This is small and portable, but certain optimizations and link‑time settings can elide or reorder data. If in doubt, use explicit registration.
+- Auto‑discovery scans static storage for `FACTS` signatures. This is small and portable, but certain optimizations and link‑time settings can elide or reorder data. Use `--facts_find src/*.c \;` to scan source files instead, or use explicit registration.
 - ANSI colors are used by default; pass `--facts_plain` to disable.
 
 Enjoy your fact checking!

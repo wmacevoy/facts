@@ -1,4 +1,4 @@
-FROM node:18-bullseye
+FROM node:20-bookworm
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \

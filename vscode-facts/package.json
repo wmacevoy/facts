@@ -1,0 +1,95 @@
+{
+  "name": "facts-test-runner",
+  "displayName": "Facts Test Runner",
+  "description": "Run and debug Facts C/C++ tests with auto-discovery, breakpoints, and JUnit output",
+  "version": "0.1.0",
+  "publisher": "wmacevoy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wmacevoy/facts"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Testing"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/facts.h"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Facts",
+      "properties": {
+        "facts.executable": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the test executable (auto-detected if empty)"
+        },
+        "facts.sourceGlob": {
+          "type": "string",
+          "default": "**/*.{c,cpp,cc,cxx}",
+          "description": "Glob pattern for source files to scan for FACTS() declarations"
+        },
+        "facts.buildCommand": {
+          "type": "string",
+          "default": "make",
+          "description": "Command to build the test executable"
+        },
+        "facts.debugger": {
+          "type": "string",
+          "default": "cppdbg",
+          "enum": ["cppdbg", "lldb", "codelldb"],
+          "description": "Debugger type to use"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "facts.runAll",
+        "title": "Facts: Run All Tests"
+      },
+      {
+        "command": "facts.runTest",
+        "title": "Facts: Run Test Under Cursor"
+      },
+      {
+        "command": "facts.debugTest",
+        "title": "Facts: Debug Test Under Cursor"
+      },
+      {
+        "command": "facts.discover",
+        "title": "Facts: Discover Tests"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "facts.runTest",
+          "when": "editorLangId =~ /^(c|cpp)$/ && facts.hasTests",
+          "group": "facts@1"
+        },
+        {
+          "command": "facts.debugTest",
+          "when": "editorLangId =~ /^(c|cpp)$/ && facts.hasTests",
+          "group": "facts@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "npx @vscode/vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  }
+}
