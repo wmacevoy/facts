@@ -6,7 +6,7 @@ Build-Depends: debhelper-compat (= 13), g++
 Standards-Version: 4.6.0
 Homepage: https://github.com/wmacevoy/facts
 
-Package: libfacts-1
+Package: libfacts-2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Lightweight C/C++ testing library
@@ -18,7 +18,7 @@ Description: Lightweight C/C++ testing library
 Package: libfacts-dev
 Section: libdevel
 Architecture: any
-Depends: libfacts-1 (= ${binary:Version}), ${misc:Depends}
+Depends: libfacts-2 (= ${binary:Version}), ${misc:Depends}
 Description: Lightweight C/C++ testing library (development files)
  Facts is a tiny, beginner-friendly C/C++ testing library. It provides
  FACTS(name) groups and FACT(a,op,b) checks with readable failure messages.

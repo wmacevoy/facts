@@ -122,14 +122,57 @@ jobs:
         body: |
           ## Install
 
-          **Source:** download and build with `make && make install`
-
-          **Homebrew:** update `sha256` in the formula to:
-          ```
-          ${{ steps.sha.outputs.sha256 }}
+          **From source (Unix):**
+          ```sh
+          make && sudo make install
           ```
 
-          **Debian:** install the `.deb` files from the assets below.
+          **From source (Windows / cross-platform):**
+          ```sh
+          cmake -B build && cmake --build build --config Release && cmake --install build
+          ```
+
+          **Homebrew (macOS / Linux):**
+          ```sh
+          brew tap wmacevoy/facts
+          brew install facts
+          ```
+          Update the formula `sha256` to: `${{ steps.sha.outputs.sha256 }}`
+
+          **Debian / Ubuntu:** download and install the `.deb` files from the assets below:
+          ```sh
+          sudo dpkg -i libfacts-2_*.deb libfacts-dev_*.deb
+          ```
+
+          ## Usage
+
+          ```c
+          #include <facts.h>
+
+          FACTS(Example) {
+            FACT(1 + 1, ==, 2);
+          }
+
+          FACTS_REGISTER_ALL() { FACTS_REGISTER(Example); }
+          FACTS_MAIN
+          ```
+
+          ```sh
+          cc -std=c11 -o check your.c -lfacts && ./check
+          ```
+
+          Or use `--facts_find` for zero-registration workflow:
+          ```sh
+          cc -std=c11 -rdynamic -o check your.c -lfacts && ./check --facts_find your.c
+          ```
+
+          ## VSCode Extension
+
+          Download `facts-test-runner-*.vsix` from the CI artifacts and install:
+          ```sh
+          code --install-extension facts-test-runner-*.vsix
+          ```
+          Or in VSCode: Extensions → ⋯ → Install from VSIX.
         files: |
           artifacts/deb-packages/*.deb
           artifacts/alpine-package/*.tar.gz

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(facts VERSION 1.3.0 LANGUAGES C CXX
+project(facts VERSION 2.0.0 LANGUAGES C CXX
   DESCRIPTION "lightweight and beginner friendly C/C++ testing library")
 
 set(CMAKE_C_STANDARD 11)

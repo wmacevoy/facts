@@ -61,7 +61,7 @@ Tests are opt-in via `-DFACTS_BUILD_TESTS=ON`. The default CMake build only prod
 
 **Produces two packages:**
 
-- `libfacts-1` — shared libraries (libfacts.so and libfacts++.so)
+- `libfacts-2` — shared libraries (libfacts.so and libfacts++.so)
 - `libfacts-dev` — headers, static libraries, pkg-config files
 
 **How to build:**
@@ -79,7 +79,7 @@ dpkg-buildpackage -us -uc
 | `debian/changelog` | Version history (required by dpkg) |
 | `debian/copyright` | License in Debian machine-readable format |
 | `debian/source/format` | Declares `3.0 (native)` source format |
-| `debian/libfacts-1.install` | Files that go into the runtime package |
+| `debian/libfacts-2.install` | Files that go into the runtime package |
 | `debian/libfacts-dev.install` | Files that go into the dev package |
 
 ### Homebrew (macOS / Linux)
@@ -231,12 +231,12 @@ c++ $(pkg-config --cflags facts++) -o check your.cpp $(pkg-config --libs facts++
 
 ## Versioning
 
-The version (`1.3.0`) is defined in two places:
+The version (`2.0.0`) is defined in two places:
 
 - `Makefile` — `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`
-- `CMakeLists.txt` — `project(facts VERSION 1.3.0)`
+- `CMakeLists.txt` — `project(facts VERSION 2.0.0)`
 
-Both must be updated together when releasing a new version. The shared library soname uses only the major version (`libfacts.so.1`), so minor and patch releases are ABI-compatible drop-in replacements.
+Both must be updated together when releasing a new version. The shared library soname uses only the major version (`libfacts.so.2`), so minor and patch releases are ABI-compatible drop-in replacements.
 
 ## CI/CD — GitHub Actions
 
@@ -332,8 +332,8 @@ brew install facts
 1. Update version in `Makefile`, `CMakeLists.txt`, and `debian/changelog`
 2. Commit, tag, and push:
    ```sh
-   git tag v1.3.0
-   git push origin v1.3.0
+   git tag v2.0.0
+   git push origin v2.0.0
    ```
 3. The release workflow runs automatically and creates the GitHub Release
 4. Update the Homebrew formula `sha256` with the value from the release notes
