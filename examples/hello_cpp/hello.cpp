@@ -29,4 +29,9 @@ FACTS(AboutG) {
   FACT(g(x),==,y);
 }
 
-FACTS_FAST
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(AboutF);
+  FACTS_REGISTER(AboutG);
+}
+
+FACTS_MAIN

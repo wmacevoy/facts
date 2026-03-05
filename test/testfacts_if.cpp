@@ -28,7 +28,16 @@ FACTS(Out) {
   std::cout << "message to cout." << std::endl;
 }
 
-FACTS_FAST_IF(--facts) {
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(Alpha);
+  FACTS_REGISTER(Integer);
+  FACTS_REGISTER(Double);
+  FACTS_REGISTER(Err);
+  FACTS_REGISTER(LargeErr);
+  FACTS_REGISTER(Out);
+}
+
+FACTS_MAIN_IF(--facts) {
   std::cout << "main" << std::endl;
   return 0;
 }

@@ -45,22 +45,16 @@ int facts_format = 0;
 }
 #endif
 
-// Weak defaults so the shared library links without user code.
-// User-provided strong definitions (from FACTS_FAST, FACTS_REGISTER_ALL,
-// etc.) override these at link time.
+// Weak default so the shared library links without user code.
+// User-provided strong definition (from FACTS_REGISTER_ALL)
+// overrides at link time.
 #if defined(__GNUC__) || defined(__clang__)
-FACTS_EXTERN __attribute__((weak)) void FactsFind() {}
 FACTS_EXTERN __attribute__((weak)) void FactsRegisterAll() {}
 #elif defined(_MSC_VER)
-// MSVC: use /alternatename linker directive for weak symbol emulation.
-FACTS_EXTERN void FactsFind_default() {}
 FACTS_EXTERN void FactsRegisterAll_default() {}
-#pragma comment(linker, "/alternatename:FactsFind=FactsFind_default")
 #pragma comment(linker, "/alternatename:FactsRegisterAll=FactsRegisterAll_default")
-FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
 #else
-FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
 #endif
 
@@ -233,81 +227,6 @@ FACTS_EXTERN void FactsRegister(Facts *facts)
 //
 // C does not provide a way to initialize a list of
 // FACTS checks.  So we search memory for them by the
-// signature (a random byte pattern) each FACTS check
-// creates.
-//
-// The test declarations are bracketed in source by
-// the #include "facts.h" to begin and FACTS_FINISHED
-// at the end.  FACTS_FINISHED creates a function that
-// calls this with two book-end tests that are ignored.
-//
-
-FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
-{
-  if (head != NULL || tail != NULL)
-  {
-    return;
-  }
-  unsigned char *sig = &begin->sig[0];
-  int delta = sig - (unsigned char *)begin;
-  int reversed = 0;
-  if (end < begin)
-  {
-    Facts *tmp = end;
-    end = begin;
-    begin = tmp;
-    reversed = 1;
-  }
-
-  unsigned char *b = ((unsigned char *)begin);
-  unsigned char *e = ((unsigned char *)end) + sizeof(Facts);
-
-  for (unsigned char *p = b;
-       p != NULL && p + FACTS_SIG_LEN <= e;
-       p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], e - p - FACTS_SIG_LEN))
-  {
-    if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
-    {
-      Facts *facts = (Facts *)(p - delta);
-
-      if (facts->name != NULL && facts->function != NULL && facts->prev == NULL && facts->next == NULL)
-      {
-        if (strcmp(facts->name, "0000_BEGIN") == 0 ||
-            strcmp(facts->name, "zzzz_END") == 0)
-          continue;
-        if (reversed)
-        {
-          facts->next = head;
-          facts->prev = NULL;
-          if (head != NULL)
-          {
-            head->prev = facts;
-          }
-          if (tail == NULL)
-          {
-            tail = facts;
-          }
-          head = facts;
-        }
-        else
-        {
-          facts->prev = tail;
-          facts->next = NULL;
-          if (tail != NULL)
-          {
-            tail->next = facts;
-          }
-          if (head == NULL)
-          {
-            head = facts;
-          }
-          tail = facts;
-        }
-      }
-    }
-  }
-}
-
 // Symmetric relative error.
 FACTS_EXTERN double FactsRelErr(double a, double b)
 {
@@ -589,11 +508,7 @@ static void FactsScanFile(const char *filename) {
 
       if (*end == ')' && end > start) {
         int len = (int)(end - start);
-        // skip internal markers
-        if (!(len == 10 && strncmp(start, "0000_BEGIN", 10) == 0) &&
-            !(len == 8 && strncmp(start, "zzzz_END", 8) == 0)) {
-          printf("    FACTS_REGISTER(%.*s);\n", len, start);
-        }
+        printf("    FACTS_REGISTER(%.*s);\n", len, start);
       }
 
       p = (end > p) ? end : p + 1;
@@ -634,13 +549,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
         printf("FACTS_REGISTER_ALL() {\n");
         for (++argi; argi < argc; ++argi) {
           if (strcmp(argv[argi], ";") == 0) break;
-          if (strcmp(argv[argi], "me") == 0) {
-            FactsFind();
-            for (Facts *facts = head; facts != NULL; facts = facts->next)
-              printf("    FACTS_REGISTER(%s);\n", facts->name);
-          } else {
-            FactsScanFile(argv[argi]);
-          }
+          FactsScanFile(argv[argi]);
         }
         printf("}\n");
         continue;
@@ -678,15 +587,13 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
         printf("default is to check all registered facts\n");
         printf("    --facts_include=\"*wildcard pattern*\" --- include certain facts\n");
         printf("    --facts_exclude=\"*wildcard pattern*\" --- exclude certain facts\n");
-        printf("    --facts_find me|files... \\; --- generate FACTS_REGISTER_ALL\n");
-        printf("        me          scan executable memory for facts\n");
-        printf("        file.c ...  scan source files for FACTS() declarations\n");
+        printf("    --facts_find files... \\; --- generate FACTS_REGISTER_ALL\n");
+        printf("        scans source files for FACTS() declarations\n");
         printf("    --facts_skip --- don't fact check\n");
         printf("    --facts_help --- this help\n");
         printf("    --facts_junit --- use junit format\n");
         printf("    --facts_plain --- no tty colors\n");
-        printf("    * Optimized executables may miss auto-discovered facts.\n");
-        printf("      Use source scanning or explicit FACTS_REGISTER_ALL() {...} instead.\n");
+        printf("    Use --facts_find to generate FACTS_REGISTER_ALL from source.\n");
         continue;
       }
     }

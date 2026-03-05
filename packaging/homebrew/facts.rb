@@ -23,7 +23,8 @@ class Facts < Formula
         int a = 1, b = 1;
         FACT(a, ==, b);
       }
-      FACTS_FAST
+      FACTS_REGISTER_ALL() { FACTS_REGISTER(Smoke); }
+      FACTS_MAIN
     C
     system ENV.cc, "test_c.c", "-std=c11",
            "-I#{include}", "-L#{lib}", "-lfacts", "-o", "test_c"
@@ -36,7 +37,8 @@ class Facts < Formula
         int a = 1, b = 1;
         FACT(a, ==, b);
       }
-      FACTS_FAST
+      FACTS_REGISTER_ALL() { FACTS_REGISTER(Smoke); }
+      FACTS_MAIN
     CXX
     system ENV.cxx, "test_cpp.cpp", "-std=c++11",
            "-I#{include}", "-L#{lib}", "-lfacts++", "-o", "test_cpp"

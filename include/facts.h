@@ -17,20 +17,6 @@ extern "C"
 #define FACTS_RED ((FACTS_COLOR) ? "\033[1;31m" : "")
 #define FACTS_RESET ((FACTS_COLOR) ? "\033[0m" : "")
 
-#define FACTS_SIG               \
-  {                             \
-    0xae, 0x1e, 0xe5, 0xab,     \
-        0xdf, 0x2c, 0x8f, 0xfd, \
-        0x9d, 0x1e, 0xa7, 0x37, \
-        0xc6, 0xf3, 0xe0, 0xe8, \
-        0xb7, 0xdc, 0x56, 0x93, \
-        0x08, 0xd8, 0xe3, 0x13, \
-        0xe2, 0xe4, 0x43, 0x2d, \
-        0x91, 0x4a, 0x32, 0x55  \
-  }
-
-#define FACTS_SIG_LEN 32
-
 #define FACTS_STATE_EXCLUDE -2
 #define FACTS_STATE_FAIL -1
 #define FACTS_STATE_INCLUDE 0
@@ -42,7 +28,6 @@ extern "C"
 
   struct FactsStruct
   {
-    unsigned char sig[FACTS_SIG_LEN];
     const char *file;
     int line;
     const char *name;
@@ -53,7 +38,6 @@ extern "C"
   };
 
   void FactsPrint(const char *fmt, ...);
-  void FactsFindInMemory(Facts *begin, Facts *end);
   void FactsInclude(const char *pattern);
   void FactsExclude(const char *pattern);
   void FactsRegister(Facts *facts);
@@ -137,34 +121,19 @@ extern "C"
 #define FACTS_EXTERN
 #endif
 
-#define FACTS_DECLARE(name, state)                                                                                 \
-  void facts_##name##_function(Facts *facts);                                                                      \
-  Facts facts_##name##_data = {FACTS_SIG, __FILE__, __LINE__, #name, &facts_##name##_function, state, NULL, NULL}; \
+#define FACTS_DECLARE(name, state)                                                                    \
+  void facts_##name##_function(Facts *facts);                                                           \
+  Facts facts_##name##_data = {__FILE__, __LINE__, #name, &facts_##name##_function, state, NULL, NULL}; \
   void facts_##name##_function(Facts *facts)
 
 #define FACTS_INCLUDE(name) FACTS_DECLARE(name, FACTS_STATE_INCLUDE)
 #define FACTS_EXCLUDE(name) FACTS_DECLARE(name, FACTS_STATE_EXCLUDE)
 #define FACTS(name) FACTS_INCLUDE(name)
 
-#if !(defined(FACTS_C) || defined(FACTS_CPP))
-  FACTS(0000_BEGIN)
-  {
-  }
-#endif
-
 #define FACTS_REGISTER(name) FactsRegister(&facts_##name##_data)
 
-#define FACTS_REGISTER_ALL                                           \
-  FACTS(zzzz_END){};                                                 \
-  FACTS_EXTERN void FactsFind()                                      \
-  {                                                                  \
-    FactsFindInMemory(&facts_0000_BEGIN_data, &facts_zzzz_END_data); \
-  }                                                                  \
+#define FACTS_REGISTER_ALL                \
   FACTS_EXTERN void FactsRegisterAll
-
-#define FACTS_REGISTER_AUTO             \
-  FACTS_REGISTER_ALL() { FactsFind(); } \
-  void FactRegisterIgnored
 
 #define FACTS_MAIN 						\
   int main(int argc, const char *argv[]) { return FactsMain(argc, argv); }
@@ -182,14 +151,6 @@ extern "C"
     return FactsMainElse(argc,argv);					\
   }									\
   int FactsMainElse(int argc, const char *argv[])
-  
-#define FACTS_FAST				\
-  FACTS_REGISTER_AUTO() {}			\
-  FACTS_MAIN
-  
-#define FACTS_FAST_IF(arg)			\
-  FACTS_REGISTER_AUTO() {}			\
-  FACTS_MAIN_IF(arg)
     
 #ifdef __cplusplus
 } // extern "C"

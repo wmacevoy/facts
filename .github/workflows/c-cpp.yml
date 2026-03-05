@@ -114,7 +114,8 @@ jobs:
         cat >test_c.c <<'EOF'
         #include <facts.h>
         FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
-        FACTS_FAST
+        FACTS_REGISTER_ALL() { FACTS_REGISTER(Smoke); }
+        FACTS_MAIN
         EOF
         cc -std=c11 -Istaging/include -Lstaging/lib -lfacts -Wl,-rpath,$PWD/staging/lib -o test_c test_c.c
         ./test_c
@@ -124,7 +125,8 @@ jobs:
         cat >test_cpp.cpp <<'EOF'
         #include <facts.h>
         FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
-        FACTS_FAST
+        FACTS_REGISTER_ALL() { FACTS_REGISTER(Smoke); }
+        FACTS_MAIN
         EOF
         c++ -std=c++11 -Istaging/include -Lstaging/lib -lfacts++ -Wl,-rpath,$PWD/staging/lib -o test_cpp test_cpp.cpp
         ./test_cpp

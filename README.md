@@ -23,7 +23,7 @@ Facts is a tiny, beginner‑friendly C/C++ testing library. It aims to be easy t
 #include "facts.h"
 ```
 
-3) Write facts
+3) Write facts and register them
 
 ```C
 int inc(int x) { return x + 1; }
@@ -33,7 +33,11 @@ FACTS(AboutInc) {
   FACT(inc(a),==,b);
 }
 
-FACTS_FAST  // provide a default main() and auto‑register facts
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(AboutInc);
+}
+
+FACTS_MAIN
 ```
 
 4) Build and run
@@ -75,22 +79,32 @@ Important: on a failure the values of `a` and `b` are printed, which means each 
 
 ## Registration and main()
 
-- `FACTS_FAST` expands to an auto‑registration plus a default `main` that runs the facts.
-- Optimized builds (e.g., `-O`, LTO) may interfere with auto‑discovery on some toolchains. For absolute reliability, explicitly register your groups and provide `main`:
+Every test must be explicitly registered. `FACTS_REGISTER_ALL` lists your groups, and `FACTS_MAIN` provides `main`:
 
 ```C
 FACTS_REGISTER_ALL() {
   FACTS_REGISTER(AboutInc);
-  // FACTS_REGISTER(AnotherGroup);
+  FACTS_REGISTER(AnotherGroup);
 }
 
 FACTS_MAIN
 ```
 
+Use `--facts_find` to generate the registration block from source files:
+
+```sh
+./check --facts_find src/*.c \;
+```
+
 You can also gate running facts behind a command‑line switch:
 
 ```C
-FACTS_FAST_IF(--facts) { /* your program's main */ return 0; }
+FACTS_REGISTER_ALL() { FACTS_REGISTER(MyTest); }
+
+FACTS_MAIN_IF(--facts) {
+  /* your program's main */
+  return 0;
+}
 ```
 
 ## Command‑line options
@@ -101,14 +115,11 @@ Printed by `--facts_help`:
 default is to check all registered facts
     --facts_include="*pattern*"   include matching groups
     --facts_exclude="*pattern*"   exclude matching groups
-    --facts_find me|files... \;   generate FACTS_REGISTER_ALL
-        me          scan executable memory for facts
-        file.c ...  scan source files for FACTS() declarations
+    --facts_find files... \;      generate FACTS_REGISTER_ALL from source
     --facts_skip                  do not run facts
     --facts_junit                 emit JUnit XML to stdout
     --facts_plain                 disable ANSI colors
-    * Optimized executables may miss auto-discovered facts.
-      Use source scanning or explicit FACTS_REGISTER_ALL() {...} instead.
+    Use --facts_find to generate FACTS_REGISTER_ALL from source.
 ```
 
 Exit code: 0 if no failures, 1 if any `FACT` failed. (If no facts ran, the exit code is 0.)
@@ -144,7 +155,6 @@ FACTS(Scan) {
 
 ## Notes and limitations
 
-- Auto‑discovery scans static storage for `FACTS` signatures. This is small and portable, but certain optimizations and link‑time settings can elide or reorder data. Use `--facts_find src/*.c \;` to scan source files instead, or use explicit registration.
 - ANSI colors are used by default; pass `--facts_plain` to disable.
 
 Enjoy your fact checking!

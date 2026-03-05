@@ -13,4 +13,9 @@ FACTS(AboutInts) {
   FACT(INT_MAX+1,>,INT_MAX); // fiction
 }
 
-FACTS_FAST
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(AboutLogic);
+  FACTS_REGISTER(AboutInts);
+}
+
+FACTS_MAIN

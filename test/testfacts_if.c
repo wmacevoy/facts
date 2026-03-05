@@ -28,7 +28,16 @@ FACTS(Out) {
   fprintf(stdout,"message to stdout.\n");
 }
 
-FACTS_FAST_IF(--facts) {
+FACTS_REGISTER_ALL() {
+  FACTS_REGISTER(Alpha);
+  FACTS_REGISTER(Integer);
+  FACTS_REGISTER(Double);
+  FACTS_REGISTER(Err);
+  FACTS_REGISTER(LargeErr);
+  FACTS_REGISTER(Out);
+}
+
+FACTS_MAIN_IF(--facts) {
   printf("main\n");
   return 0;
 }
