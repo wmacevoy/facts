@@ -116,7 +116,7 @@ jobs:
         FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
         FACTS_FAST
         EOF
-        cc -std=c11 -Istaging/include -Lstaging/lib -lfacts -o test_c test_c.c
+        cc -std=c11 -Istaging/include -Lstaging/lib -lfacts -Wl,-rpath,$PWD/staging/lib -o test_c test_c.c
         ./test_c
 
     - name: Link test (C++)
@@ -126,7 +126,7 @@ jobs:
         FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
         FACTS_FAST
         EOF
-        c++ -std=c++11 -Istaging/include -Lstaging/lib -lfacts++ -o test_cpp test_cpp.cpp
+        c++ -std=c++11 -Istaging/include -Lstaging/lib -lfacts++ -Wl,-rpath,$PWD/staging/lib -o test_cpp test_cpp.cpp
         ./test_cpp
 
   # ── Chocolatey-style (Windows CMake install) ────────────────

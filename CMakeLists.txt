@@ -5,6 +5,9 @@ project(facts VERSION 1.3.0 LANGUAGES C CXX
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
+# Export all symbols from shared libraries on Windows (avoids __declspec)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 # --- C library (libfacts) ---
 add_library(facts_c_static STATIC src/facts.c)
 target_include_directories(facts_c_static PUBLIC
