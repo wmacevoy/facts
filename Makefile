@@ -138,22 +138,22 @@ examples/hello_cpp/hello: examples/hello_cpp/hello.cpp examples/hello_cpp/facts.
 # --- Check (build tests + examples, diff against expected output) ---
 .PHONY: check
 check: tests examples
-	bin/testfacts_c 2>/dev/null | diff - expected/testfacts_c.out
-	bin/testfacts_cpp 2>/dev/null | diff - expected/testfacts_cpp.out
-	bin/testfacts_c --facts_plain 2>/dev/null | diff - expected/testfacts_c_plain.out
-	bin/testfacts_cpp --facts_plain 2>/dev/null | diff - expected/testfacts_cpp_plain.out
-	bin/testfacts_c --facts_junit | diff - expected/testfacts_c_junit.out
-	bin/testfacts_cpp --facts_junit | diff - expected/testfacts_cpp_junit.out
-	bin/testfacts_if_c 2>/dev/null | diff - expected/testfacts_if_c.out
-	bin/testfacts_if_cpp 2>/dev/null | diff - expected/testfacts_if_cpp.out
-	bin/testfacts_if_c --facts 2>/dev/null | diff - expected/testfacts_if_facts_c.out
-	bin/testfacts_if_cpp --facts 2>/dev/null | diff - expected/testfacts_if_facts_cpp.out
-	examples/hello_c/hello 2>/dev/null | diff - expected/hello_c.out
-	examples/hello_cpp/hello 2>/dev/null | diff - expected/hello_cpp.out
-	examples/hello_c/hello --facts_plain 2>/dev/null | diff - expected/hello_c_plain.out
-	examples/hello_cpp/hello --facts_plain 2>/dev/null | diff - expected/hello_cpp_plain.out
-	examples/hello_c/hello --facts_junit | diff - expected/hello_c_junit.out
-	examples/hello_cpp/hello --facts_junit | diff - expected/hello_cpp_junit.out
+	(bin/testfacts_c 2>/dev/null || true) | diff - expected/testfacts_c.out
+	(bin/testfacts_cpp 2>/dev/null || true) | diff - expected/testfacts_cpp.out
+	(bin/testfacts_c --facts_plain 2>/dev/null || true) | diff - expected/testfacts_c_plain.out
+	(bin/testfacts_cpp --facts_plain 2>/dev/null || true) | diff - expected/testfacts_cpp_plain.out
+	(bin/testfacts_c --facts_junit 2>/dev/null || true) | diff - expected/testfacts_c_junit.out
+	(bin/testfacts_cpp --facts_junit 2>/dev/null || true) | diff - expected/testfacts_cpp_junit.out
+	(bin/testfacts_if_c 2>/dev/null || true) | diff - expected/testfacts_if_c.out
+	(bin/testfacts_if_cpp 2>/dev/null || true) | diff - expected/testfacts_if_cpp.out
+	(bin/testfacts_if_c --facts 2>/dev/null || true) | diff - expected/testfacts_if_facts_c.out
+	(bin/testfacts_if_cpp --facts 2>/dev/null || true) | diff - expected/testfacts_if_facts_cpp.out
+	(examples/hello_c/hello 2>/dev/null || true) | diff - expected/hello_c.out
+	(examples/hello_cpp/hello 2>/dev/null || true) | diff - expected/hello_cpp.out
+	(examples/hello_c/hello --facts_plain 2>/dev/null || true) | diff - expected/hello_c_plain.out
+	(examples/hello_cpp/hello --facts_plain 2>/dev/null || true) | diff - expected/hello_cpp_plain.out
+	(examples/hello_c/hello --facts_junit 2>/dev/null || true) | diff - expected/hello_c_junit.out
+	(examples/hello_cpp/hello --facts_junit 2>/dev/null || true) | diff - expected/hello_cpp_junit.out
 
 .PHONY: expected
 expected: tests examples
