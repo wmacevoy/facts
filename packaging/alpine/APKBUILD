@@ -1,0 +1,33 @@
+# Maintainer: Warren MacEvoy <wmacevoy@gmail.com>
+pkgname=libfacts
+pkgver=1.3.0
+pkgrel=0
+pkgdesc="Lightweight, beginner-friendly C/C++ testing library"
+url="https://github.com/wmacevoy/facts"
+arch="all"
+license="MIT"
+makedepends="cmake g++"
+subpackages="$pkgname-dev $pkgname-doc"
+source="$pkgname-$pkgver.tar.gz::https://github.com/wmacevoy/facts/archive/refs/tags/v$pkgver.tar.gz"
+builddir="$srcdir/facts-$pkgver"
+
+build() {
+	cmake -B build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_INSTALL_LIBDIR=lib
+	cmake --build build
+}
+
+check() {
+	cd build
+	ctest --output-on-failure
+}
+
+package() {
+	cmake --install build --prefix "$pkgdir/usr"
+}
+
+# Update after creating release tarball:
+#   sha512sum v1.3.0.tar.gz
+sha512sums="PLACEHOLDER"

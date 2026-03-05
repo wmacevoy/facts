@@ -25,7 +25,7 @@ FACTS(LargeErr) {
 }
 
 FACTS(Out) {
-  fprintf(stdout,"message to stderr.\n");
+  fprintf(stdout,"message to stdout.\n");
 }
 
 FACTS_FAST

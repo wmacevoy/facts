@@ -1,0 +1,7 @@
+libfacts (1.3.0-1) unstable; urgency=low
+
+  * Initial packaging.
+  * Two libraries: libfacts (C) and libfacts++ (C++ with tracing).
+  * C11 / C++11 minimum.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Mon, 02 Mar 2026 00:00:00 +0000

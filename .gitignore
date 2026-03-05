@@ -36,6 +36,11 @@
 *.x86_64
 *.hex
 
+# Build output
+bin/
+examples/hello_c/hello
+examples/hello_cpp/hello
+
 # Debug files
 *.dSYM/
 *.su

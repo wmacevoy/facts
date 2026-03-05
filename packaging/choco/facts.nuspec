@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>libfacts</id>
+    <version>1.3.0</version>
+    <title>libfacts - C/C++ Testing Library</title>
+    <authors>Warren MacEvoy</authors>
+    <projectUrl>https://github.com/wmacevoy/facts</projectUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Lightweight, beginner-friendly C/C++ testing library. Provides FACTS(name) groups and FACT(a,op,b) checks with readable failure messages. Includes libfacts (C) and libfacts++ (C++ with tracing).</description>
+    <tags>testing c cpp unit-test library</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

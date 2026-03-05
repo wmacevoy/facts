@@ -7,10 +7,26 @@
 #endif
 
 #include <inttypes.h>
-#include <unistd.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <assert.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <io.h>
+#define dup    _dup
+#define dup2   _dup2
+#define close  _close
+#define lseek  _lseek
+#ifndef fileno
+#define fileno _fileno
+#endif
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+#endif
+#else
+#include <unistd.h>
+#endif
 
 #define FACTS_C 1
 #include "facts.h"
@@ -20,8 +36,41 @@ uint64_t facts_fictions = 0;
 uint64_t facts_truths = 0;
 int facts_format = 0;
 
+// Weak defaults so the shared library links without user code.
+// User-provided strong definitions (from FACTS_FAST, FACTS_REGISTER_ALL,
+// etc.) override these at link time.
+#if defined(__GNUC__) || defined(__clang__)
+FACTS_EXTERN __attribute__((weak)) void FactsFind() {}
+FACTS_EXTERN __attribute__((weak)) void FactsRegisterAll() {}
+#elif defined(_MSC_VER)
+// MSVC: use /alternatename linker directive for weak symbol emulation.
+FACTS_EXTERN void FactsFind_default() {}
+FACTS_EXTERN void FactsRegisterAll_default() {}
+#pragma comment(linker, "/alternatename:FactsFind=FactsFind_default")
+#pragma comment(linker, "/alternatename:FactsRegisterAll=FactsRegisterAll_default")
 FACTS_EXTERN void FactsFind();
 FACTS_EXTERN void FactsRegisterAll();
+#else
+FACTS_EXTERN void FactsFind();
+FACTS_EXTERN void FactsRegisterAll();
+#endif
+
+// Write len bytes to stdout with XML entity escaping.
+static void FactsXmlEscape(const char *s, size_t len) {
+  for (size_t i = 0; i < len; ++i) {
+    switch (s[i]) {
+      case '<':  printf("&lt;");   break;
+      case '>':  printf("&gt;");   break;
+      case '&':  printf("&amp;");  break;
+      case '"':  printf("&quot;"); break;
+      default:   putchar(s[i]);    break;
+    }
+  }
+}
+
+static void FactsXmlEscapeStr(const char *s) {
+  FactsXmlEscape(s, strlen(s));
+}
 
 // Wildcard pattern matcher.
 //
@@ -33,34 +82,31 @@ FACTS_EXTERN void FactsRegisterAll();
 // bytes of (stack) memory.
 FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 {
-  uint8_t np = strlen(pattern);
+  size_t np = strlen(pattern);
 
   // fast exit for match-all pattern
   if (np == 1 && pattern[0] == '*')
     return 1;
 
-  uint8_t ns = strlen(str);
+  size_t ns = strlen(str);
 
-  uint8_t nb = (np + 2) / 8 + ((np + 2) % 8 != 0);
-  uint8_t k;
+  size_t nb = (np + 2) / 8 + ((np + 2) % 8 != 0);
+  size_t k;
 
-  uint8_t buffer0[nb];
-  uint8_t buffer1[nb];
+  uint8_t *state0 = (uint8_t *)calloc(nb, 1);
+  uint8_t *state1 = (uint8_t *)calloc(nb, 1);
 
-  uint8_t *state0 = buffer0;
-  uint8_t *state1 = buffer1;
-
-  memset(state0, 0, nb);
+  if (!state0 || !state1) { free(state0); free(state1); return 0; }
   state0[0] = 1;
   for (k = 1; pattern[k - 1] == '*'; ++k)
     state0[k / 8] |= (1 << (k % 8));
 
-  for (int i = 0; i <= ns; ++i)
+  for (size_t i = 0; i <= ns; ++i)
   {
-    uint8_t c = str[i];
+    unsigned char c = str[i];
 
     memset(state1, 0, nb);
-    for (int j = 0; j <= np; ++j)
+    for (size_t j = 0; j <= np; ++j)
     {
       if (state0[j / 8] & (1 << (j % 8)))
       {
@@ -90,7 +136,10 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
   }
 
   k = np + 1;
-  return (state0[k / 8] & (1 << (k % 8))) != 0;
+  int result = (state0[k / 8] & (1 << (k % 8))) != 0;
+  free(state0);
+  free(state1);
+  return result;
 }
 
 // Fiction break point.
@@ -155,7 +204,7 @@ FACTS_EXTERN void FactsExclude(const char *pattern)
 
 FACTS_EXTERN void FactsRegister(Facts *facts)
 {
-  if (facts->prev == NULL && facts->next == NULL)
+  if (facts->prev == NULL && facts->next == NULL && facts != head)
   {
     facts->prev = tail;
     facts->next = NULL;
@@ -205,8 +254,8 @@ FACTS_EXTERN void FactsFindInMemory(Facts *begin, Facts *end)
   unsigned char *e = ((unsigned char *)end) + sizeof(Facts);
 
   for (unsigned char *p = b;
-       p != NULL && p < e;
-       p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], e - p))
+       p != NULL && p + FACTS_SIG_LEN <= e;
+       p = (unsigned char *)memchr(p + FACTS_SIG_LEN, sig[0], e - p - FACTS_SIG_LEN))
   {
     if (memcmp(p, sig, FACTS_SIG_LEN) == 0)
     {
@@ -257,6 +306,7 @@ FACTS_EXTERN double FactsRelErr(double a, double b)
   a = a >= 0 ? a : -a;
   b = b >= 0 ? b : -b;
   double maxabs = a >= b ? a : b;
+  if (maxabs == 0.0) return abserr;
   return abserr / maxabs;
 }
 
@@ -295,7 +345,9 @@ FACTS_EXTERN void FactsPrint(const char *format, ...)
     }
   }
 
-  char reformat[reformatSize];
+  char *reformat = (char *)malloc(reformatSize);
+  if (!reformat) { va_end(ap); return; }
+  va_end(ap);
   va_start(ap, format);
   for (i = 0, j = 0; format[i] != 0;)
   {
@@ -313,9 +365,10 @@ FACTS_EXTERN void FactsPrint(const char *format, ...)
       ++i;
     }
   }
-  reformat[++j] = 0;
+  reformat[j] = 0;
   vprintf(reformat, ap);
   va_end(ap);
+  free(reformat);
 }
 
 #define FACTS_BLOCKSIZE 1024
@@ -343,12 +396,21 @@ FACTS_EXTERN void FactsCheck()
   {
     if (FACTS_JUNIT)
     {
-      printf("<testcase name=\"%s\">\n", facts->name);
-      printf("<system-out>");      
+      printf("<testcase name=\"");
+      FactsXmlEscapeStr(facts->name);
+      printf("\">\n");
+      fflush(stdout);
       fflush(stderr);
-      assert((tmperr = tmpfile()) != NULL);
-      olderr = dup(STDERR_FILENO);
-      assert(dup2(fileno(tmperr), STDERR_FILENO) >= 0);
+      tmpout = tmpfile();
+      tmperr = tmpfile();
+      if (tmpout != NULL && tmperr != NULL) {
+        oldout = dup(STDOUT_FILENO);
+        olderr = dup(STDERR_FILENO);
+        if (oldout >= 0 && olderr >= 0) {
+          dup2(fileno(tmpout), STDOUT_FILENO);
+          dup2(fileno(tmperr), STDERR_FILENO);
+        }
+      }
     }
     if (facts->status == FACTS_STATE_INCLUDE)
     {
@@ -379,23 +441,40 @@ FACTS_EXTERN void FactsCheck()
     {
       fflush(stdout);
       fflush(stderr);
-      printf("</system-out>\n");      
-      int64_t errlen = lseek(STDERR_FILENO, 0, SEEK_CUR);
-      dup2(olderr, STDERR_FILENO);
-      fseek(tmperr, 0L, SEEK_SET);
-      if (errlen > 0) {
-	printf("<system-err>");
-	for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
-	  {
-	    char data[FACTS_BLOCKSIZE];
-	    int n = errlen - p;
-	    if (n > FACTS_BLOCKSIZE) {
-	      n = FACTS_BLOCKSIZE;
-	    }
-	    assert(fread(data, n, 1, tmperr)==1);
-	    assert(fwrite(data, n, 1, stdout)==1);
-	  }
-	printf("</system-err>\n");
+      if (tmpout != NULL && tmperr != NULL && oldout >= 0 && olderr >= 0) {
+        int64_t outlen = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+        int64_t errlen = lseek(STDERR_FILENO, 0, SEEK_CUR);
+        dup2(oldout, STDOUT_FILENO);
+        dup2(olderr, STDERR_FILENO);
+        close(oldout);
+        close(olderr);
+        oldout = olderr = -1;
+        if (outlen > 0) {
+          fseek(tmpout, 0L, SEEK_SET);
+          printf("<system-out>");
+          for (int64_t p = 0; p < outlen; p += FACTS_BLOCKSIZE)
+          {
+            char data[FACTS_BLOCKSIZE];
+            int n = (int)(outlen - p);
+            if (n > FACTS_BLOCKSIZE) n = FACTS_BLOCKSIZE;
+            if (fread(data, n, 1, tmpout) == 1)
+              FactsXmlEscape(data, n);
+          }
+          printf("</system-out>\n");
+        }
+        if (errlen > 0) {
+          fseek(tmperr, 0L, SEEK_SET);
+          printf("<system-err>");
+          for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
+          {
+            char data[FACTS_BLOCKSIZE];
+            int n = (int)(errlen - p);
+            if (n > FACTS_BLOCKSIZE) n = FACTS_BLOCKSIZE;
+            if (fread(data, n, 1, tmperr) == 1)
+              FactsXmlEscape(data, n);
+          }
+          printf("</system-err>\n");
+        }
       }
       if (facts->status == FACTS_STATE_EXCLUDE)
       {
@@ -406,8 +485,9 @@ FACTS_EXTERN void FactsCheck()
         printf("<failure>See stdout</failure>\n");
       }
       printf("</testcase>\n\n");
-      fclose(tmperr);
-      close(olderr);
+      if (tmpout != NULL) fclose(tmpout);
+      if (tmperr != NULL) fclose(tmperr);
+      tmpout = tmperr = NULL;
     }
   }
 

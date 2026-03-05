@@ -2,7 +2,7 @@
 <testsuite name="facts">
 <testcase name="Alpha">
 <system-out>test/testfacts.cpp 3: Alpha facts check started
-test/testfacts.cpp/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction
+test/testfacts.cpp/Alpha 4: 'c' {=c} &lt;= 'b' {=b} is fiction
 (gdb) break facts_Alpha_function
 (gdb) run --facts_include=Alpha
 test/testfacts.cpp 3: Alpha facts check ended badly

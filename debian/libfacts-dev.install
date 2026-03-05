@@ -1,0 +1,7 @@
+usr/include/facts.h
+usr/lib/*/libfacts.a
+usr/lib/*/libfacts++.a
+usr/lib/*/libfacts.so
+usr/lib/*/libfacts++.so
+usr/lib/*/pkgconfig/facts.pc
+usr/lib/*/pkgconfig/facts++.pc

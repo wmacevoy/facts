@@ -24,7 +24,7 @@ FACTS(AboutG) {
   int x = 0;
   int y = 3;
 
-  FACTS_WATCH2(x,y);  // get useful info on failure, C++ 20 allows FACTS_WATCH(x,y)
+  FACTS_WATCH(x,y);  // get useful gdb breakpoint info on failure
 
   FACT(g(x),==,y);
 }

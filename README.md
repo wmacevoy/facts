@@ -1,3 +1,5 @@
+![CI](https://github.com/wmacevoy/facts/actions/workflows/c-cpp.yml/badge.svg)
+
 # Facts
 
 Facts is a tiny, beginner‑friendly C/C++ testing library. It aims to be easy to drop into small programs without build system friction.
@@ -41,7 +43,7 @@ FACTS_FAST  // provide a default main() and auto‑register facts
 cc -std=c11 -g -o check your.c facts.c
 
 # C++
-c++ -std=c++11 -g -o check your.cpp facts.cpp facts.c
+c++ -std=c++11 -g -o check your.cpp facts.cpp
 
 ./check             # run all facts
 ./check --facts_help
@@ -128,7 +130,7 @@ Conditional breakpoints via gdb hints:
 ```C++
 FACTS(Scan) {
   int i=1, j=2;
-  FACTS_WATCH2(i,j);
+  FACTS_WATCH(i,j);
   // Failure text includes:
   // (gdb) break facts_Scan_function:facts_trace_0 if i==1 && j==2
 }

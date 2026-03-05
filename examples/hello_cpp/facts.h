@@ -68,7 +68,9 @@ extern "C"
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
 #define FACTS_PRINT_FORMAT(X) _Generic((X),                    \
-                                       char                    \
+                                       _Bool                   \
+                                       : "%d",                 \
+                                         char                  \
                                        : "%c",                 \
                                          unsigned char         \
                                        : "%hhu",               \
@@ -221,26 +223,39 @@ extern "C"
   #define FACTS_WATCH_COUNT(note,counter) FACTS_WATCH_SUFFIX(note,counter)
   #define FACTS_WATCH_IF(watch) FACTS_WATCH_COUNT(watch,__COUNTER__)
 
-  #define FACTS_OSTREAM0(x,...) "!!! too many watch values, break-up on or before " << #x << " !!!"
-  #define FACTS_OSTREAM1(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM0(__VA_ARGS__))
-  #define FACTS_OSTREAM2(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM1(__VA_ARGS__))
-  #define FACTS_OSTREAM3(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM2(__VA_ARGS__))
-  #define FACTS_OSTREAM4(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM3(__VA_ARGS__))
-  #define FACTS_OSTREAM5(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM4(__VA_ARGS__))
-  #define FACTS_OSTREAM6(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM5(__VA_ARGS__))
-  #define FACTS_OSTREAM7(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM6(__VA_ARGS__))
-  #define FACTS_OSTREAM8(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM7(__VA_ARGS__))
-  #define FACTS_OSTREAM9(x,...) #x << "==" << (x) __VA_OPT__(<< " && " <<  FACTS_OSTREAM8(__VA_ARGS__))
-  #define FACTS_WATCH(...) FACTS_WATCH_IF(FACTS_OSTREAM9(__VA_ARGS__))
+  // internal: ostream chain — do not call directly
+  #define FACTS_OSTREAM1(x)       #x << "==" << (x)
+  #define FACTS_OSTREAM2(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM1(__VA_ARGS__)
+  #define FACTS_OSTREAM3(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM2(__VA_ARGS__)
+  #define FACTS_OSTREAM4(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM3(__VA_ARGS__)
+  #define FACTS_OSTREAM5(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM4(__VA_ARGS__)
+  #define FACTS_OSTREAM6(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM5(__VA_ARGS__)
+  #define FACTS_OSTREAM7(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM6(__VA_ARGS__)
+  #define FACTS_OSTREAM8(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM7(__VA_ARGS__)
+  #define FACTS_OSTREAM9(x, ...)  #x << "==" << (x) << " && " << FACTS_OSTREAM8(__VA_ARGS__)
+  #define FACTS_OSTREAM10(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM9(__VA_ARGS__)
+  #define FACTS_OSTREAM11(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM10(__VA_ARGS__)
+  #define FACTS_OSTREAM12(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM11(__VA_ARGS__)
+  #define FACTS_OSTREAM13(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM12(__VA_ARGS__)
+  #define FACTS_OSTREAM14(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM13(__VA_ARGS__)
+  #define FACTS_OSTREAM15(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM14(__VA_ARGS__)
+  #define FACTS_OSTREAM16(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM15(__VA_ARGS__)
+  #define FACTS_OSTREAM17(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM16(__VA_ARGS__)
+  #define FACTS_OSTREAM18(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM17(__VA_ARGS__)
+  #define FACTS_OSTREAM19(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM18(__VA_ARGS__)
+  #define FACTS_OSTREAM20(x, ...) #x << "==" << (x) << " && " << FACTS_OSTREAM19(__VA_ARGS__)
 
-  #define FACTS_WATCH1(...) FACTS_WATCH_IF(FACTS_OSTREAM1(__VA_ARGS__))
-  #define FACTS_WATCH2(...) FACTS_WATCH_IF(FACTS_OSTREAM2(__VA_ARGS__))
-  #define FACTS_WATCH3(...) FACTS_WATCH_IF(FACTS_OSTREAM3(__VA_ARGS__))
-  #define FACTS_WATCH4(...) FACTS_WATCH_IF(FACTS_OSTREAM4(__VA_ARGS__))
-  #define FACTS_WATCH5(...) FACTS_WATCH_IF(FACTS_OSTREAM5(__VA_ARGS__))
-  #define FACTS_WATCH6(...) FACTS_WATCH_IF(FACTS_OSTREAM6(__VA_ARGS__))
-  #define FACTS_WATCH7(...) FACTS_WATCH_IF(FACTS_OSTREAM7(__VA_ARGS__))
-  #define FACTS_WATCH8(...) FACTS_WATCH_IF(FACTS_OSTREAM8(__VA_ARGS__))
-  #define FACTS_WATCH9(...) FACTS_WATCH_IF(FACTS_OSTREAM9(__VA_ARGS__))
+  // internal: argument count dispatch
+  #define FACTS_ARGC_(                                                   \
+    _1,_2,_3,_4,_5,_6,_7,_8,_9,_10,                                     \
+    _11,_12,_13,_14,_15,_16,_17,_18,_19,_20,N,...) N
+  #define FACTS_ARGC(...) FACTS_ARGC_(__VA_ARGS__,                       \
+    20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1)
+  #define FACTS_PASTE_(a,b) a##b
+  #define FACTS_PASTE(a,b)  FACTS_PASTE_(a,b)
+
+  // Conditional gdb breakpoint hint — accepts 1 to 20 variables.
+  #define FACTS_WATCH(...)                                               \
+    FACTS_WATCH_IF(FACTS_PASTE(FACTS_OSTREAM,FACTS_ARGC(__VA_ARGS__))(__VA_ARGS__))
 
 #endif

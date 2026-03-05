@@ -2,8 +2,8 @@ prefix=@PREFIX@
 libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
-Name: facts
-Description: Lightweight C testing library
+Name: facts++
+Description: Lightweight C/C++ testing library with tracing
 Version: @PROJECT_VERSION@
 Cflags: -I${includedir}
-Libs: -L${libdir} -lfacts
+Libs: -L${libdir} -lfacts++

@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) CFLAGS="-g -O2 -std=c11 -Iinclude" CXXFLAGS="-g -O2 -std=c++11 -Iinclude"
+
+override_dh_auto_install:
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp PREFIX=/usr
+
+override_dh_auto_test:
+	$(MAKE) check

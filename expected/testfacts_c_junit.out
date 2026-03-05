@@ -2,7 +2,7 @@
 <testsuite name="facts">
 <testcase name="Alpha">
 <system-out>test/testfacts.c 3: Alpha facts check started
-test/testfacts.c/Alpha 4: 'c' {=c} <= 'b' {=b} is fiction
+test/testfacts.c/Alpha 4: 'c' {=c} &lt;= 'b' {=b} is fiction
 (gdb) break facts_Alpha_function
 (gdb) run --facts_include=Alpha
 test/testfacts.c 3: Alpha facts check ended badly
@@ -147,7 +147,7 @@ message #99 to stderr.
 
 <testcase name="Out">
 <system-out>test/testfacts.c 27: Out facts check started
-message to stderr.
+message to stdout.
 test/testfacts.c 27: Out facts check ended
 </system-out>
 </testcase>

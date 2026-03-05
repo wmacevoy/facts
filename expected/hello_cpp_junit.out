@@ -10,7 +10,7 @@ hello.cpp 13: AboutF facts check ended
 <system-out>hello.cpp 23: AboutG facts check started
 hello.cpp/AboutG 29: g(x) {=-3} == y {=3} is fiction
 (gdb) break facts_AboutG_function
-hello.cpp/AboutG:27 (gdb) break facts_AboutG_function:facts_trace_0 if x==0 && y==3
+hello.cpp/AboutG:27 (gdb) break facts_AboutG_function:facts_trace_0 if x==0 &amp;&amp; y==3
 (gdb) run --facts_include=AboutG
 hello.cpp 23: AboutG facts check ended badly
 </system-out>

@@ -18,7 +18,7 @@ test/testfacts_if.c 17: Err facts check ended
 test/testfacts_if.c 21: LargeErr facts check started
 test/testfacts_if.c 21: LargeErr facts check ended
 test/testfacts_if.c 27: Out facts check started
-message to stderr.
+message to stdout.
 test/testfacts_if.c 27: Out facts check ended
 facts summary.
 facts check Err [1;32mpassed[0m

@@ -1,5 +1,8 @@
-#define FACTS_CPP
-#include "facts.h"
+// facts.cpp — C++ build: compile this instead of facts.c (never both).
+// Includes the full C core (compiled as C++ with extern "C" linkage)
+// plus the C++ tracing helpers.
+
+#include "facts.c"
 
 FactsTrace* FactsTrace::top = 0;
 Facts* FactsTrace::facts = 0;

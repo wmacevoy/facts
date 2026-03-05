@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: CI
 
 on:
   push:
@@ -7,13 +7,143 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  # ── Unix build + test ───────────────────────────────────────
+  test-unix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
-    - name: make all
-      run: make all
-    - name: make test
-      run: make test
+    - uses: actions/checkout@v4
+
+    - name: Build libraries
+      run: make
+
+    - name: Build and run tests
+      run: make check
+
+    - name: Test install
+      run: |
+        make install DESTDIR=$PWD/staging PREFIX=/usr
+        test -f staging/usr/lib/libfacts.a
+        test -f staging/usr/lib/libfacts++.a
+        test -f staging/usr/include/facts.h
+        test -f staging/usr/lib/pkgconfig/facts.pc
+        test -f staging/usr/lib/pkgconfig/facts++.pc
+        echo "Install layout verified."
+
+  # ── Windows build (CMake) ───────────────────────────────────
+  test-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure
+      run: cmake -B build -DFACTS_BUILD_TESTS=ON
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Test
+      run: ctest --test-dir build --build-config Release --output-on-failure
+
+  # ── Debian packaging ────────────────────────────────────────
+  package-debian:
+    runs-on: ubuntu-latest
+    container: debian:bookworm
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        apt-get update
+        apt-get install -y build-essential debhelper g++ dpkg-dev
+
+    - name: Build .deb packages
+      run: dpkg-buildpackage -us -uc
+
+    - name: Verify packages
+      run: |
+        dpkg -c ../libfacts-1_*.deb | grep libfacts.so
+        dpkg -c ../libfacts-1_*.deb | grep 'libfacts++.so'
+        dpkg -c ../libfacts-dev_*.deb | grep facts.h
+        dpkg -c ../libfacts-dev_*.deb | grep libfacts.a
+        dpkg -c ../libfacts-dev_*.deb | grep 'libfacts++.a'
+        echo "Debian packages verified."
+
+  # ── Alpine packaging ────────────────────────────────────────
+  package-alpine:
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build tools
+      run: apk add --no-cache build-base cmake g++
+
+    - name: CMake build and install
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=lib
+        cmake --build build
+        cmake --install build --prefix staging/usr
+
+    - name: Verify installed files
+      run: |
+        test -f staging/usr/lib/libfacts.a
+        test -f staging/usr/lib/libfacts++.a
+        test -f staging/usr/include/facts.h
+        echo "Alpine build verified."
+
+  # ── Homebrew-style (macOS CMake install + link test) ────────
+  package-homebrew:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: CMake install
+      run: |
+        cmake -B build -DCMAKE_INSTALL_PREFIX=$PWD/staging
+        cmake --build build
+        cmake --install build
+
+    - name: Link test (C)
+      run: |
+        cat >test_c.c <<'EOF'
+        #include <facts.h>
+        FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
+        FACTS_FAST
+        EOF
+        cc -std=c11 -Istaging/include -Lstaging/lib -lfacts -o test_c test_c.c
+        ./test_c
+
+    - name: Link test (C++)
+      run: |
+        cat >test_cpp.cpp <<'EOF'
+        #include <facts.h>
+        FACTS(Smoke) { int a=1,b=1; FACT(a,==,b); }
+        FACTS_FAST
+        EOF
+        c++ -std=c++11 -Istaging/include -Lstaging/lib -lfacts++ -o test_cpp test_cpp.cpp
+        ./test_cpp
+
+  # ── Chocolatey-style (Windows CMake install) ────────────────
+  package-choco:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: CMake build and install
+      run: |
+        cmake -B build -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/staging
+        cmake --build build --config Release
+        cmake --install build --config Release
+
+    - name: Verify installed files
+      shell: bash
+      run: |
+        test -f staging/lib/facts.lib || test -f staging/lib/libfacts.a
+        test -f staging/include/facts.h
+        echo "Windows install verified."
