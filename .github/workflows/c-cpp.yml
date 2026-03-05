@@ -64,8 +64,8 @@ jobs:
 
     - name: Verify packages
       run: |
-        dpkg -c ../libfacts-1_*.deb | grep libfacts.so
-        dpkg -c ../libfacts-1_*.deb | grep 'libfacts++.so'
+        dpkg -c ../libfacts-2_*.deb | grep libfacts.so
+        dpkg -c ../libfacts-2_*.deb | grep 'libfacts++.so'
         dpkg -c ../libfacts-dev_*.deb | grep facts.h
         dpkg -c ../libfacts-dev_*.deb | grep libfacts.a
         dpkg -c ../libfacts-dev_*.deb | grep 'libfacts++.a'

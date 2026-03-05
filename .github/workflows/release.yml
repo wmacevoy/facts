@@ -32,15 +32,16 @@ jobs:
         apt-get install -y build-essential debhelper g++ dpkg-dev
 
     - name: Build .deb packages
-      run: dpkg-buildpackage -us -uc
+      run: |
+        dpkg-buildpackage -us -uc
+        mkdir -p deb-out
+        cp ../*.deb ../*.changes deb-out/
 
     - name: Upload .deb artifacts
       uses: actions/upload-artifact@v4
       with:
         name: deb-packages
-        path: |
-          ../*.deb
-          ../*.changes
+        path: deb-out/*
 
   # ── Build Alpine .apk (CMake) ──────────────────────────────
   build-alpine:
