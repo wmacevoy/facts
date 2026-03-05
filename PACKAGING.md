@@ -162,6 +162,51 @@ cosmocc -Iinclude -o check your.c libfacts.a
 
 The resulting `check` binary runs on Linux, macOS, Windows, FreeBSD, OpenBSD, and NetBSD without recompilation.
 
+## VSCode extension
+
+**Location:** `vscode-facts/`
+
+**Why:** The extension integrates Facts into VSCode's Test Explorer, providing test discovery, run/debug, and automatic `FACTS_WATCH` breakpoints — all without leaving the editor.
+
+**Features:**
+
+- Scans source files for `FACTS(Name)` declarations and shows them in the Test Explorer sidebar
+- Builds and runs individual or all tests with one click
+- Launches the debugger with `--facts_include=Name` for targeted debugging
+- Auto-sets conditional GDB breakpoints from `FACTS_WATCH(var, ...)` annotations
+- Re-discovers tests when source files change
+
+**Building locally in a container:**
+
+```sh
+# Using the project's Dockerfile (includes Node 20 + build-essential)
+docker build -t facts-dev .
+docker run --rm --entrypoint /bin/bash \
+  -v $PWD:/app -w /app/vscode-facts facts-dev \
+  -c "npm install && npm run compile && npx @vscode/vsce package --allow-missing-repository"
+```
+
+This produces `vscode-facts/facts-test-runner-X.Y.Z.vsix`.
+
+**Building in the devcontainer (VSCode):**
+
+1. Open the project in VSCode
+2. Reopen in Container (Ctrl+Shift+P → "Dev Containers: Reopen in Container")
+3. The `postCreateCommand` runs `npm install && npm run compile` automatically
+4. To package: `cd vscode-facts && npm run package`
+
+**Installing the extension:**
+
+In VSCode: Extensions → `...` → Install from VSIX → select the `.vsix` file.
+
+Or from the command line:
+
+```sh
+code --install-extension vscode-facts/facts-test-runner-0.1.0.vsix
+```
+
+**CI:** The `package-vscode` job in `.github/workflows/c-cpp.yml` builds and uploads the `.vsix` as a GitHub Actions artifact on every push to `main`.
+
 ## Package managers NOT included (and why)
 
 | Manager | Why not | What to do |
@@ -205,6 +250,7 @@ Runs on every push to `main` and on pull requests:
 - **Alpine**: CMake build in an Alpine container, verify installed files
 - **Homebrew**: CMake install on macOS + link tests for both C and C++
 - **Chocolatey**: CMake build on Windows + verify installed files
+- **VSCode extension**: `npm install`, compile TypeScript, package `.vsix`, upload as artifact
 
 ### Release workflow (`.github/workflows/release.yml`)
 

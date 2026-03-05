@@ -129,6 +129,29 @@ jobs:
         c++ -std=c++11 -Istaging/include -Lstaging/lib -lfacts++ -Wl,-rpath,$PWD/staging/lib -o test_cpp test_cpp.cpp
         ./test_cpp
 
+  # ── VSCode extension ────────────────────────────────────────
+  package-vscode:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install, compile, and package
+      working-directory: vscode-facts
+      run: |
+        npm install
+        npm run compile
+        npx @vscode/vsce package --allow-missing-repository
+
+    - name: Upload .vsix artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: facts-test-runner-vsix
+        path: vscode-facts/*.vsix
+
   # ── Chocolatey-style (Windows CMake install) ────────────────
   package-choco:
     runs-on: windows-latest
