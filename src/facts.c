@@ -32,9 +32,18 @@
 #include "facts.h"
 static Facts *head = NULL, *tail = NULL;
 
+// These must have C linkage to match the extern declarations in facts.h
+// (which are inside extern "C"). Without this, MSVC mangles the names
+// differently when facts.c is compiled as C++ via facts.cpp.
+#ifdef __cplusplus
+extern "C" {
+#endif
 uint64_t facts_fictions = 0;
 uint64_t facts_truths = 0;
 int facts_format = 0;
+#ifdef __cplusplus
+}
+#endif
 
 // Weak defaults so the shared library links without user code.
 // User-provided strong definitions (from FACTS_FAST, FACTS_REGISTER_ALL,
