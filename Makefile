@@ -72,7 +72,7 @@ $(STATIC_LIB_C): $(C_OBJ)
 	$(AR) rcs $@ $<
 
 $(SHARED_LIB_C): $(C_PIC)
-	$(CC) -shared -Wl,$(SONAME_FLAG_C) -o $@ $<
+	$(CC) -shared -Wl,$(SONAME_FLAG_C) -o $@ $< $(LDLIBS_DL)
 
 # --- C++ library ---
 $(CPP_OBJ): src/facts.cpp src/facts.c include/facts.h
@@ -85,7 +85,16 @@ $(STATIC_LIB_CPP): $(CPP_OBJ)
 	$(AR) rcs $@ $<
 
 $(SHARED_LIB_CPP): $(CPP_PIC)
-	$(CXX) -shared -Wl,$(SONAME_FLAG_CPP) -o $@ $<
+	$(CXX) -shared -Wl,$(SONAME_FLAG_CPP) -o $@ $< $(LDLIBS_DL)
+
+# --- dlsym support (for --facts_find runtime registration) ---
+ifeq ($(UNAME_S),Darwin)
+  LDLIBS_DL =
+  LDFLAGS_EXPORT =
+else
+  LDLIBS_DL = -ldl
+  LDFLAGS_EXPORT = -rdynamic
+endif
 
 # --- Tests ---
 CFLAGS_DEBUG   = -g -std=$(CSTD) -Iinclude
@@ -96,19 +105,19 @@ tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp
 
 bin/testfacts_c: test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.c src/facts.c
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts.c src/facts.c $(LDLIBS_DL)
 
 bin/testfacts_cpp: test/testfacts.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts.cpp src/facts.cpp
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts.cpp src/facts.cpp $(LDLIBS_DL)
 
 bin/testfacts_if_c: test/testfacts_if.c src/facts.c include/facts.h
 	mkdir -p bin
-	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.c src/facts.c
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_if.c src/facts.c $(LDLIBS_DL)
 
 bin/testfacts_if_cpp: test/testfacts_if.cpp src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
-	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) -o $@ test/testfacts_if.cpp src/facts.cpp
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_if.cpp src/facts.cpp $(LDLIBS_DL)
 
 # --- Examples ---
 .PHONY: examples

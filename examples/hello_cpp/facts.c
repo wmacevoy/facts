@@ -1,9 +1,14 @@
+// _GNU_SOURCE must come before any includes (needed for RTLD_DEFAULT on glibc)
+#if !defined(_WIN32) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS 1
 #endif
 
 #ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 1
+#define _POSIX_C_SOURCE 200809L
 #endif
 
 #include <inttypes.h>
@@ -13,6 +18,7 @@
 
 #ifdef _WIN32
 #include <io.h>
+#include <windows.h>
 #define dup    _dup
 #define dup2   _dup2
 #define close  _close
@@ -26,6 +32,10 @@
 #endif
 #else
 #include <unistd.h>
+#include <dlfcn.h>
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT ((void *)0)
+#endif
 #endif
 
 #define FACTS_C 1
@@ -471,9 +481,22 @@ FACTS_EXTERN void FactsCheck()
 // least one FACT failed, and 2 means no facts were checked.
 //
 //
+// Look up a Facts struct by name using dynamic symbol lookup.
+// Returns NULL if not found (e.g. not compiled into this binary).
+static Facts *FactsLookup(const char *name) {
+  char sym[256];
+  snprintf(sym, sizeof(sym), "facts_%s_data", name);
+#ifdef _WIN32
+  return (Facts *)GetProcAddress(GetModuleHandle(NULL), sym);
+#else
+  return (Facts *)dlsym(RTLD_DEFAULT, sym);
+#endif
+}
+
 // Scan a source file for FACTS(Name) declarations.
-// Prints FACTS_REGISTER(Name) lines to stdout.
-static void FactsScanFile(const char *filename) {
+// If register_mode, look up and register each test found.
+// Otherwise, print FACTS_REGISTER(Name) lines to stdout.
+static void FactsScanFile(const char *filename, int register_mode) {
   FILE *f = fopen(filename, "r");
   if (!f) {
     fprintf(stderr, "facts: cannot open %s\n", filename);
@@ -508,7 +531,21 @@ static void FactsScanFile(const char *filename) {
 
       if (*end == ')' && end > start) {
         int len = (int)(end - start);
-        printf("    FACTS_REGISTER(%.*s);\n", len, start);
+        if (register_mode) {
+          char name[256];
+          if (len < (int)sizeof(name)) {
+            memcpy(name, start, len);
+            name[len] = '\0';
+            Facts *facts = FactsLookup(name);
+            if (facts) {
+              FactsRegister(facts);
+            } else {
+              fprintf(stderr, "facts: %s not found in executable\n", name);
+            }
+          }
+        } else {
+          printf("    FACTS_REGISTER(%.*s);\n", len, start);
+        }
       }
 
       p = (end > p) ? end : p + 1;
@@ -545,12 +582,22 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       const char *op = "--facts_find";
       if (strcmp(arg, op) == 0)
       {
-        check = 0;
-        printf("FACTS_REGISTER_ALL() {\n");
         for (++argi; argi < argc; ++argi) {
           if (strcmp(argv[argi], ";") == 0) break;
-          FactsScanFile(argv[argi]);
+          FactsScanFile(argv[argi], 1);
         }
+        continue;
+      }
+    }
+    {
+      const char *op = "--facts_register_all";
+      if (strcmp(arg, op) == 0)
+      {
+        check = 0;
+        if (head == NULL) FactsRegisterAll();
+        printf("FACTS_REGISTER_ALL() {\n");
+        for (Facts *f = head; f != NULL; f = f->next)
+          printf("    FACTS_REGISTER(%s);\n", f->name);
         printf("}\n");
         continue;
       }
@@ -585,15 +632,14 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
       {
         check = 0;
         printf("default is to check all registered facts\n");
-        printf("    --facts_include=\"*wildcard pattern*\" --- include certain facts\n");
-        printf("    --facts_exclude=\"*wildcard pattern*\" --- exclude certain facts\n");
-        printf("    --facts_find files... \\; --- generate FACTS_REGISTER_ALL\n");
-        printf("        scans source files for FACTS() declarations\n");
+        printf("    --facts_include=\"*pattern*\" --- include certain facts\n");
+        printf("    --facts_exclude=\"*pattern*\" --- exclude certain facts\n");
+        printf("    --facts_find files... [\\;] --- register facts from source\n");
+        printf("    --facts_register_all --- print FACTS_REGISTER_ALL block\n");
         printf("    --facts_skip --- don't fact check\n");
         printf("    --facts_help --- this help\n");
         printf("    --facts_junit --- use junit format\n");
         printf("    --facts_plain --- no tty colors\n");
-        printf("    Use --facts_find to generate FACTS_REGISTER_ALL from source.\n");
         continue;
       }
     }

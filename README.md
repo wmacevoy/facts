@@ -23,7 +23,7 @@ Facts is a tiny, beginner‑friendly C/C++ testing library. It aims to be easy t
 #include "facts.h"
 ```
 
-3) Write facts and register them
+3) Write facts
 
 ```C
 int inc(int x) { return x + 1; }
@@ -33,25 +33,20 @@ FACTS(AboutInc) {
   FACT(inc(a),==,b);
 }
 
-FACTS_REGISTER_ALL() {
-  FACTS_REGISTER(AboutInc);
-}
-
 FACTS_MAIN
 ```
 
 4) Build and run
 
 ```sh
-# C
-cc -std=c11 -g -o check your.c facts.c
+# C — build and test in one line
+cc -std=c11 -g -o check your.c facts.c && ./check --facts_find your.c
 
 # C++
-c++ -std=c++11 -g -o check your.cpp facts.cpp
-
-./check             # run all facts
-./check --facts_help
+c++ -std=c++11 -g -o check your.cpp facts.cpp && ./check --facts_find your.cpp
 ```
+
+`--facts_find` scans source files for `FACTS()` declarations, registers them at runtime via `dlsym`, and runs the tests. No `FACTS_REGISTER_ALL` block needed.
 
 Tip: after `make install`, you can also use `pkg-config`:
 
@@ -79,7 +74,13 @@ Important: on a failure the values of `a` and `b` are printed, which means each 
 
 ## Registration and main()
 
-Every test must be explicitly registered. `FACTS_REGISTER_ALL` lists your groups, and `FACTS_MAIN` provides `main`:
+The simplest approach: use `--facts_find` at runtime to discover and run tests from source files. Just add `FACTS_MAIN` to your file — no registration block needed:
+
+```sh
+./check --facts_find your.c
+```
+
+For baked-in registration (no source files needed at runtime), add a `FACTS_REGISTER_ALL` block:
 
 ```C
 FACTS_REGISTER_ALL() {
@@ -90,10 +91,10 @@ FACTS_REGISTER_ALL() {
 FACTS_MAIN
 ```
 
-Use `--facts_find` to generate the registration block from source files:
+Use `--facts_register_all` to generate this block from whatever is currently registered:
 
 ```sh
-./check --facts_find src/*.c \;
+./check --facts_find src/*.c \; --facts_register_all
 ```
 
 You can also gate running facts behind a command‑line switch:
@@ -115,11 +116,11 @@ Printed by `--facts_help`:
 default is to check all registered facts
     --facts_include="*pattern*"   include matching groups
     --facts_exclude="*pattern*"   exclude matching groups
-    --facts_find files... \;      generate FACTS_REGISTER_ALL from source
+    --facts_find files... [\;]    register facts from source files
+    --facts_register_all          print FACTS_REGISTER_ALL block
     --facts_skip                  do not run facts
     --facts_junit                 emit JUnit XML to stdout
     --facts_plain                 disable ANSI colors
-    Use --facts_find to generate FACTS_REGISTER_ALL from source.
 ```
 
 Exit code: 0 if no failures, 1 if any `FACT` failed. (If no facts ran, the exit code is 0.)
