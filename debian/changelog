@@ -1,3 +1,14 @@
+libfacts (2.2.0) unstable; urgency=low
+
+  * A run that checks no FACT is an error: exit code 2, not 0.
+  * Arguments beginning --fact are reserved; an unknown one is an error and
+    nothing runs. Other arguments are left to the program.
+  * --facts_timeout refuses anything but a positive number of seconds.
+  * New symbol: FactsMainIf, used by FACTS_MAIN_IF. A program using that
+    macro must be rebuilt with this facts.h to link this library.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Sat, 14 Nov 2026 12:00:00 +0000
+
 libfacts (2.1.0) unstable; urgency=low
 
   * C++: FACT(a op b) writes the comparison directly and still prints both
