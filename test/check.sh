@@ -75,6 +75,25 @@ for lang in c cpp; do
   says  "test/testfacts.$lang 7: Integer facts check started"   $t --facts_plain '--facts_exclude=Al*a'
 done
 
+# REQ1/WR-5 in C++, FACT(a op b) prints both values, evaluates each side once, and
+# FACT(a op b, note) prints its footnote only for a fiction, without evaluating it for a truth.
+golden testfacts_expr_cpp_plain.out bin/testfacts_expr_cpp --facts_plain
+says "test/testfacts_expr.cpp 58: ExprNoteLazy facts check ended" bin/testfacts_expr_cpp --facts_plain
+
+# REQ1/WR-6 FACT(a,op,b) evaluates each side once in C (where the compiler can) and in C++;
+# built the other way, a fiction evaluates twice and the report's last line says so.
+golden testfacts_once_c_plain.out   bin/testfacts_once_c --facts_plain
+golden testfacts_once_cpp_plain.out bin/testfacts_once_cpp --facts_plain
+golden testfacts_twice_c_plain.out  bin/testfacts_twice_c --facts_plain
+says  "test/testfacts_once.c/OnceWhenFiction 16: next() {=1} == 5 {=5} is fiction" bin/testfacts_once_c --facts_plain
+says  "test/testfacts_once.c/OnceWhenFiction 16: next() {=1} == 5 {=5} is fiction" bin/testfacts_once_cpp --facts_plain
+says  "warning: 2 of those fictions evaluated each side twice to print it; with this compiler, a side effect such as ++x in a FACT happens twice." bin/testfacts_twice_c --facts_plain
+for once in bin/testfacts_once_c bin/testfacts_once_cpp bin/testfacts_c; do
+  if ("$once" --facts_plain 2>&1 || true) | grep -q "^warning:"; then
+    echo "FAIL: $once printed the evaluated-twice warning"; fail=1
+  fi
+done
+
 # REQ1/RG-2 find registers the groups a source file declares, in the file's order,
 # REQ1/RG-4 and --facts_register_all prints them as a block to paste.
 found=$(bin/testfacts_c --facts_find test/find_subset.txt \; --facts_register_all 2>/dev/null | tr -d ' \n')

@@ -1,0 +1,59 @@
+test/testfacts_expr.cpp 9: ExprTruths facts check started
+test/testfacts_expr.cpp 9: ExprTruths facts check ended
+test/testfacts_expr.cpp 26: ExprEqual facts check started
+test/testfacts_expr.cpp/ExprEqual 28: x == y {1 == 2} is fiction
+(gdb) break facts_ExprEqual_function
+(gdb) run --facts_include=ExprEqual
+test/testfacts_expr.cpp 26: ExprEqual facts check ended badly
+test/testfacts_expr.cpp 31: ExprArithmetic facts check started
+test/testfacts_expr.cpp/ExprArithmetic 33: x + 1 < y {2 < 2} is fiction
+(gdb) break facts_ExprArithmetic_function
+(gdb) run --facts_include=ExprArithmetic
+test/testfacts_expr.cpp 31: ExprArithmetic facts check ended badly
+test/testfacts_expr.cpp 36: ExprString facts check started
+test/testfacts_expr.cpp/ExprString 38: s == "abd" {abc == abd} is fiction
+(gdb) break facts_ExprString_function
+(gdb) run --facts_include=ExprString
+test/testfacts_expr.cpp 36: ExprString facts check ended badly
+test/testfacts_expr.cpp 41: ExprBool facts check started
+test/testfacts_expr.cpp/ExprBool 43: ok {0} is fiction
+(gdb) break facts_ExprBool_function
+(gdb) run --facts_include=ExprBool
+test/testfacts_expr.cpp 41: ExprBool facts check ended badly
+test/testfacts_expr.cpp 46: ExprAnd facts check started
+test/testfacts_expr.cpp/ExprAnd 48: x == 1 && y == 3 is fiction
+(gdb) break facts_ExprAnd_function
+(gdb) run --facts_include=ExprAnd
+test/testfacts_expr.cpp 46: ExprAnd facts check ended badly
+test/testfacts_expr.cpp 51: ExprNote facts check started
+test/testfacts_expr.cpp/ExprNote 53: i*i < 4 {4 < 4} is fiction: i=2
+(gdb) break facts_ExprNote_function
+(gdb) run --facts_include=ExprNote
+test/testfacts_expr.cpp 51: ExprNote facts check ended badly
+test/testfacts_expr.cpp 58: ExprNoteLazy facts check started
+test/testfacts_expr.cpp 58: ExprNoteLazy facts check ended
+test/testfacts_expr.cpp 65: ExprOnce facts check started
+test/testfacts_expr.cpp/ExprOnce 67: once() == 5 {1 == 5} is fiction
+(gdb) break facts_ExprOnce_function
+(gdb) run --facts_include=ExprOnce
+test/testfacts_expr.cpp 65: ExprOnce facts check ended badly
+test/testfacts_expr.cpp 71: ExprCheck facts check started
+test/testfacts_expr.cpp/ExprCheck 72: 1 == 2 {1 == 2} is fiction
+(gdb) break facts_ExprCheck_function
+(gdb) run --facts_include=ExprCheck
+test/testfacts_expr.cpp/ExprCheck 74: truths == 0 {1 == 0} is fiction: truths=1
+(gdb) break facts_ExprCheck_function
+(gdb) run --facts_include=ExprCheck
+test/testfacts_expr.cpp 71: ExprCheck facts check ended badly
+facts summary.
+facts check ExprTruths passed
+facts check ExprNoteLazy passed
+facts check ExprEqual failed
+facts check ExprArithmetic failed
+facts check ExprString failed
+facts check ExprBool failed
+facts check ExprAnd failed
+facts check ExprNote failed
+facts check ExprOnce failed
+facts check ExprCheck failed
+18 (66.7%) truths and 9 (33.3%) fictions checked.

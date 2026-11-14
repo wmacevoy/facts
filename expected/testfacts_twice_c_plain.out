@@ -1,0 +1,15 @@
+test/testfacts_once.c 8: OnceWhenTruth facts check started
+test/testfacts_once.c 8: OnceWhenTruth facts check ended
+test/testfacts_once.c 14: OnceWhenFiction facts check started
+test/testfacts_once.c/OnceWhenFiction 16: next() {=2} == 5 {=5} is fiction
+(gdb) break facts_OnceWhenFiction_function
+(gdb) run --facts_include=OnceWhenFiction
+test/testfacts_once.c/OnceWhenFiction 17: calls {=2} == 1 {=1} is fiction
+(gdb) break facts_OnceWhenFiction_function
+(gdb) run --facts_include=OnceWhenFiction
+test/testfacts_once.c 14: OnceWhenFiction facts check ended badly
+facts summary.
+facts check OnceWhenTruth passed
+facts check OnceWhenFiction failed
+2 (50.0%) truths and 2 (50.0%) fictions checked.
+warning: 2 of those fictions evaluated each side twice to print it; with this compiler, a side effect such as ++x in a FACT happens twice.

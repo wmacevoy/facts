@@ -52,6 +52,7 @@ extern "C" {
 #endif
 uint64_t facts_fictions = 0;
 uint64_t facts_truths = 0;
+uint64_t facts_twice = 0;  // fictions whose sides were evaluated a second time to print them
 int facts_format = 0;
 #ifdef __cplusplus
 }
@@ -673,6 +674,13 @@ static void FactsConsoleRunEnded(void)
   double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
   printf("%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
          facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
+  if (facts_twice > 0)
+  {
+    // Only a build that could not keep a FACT's values counts these (facts.h).
+    printf("warning: %" PRIu64 " of those fictions evaluated each side twice to print it; "
+           "with this compiler, a side effect such as ++x in a FACT happens twice.\n",
+           facts_twice);
+  }
 }
 
 // The four moments a run tells its reports about.  This is the only place

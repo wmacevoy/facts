@@ -7,7 +7,7 @@ Facts is a tiny, beginner‑friendly C/C++ testing library. It aims to be easy t
 ## What you get
 
 - **C core**: `FACTS(name)` groups and `FACT(a,op,b)` checks with readable failure messages.
-- **C++ extras**: optional tracing (`FACTS_TRACE`, `FACTS_WATCH*`) to help debug failures.
+- **C++ extras**: write `FACT(a == b)` directly, add footnotes, and use tracing (`FACTS_TRACE`, `FACTS_WATCH`) to find the failing case among many.
 - **No heavy deps**: just compile the provided `.c`/`.cpp` files with your code. An installable shared library + `pkg-config` file is provided too.
 
 ## Quick start
@@ -70,7 +70,30 @@ FACTS(AboutFloats) {
 }
 ```
 
-Important: on a failure the values of `a` and `b` are printed, which means each side is evaluated twice in that case. Avoid side effects (like `++x`) in `FACT(...)` expressions.
+Important: on a failure the values of `a` and `b` are printed. On some compilers that means each side is evaluated twice in that case, so avoid side effects (like `++x`) in `FACT(a,op,b)`. With gcc or clang, and in C++ with any compiler, each side is evaluated once. If a run did evaluate twice, the last line of the report is a warning that says so.
+
+### In C++: write the comparison itself
+
+In C++ a fact can be the comparison as you would write it anywhere else:
+
+```C++
+FACT(inc(a) == b);            // same as FACT(inc(a),==,b)
+FACT(v.size() > 0);
+FACT(name == "ada");
+```
+
+A fiction still shows both values:
+
+```
+your.cpp/AboutInc 7: inc(a) == b {6 == 7} is fiction
+```
+
+- Each side is evaluated once.
+- `FACT_CHECK(a op b)` works the same way and does not leave the group.
+- `FACT(a,op,b)` still works, and is the only form C has.
+- A condition joined by `&&` or `||` is checked but prints no values; write two facts instead.
+- A shift on the left needs parentheses: `FACT((x << 1) == 4)`. Compare a pointer with `nullptr`, not `0`.
+- `FACT(a = b)` does not compile, which is usually what you want.
 
 ## Registration and main()
 
@@ -110,7 +133,7 @@ FACTS_MAIN_IF(--facts) {
 
 ## Command‑line options
 
-Printed by `--facts_help`:
+The options (`--facts_help` prints them):
 
 ```
 default is to check all registered facts
@@ -119,13 +142,14 @@ default is to check all registered facts
     --facts_find files... [\;]    register facts from source files
     --facts_register_all          print FACTS_REGISTER_ALL block
     --facts_skip                  do not run facts
+    --facts_help                  print the options
     --facts_junit                 emit JUnit XML to stdout
     --facts_plain                 disable ANSI colors
     --facts_unsafe                run directly (skip fork/exec wrapper)
     --facts_timeout=N             timeout in seconds (default 10)
 ```
 
-Exit code: 0 if no failures, 1 if any `FACT` failed. (If no facts ran, the exit code is 0.)
+Exit code: 0 if no `FACT` failed (also if no facts ran), 1 if any did, 2 if the run crashed, timed out, or could not start.
 
 ## Safe execution
 
@@ -135,31 +159,117 @@ By default, facts fork/exec's itself as a child process before running tests. Th
 - **Timeout** — tests that hang are killed after 10 seconds (configurable with `--facts_timeout=N`).
 - **Niceness** — the child process runs at lower priority (`nice 10`) so runaway tests don't starve your system.
 
-Pass `--facts_unsafe` to skip the wrapper and run tests directly in the current process (useful for debugging under gdb/lldb).
+Pass `--facts_unsafe` to skip the wrapper and run tests directly in the current process. A debugger needs it, and the `(gdb) run` line printed with a fiction includes it.
 
-## C++ extras
+## Testing many cases (C++)
 
-Use tracing to annotate failures with breadcrumbs (last‑in, first‑out):
+One fact about one value is rarely enough. Put the facts in a loop and check hundreds of cases:
 
 ```C++
-FACTS(ExampleTrace) {
-  for (int i=0; i<3; ++i) {
-    FACTS_TRACE("i=" << i);
-    // ...
+int isqrt(int n);   // integer square root: the largest r with r*r <= n
+
+FACTS(AboutIsqrt) {
+  for (int n = 0; n <= 200; ++n) {
+    int r = isqrt(n);
+    FACT(r * r <= n);
+    FACT(n < (r + 1) * (r + 1));
   }
 }
 ```
 
-Conditional breakpoints via gdb hints:
+When this fails you see the two sides of the comparison, but not which case you were in:
+
+```
+isqrt.cpp/AboutIsqrt 13: n < (r + 1) * (r + 1) {100 < 100} is fiction
+```
+
+Here you can guess `n`, but usually you cannot. There are three ways to say which case it was. The text of a note is only built when a fact is fiction, so notes are cheap while the facts are true.
+
+### A footnote: one fact, one note
+
+Add a second argument to `FACT`. Write it as you would after `std::cout <<`:
 
 ```C++
-FACTS(Scan) {
-  int i=1, j=2;
-  FACTS_WATCH(i,j);
-  // Failure text includes:
-  // (gdb) break facts_Scan_function:facts_trace_0 if i==1 && j==2
+    FACT(n < (r + 1) * (r + 1), "n=" << n << " r=" << r);
+```
+
+```
+isqrt.cpp/AboutIsqrt 13: n < (r + 1) * (r + 1) {100 < 100} is fiction: n=100 r=9
+```
+
+### A trace: one note for every fact below it
+
+`FACTS_TRACE(note)` covers every fact that follows it in the same block, so you write the case once at the top of the loop instead of on each fact:
+
+```C++
+FACTS(AboutIsqrt) {
+  for (int n = 0; n <= 200; ++n) {
+    FACTS_TRACE("n=" << n);
+    int r = isqrt(n);
+    FACT(r * r <= n);
+    FACT(n < (r + 1) * (r + 1));
+  }
 }
 ```
+
+```
+isqrt.cpp/AboutIsqrt 22: n < (r + 1) * (r + 1) {100 < 100} is fiction
+(gdb) break facts_AboutIsqrt_function
+isqrt.cpp/AboutIsqrt:19 n=100
+(gdb) run --facts_unsafe --facts_include=AboutIsqrt
+```
+
+The trace line gives the file, group, and line of the `FACTS_TRACE`, then your note. Traces nest: with one in an outer loop and one in an inner loop, a fiction prints the inner note first, then the outer. A trace ends where its block ends. It captures the variables in its note by value at the moment it is reached, so the note shows the case as it was at the top of the loop.
+
+### A watch: stop the debugger at the failing case
+
+`FACTS_WATCH(n)` is a trace whose note is a gdb breakpoint that stops only in the case that failed. It takes 1 to 20 variables:
+
+```C++
+  for (int n = 0; n <= 200; ++n) {
+    FACTS_WATCH(n);
+    ...
+```
+
+```
+isqrt.cpp/AboutIsqrt 31: n < (r + 1) * (r + 1) {100 < 100} is fiction
+(gdb) break facts_AboutIsqrt_function
+isqrt.cpp/AboutIsqrt:28 (gdb) break facts_AboutIsqrt_function:facts_trace_1 if n==100
+(gdb) run --facts_unsafe --facts_include=AboutIsqrt
+```
+
+To use it, start `gdb ./check` and paste the two `(gdb)` lines that follow the fiction: the `break ... if n==100` line, then the `run` line. `--facts_unsafe` in the `run` line makes the facts run inside the debugger and not in a child process.
+
+gdb stops at the watch in the 101st trip around the loop, just before the fact that fails, and you can step from there.
+
+### See every failing case, not just the first
+
+`FACT` leaves the group at the first fiction, so a loop stops at the first bad case. `FACT_CHECK` reports and keeps going, which suits a table of cases:
+
+```C++
+struct Case { int n; int root; };
+
+FACTS(AboutIsqrtTable) {
+  Case cases[] = { {0,0}, {1,1}, {15,3}, {16,4}, {99,9}, {100,10}, {144,12} };
+  for (const Case &c : cases) {
+    FACT_CHECK(isqrt(c.n) == c.root, "n=" << c.n);
+  }
+}
+```
+
+```
+isqrt.cpp/AboutIsqrtTable 40: isqrt(c.n) == c.root {9 == 10} is fiction: n=100
+isqrt.cpp/AboutIsqrtTable 40: isqrt(c.n) == c.root {9 == 12} is fiction: n=144
+```
+
+The summary counts every fact checked, so a loop of 201 cases with two facts each adds 402 to the truths.
+
+### Which to use
+
+- One fact needs explaining: a footnote.
+- Several facts share a case, or loops are nested: a trace at the top of each loop.
+- You want to step through the failing case: a watch.
+- You want all the failing cases at once: `FACT_CHECK`.
 
 ## Examples
 

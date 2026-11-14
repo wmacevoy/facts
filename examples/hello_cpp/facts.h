@@ -98,22 +98,62 @@ extern "C"
 #if !(defined(FACTS_C) || defined(FACTS_CPP))
   extern uint64_t facts_fictions;
   extern uint64_t facts_truths;
+  extern uint64_t facts_twice;
   extern int facts_format;
 #endif
 
-#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsPrint("%s/%s %d: %s%s {=%?} " #op " %s {=%?} is fiction%s\n", fmt, fmt, __FILE__, facts->name, __LINE__, FACTS_RED, #a, (a), #b, (b), FACTS_RESET), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0))
+// FACT(a, op, b) prints the values of a and b when it is fiction.
+//
+// Where the compiler can keep a value whose type it was not told (__typeof__
+// and a block inside an expression: gcc, clang), each side is evaluated once.
+// Elsewhere a fiction evaluates each side a second time to print it, counts
+// that in facts_twice, and the console report says so in its last line.
+// In C++ each side is always evaluated once.
+// Define FACTS_EVAL_TWICE to get the second behavior anywhere (the check does).
+#if !defined(FACTS_EVAL_TWICE) && (defined(__GNUC__) || defined(__clang__))
+// "0 ? (a) : (a)" has the type a value of a has: an array becomes a pointer,
+// a bit-field an int.  __typeof__ does not evaluate it.
+#define FACT_CHECK_PRINT(a, op, b, fmt) __extension__ ({ \
+    __typeof__(0 ? (a) : (a)) facts_a_ = (a); \
+    __typeof__(0 ? (b) : (b)) facts_b_ = (b); \
+    (facts_a_ op facts_b_) ? (++facts_truths, 1) : (FactsPrint("%s/%s %d: %s%s {=%?} " #op " %s {=%?} is fiction%s\n", fmt, fmt, __FILE__, facts->name, __LINE__, FACTS_RED, #a, facts_a_, #b, facts_b_, FACTS_RESET), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); })
+#else
+#define FACT_CHECK_PRINT(a, op, b, fmt) (((a)op(b)) ? (++facts_truths, 1) : (FactsPrint("%s/%s %d: %s%s {=%?} " #op " %s {=%?} is fiction%s\n", fmt, fmt, __FILE__, facts->name, __LINE__, FACTS_RED, #a, (a), #b, (b), FACTS_RESET), FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, ++facts_twice, 0))
+#endif
 #define FACT_PRINT(a, op, b, fmt)  \
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-#define FACT_CHECK_CERR(a, op, b) (((a)op(b)) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << (a) << "} " << #op << " " << #b << " {=" << (b) << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0))
+// C++: the lambda is there to hold each side by reference while it is compared and printed.
+#define FACT_CHECK_CERR(a, op, b) ([&]() -> int { const auto &facts_a_ = (a); const auto &facts_b_ = (b); return (facts_a_ op facts_b_) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << facts_a_ << "} " << #op << " " << #b << " {=" << facts_b_ << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); }())
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return
 
 #ifdef __cplusplus
-#define FACT(a, op, b) FACT_CERR(a, op, b)
-#define FACT_CHECK(a, op, b) FACT_CHECK_CERR(a, op, b)
+// C++ takes three forms, picked by the number of arguments:
+//   FACT(a, op, b)      the form C has
+//   FACT(a op b)        the comparison as you would write it; the values are still printed
+//   FACT(a op b, note)  note is streamed (as in FACTS_TRACE) only if the fact is fiction
+// FACT_CHECK takes the same three.
+#define FACTS_EXPAND(x) x
+#define FACTS_FACT_PICK(_1, _2, _3, name, ...) name
+#define FACT(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CERR, FACT_NOTE, FACT_EXPR, )(__VA_ARGS__))
+#define FACT_CHECK(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CHECK_CERR, FACT_CHECK_NOTE, FACT_CHECK_EXPR, )(__VA_ARGS__))
+// clang warns that << binds tighter than a comparison, which is the point here.
+#if defined(__clang__)
+#define FACTS_DECOMPOSE(expr) _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Woverloaded-shift-op-parentheses\"") FactsDecompose() << expr _Pragma("clang diagnostic pop")
+#else
+#define FACTS_DECOMPOSE(expr) FactsDecompose() << expr
+#endif
+#define FACT_CHECK_EXPR(expr) FactsExprCheck(facts, __FILE__, __LINE__, #expr, FACTS_DECOMPOSE(expr))
+#define FACT_CHECK_NOTE(expr, note) FactsExprCheck(facts, __FILE__, __LINE__, #expr, FACTS_DECOMPOSE(expr), [&](std::ostream &foot) { foot << note; })
+#define FACT_EXPR(expr)  \
+  if (!FACT_CHECK_EXPR(expr)) \
+  return
+#define FACT_NOTE(expr, note)  \
+  if (!FACT_CHECK_NOTE(expr, note)) \
+  return
 #define FACTS_EXTERN extern "C"
 #else
 #define FACT(a, op, b) FACT_PRINT(a, op, b, FACTS_PRINT_FORMAT(a))
@@ -173,6 +213,98 @@ extern "C"
     FactsTrace(std::function<void(Facts *facts, std::ostream&)> _note);
     ~FactsTrace();
   };
+
+  // ---- FACT(a op b): the expression form ----
+  //
+  // "FactsDecompose() << a == b" parses as "(FactsDecompose() << a) == b",
+  // because << binds tighter than every comparison and looser than arithmetic.
+  // The first step keeps a reference to a, the comparison keeps a reference to
+  // b and the answer, so a fiction can print both values without evaluating
+  // either side again.  An expression joined by && or || is checked as a whole
+  // and prints no values.  A shift on the left needs its own parentheses:
+  // FACT((x << 1) == 4).  (<= in place of << would not, but gcc then suggests
+  // parentheses at every FACT, and cannot be told not to inside an expression.)
+
+  extern "C" {
+    extern uint64_t facts_fictions;
+    extern uint64_t facts_truths;
+    extern int facts_format;
+  }
+
+  template <class L, class R> struct FactsBinary
+  {
+    const L &lhs;
+    const char *op;
+    const R &rhs;
+    bool truth;
+    explicit operator bool() const { return truth; }
+  };
+
+// FACT(v.size() == 3) compares a size_t with an int: the literal's type is all
+// the template sees, so it would warn where the plain expression does not.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#endif
+  template <class L> struct FactsLhs
+  {
+    const L &lhs;
+    explicit operator bool() const { return static_cast<bool>(lhs); }
+    template <class R> FactsBinary<L, R> operator==(const R &rhs) const { return FactsBinary<L, R>{lhs, "==", rhs, static_cast<bool>(lhs == rhs)}; }
+    template <class R> FactsBinary<L, R> operator!=(const R &rhs) const { return FactsBinary<L, R>{lhs, "!=", rhs, static_cast<bool>(lhs != rhs)}; }
+    template <class R> FactsBinary<L, R> operator<(const R &rhs) const { return FactsBinary<L, R>{lhs, "<", rhs, static_cast<bool>(lhs < rhs)}; }
+    template <class R> FactsBinary<L, R> operator<=(const R &rhs) const { return FactsBinary<L, R>{lhs, "<=", rhs, static_cast<bool>(lhs <= rhs)}; }
+    template <class R> FactsBinary<L, R> operator>(const R &rhs) const { return FactsBinary<L, R>{lhs, ">", rhs, static_cast<bool>(lhs > rhs)}; }
+    template <class R> FactsBinary<L, R> operator>=(const R &rhs) const { return FactsBinary<L, R>{lhs, ">=", rhs, static_cast<bool>(lhs >= rhs)}; }
+  };
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+  struct FactsDecompose
+  {
+    template <class L> FactsLhs<L> operator<<(const L &lhs) const { return FactsLhs<L>{lhs}; }
+  };
+
+  // Is it true, and what values does a fiction show: one pair of overloads
+  // for each thing the expression can come out as.
+  inline bool FactsExprTruth(bool whole) { return whole; }
+  template <class L> bool FactsExprTruth(const FactsLhs<L> &one) { return static_cast<bool>(one); }
+  template <class L, class R> bool FactsExprTruth(const FactsBinary<L, R> &two) { return two.truth; }
+
+  inline void FactsExprValues(std::ostream &, bool) {}
+  template <class L> void FactsExprValues(std::ostream &out, const FactsLhs<L> &one) { out << " {" << one.lhs << "}"; }
+  template <class L, class R> void FactsExprValues(std::ostream &out, const FactsBinary<L, R> &two) { out << " {" << two.lhs << " " << two.op << " " << two.rhs << "}"; }
+
+  struct FactsNoFootnote {};
+  inline void FactsExprFootnote(std::ostream &, const FactsNoFootnote &) {}
+  template <class F> void FactsExprFootnote(std::ostream &out, const F &footnote) { out << ": "; footnote(out); }
+
+  // Returns 1 for a truth.  For a fiction, prints it, marks the group failed, and returns 0.
+  template <class V, class F>
+  bool FactsExprCheck(Facts *facts, const char *file, int line, const char *expr, const V &value, const F &footnote)
+  {
+    if (FactsExprTruth(value))
+    {
+      ++facts_truths;
+      return true;
+    }
+    std::cout << file << "/" << facts->name << " " << line << ": " << FACTS_RED << expr;
+    FactsExprValues(std::cout, value);
+    std::cout << " is fiction";
+    FactsExprFootnote(std::cout, footnote);
+    std::cout << FACTS_RESET << std::endl;
+    FactsFiction(file, line, facts, expr, "", "");
+    facts->status = FACTS_STATE_FAIL;
+    ++facts_fictions;
+    return false;
+  }
+
+  template <class V>
+  bool FactsExprCheck(Facts *facts, const char *file, int line, const char *expr, const V &value)
+  {
+    return FactsExprCheck(facts, file, line, expr, value, FactsNoFootnote());
+  }
 
   #define FACTS_TRACE_SUFFIX(note,suffix) \
     FactsTrace facts_trace##suffix([=](Facts *facts, std::ostream&out) { out << __FILE__ << "/" << facts->name << ":" << __LINE__ << " " << note << std::endl; }); \
