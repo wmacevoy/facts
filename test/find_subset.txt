@@ -1,0 +1,6 @@
+A fixture for test/check.sh (REQ1/RG-2): two of the six groups compiled into
+bin/testfacts_c, named in the reverse of their registration order, so the
+check can tell "found in this file" from "registered by the program".
+
+FACTS(Out) {
+FACTS(Alpha) {

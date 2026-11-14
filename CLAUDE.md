@@ -1,0 +1,2 @@
+@AGENTS.md
+@vendor/se1/QUICKREF.md

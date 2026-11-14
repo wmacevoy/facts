@@ -31,6 +31,8 @@
 # Executables
 *.exe
 *.out
+# the golden files of the check are kept
+!expected/*.out
 *.app
 *.i*86
 *.x86_64

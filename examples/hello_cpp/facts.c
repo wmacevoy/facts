@@ -70,92 +70,17 @@ FACTS_EXTERN void FactsRegisterAll();
 FACTS_EXTERN void FactsRegisterAll();
 #endif
 
-// Write len bytes to stdout with XML entity escaping.
-static void FactsXmlEscape(const char *s, size_t len) {
-  for (size_t i = 0; i < len; ++i) {
-    switch (s[i]) {
-      case '<':  printf("&lt;");   break;
-      case '>':  printf("&gt;");   break;
-      case '&':  printf("&amp;");  break;
-      case '"':  printf("&quot;"); break;
-      default:   putchar(s[i]);    break;
-    }
-  }
-}
-
-static void FactsXmlEscapeStr(const char *s) {
-  FactsXmlEscape(s, strlen(s));
-}
-
-// Wildcard pattern matcher.
+// How this file is laid out.
 //
-// Desiged to work on small systems with possibly no regex library.
-//
-//
-// 5+2*sizeof(void*)+strlen(pattern)/4
-//
-// bytes of (stack) memory.
-FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
-{
-  size_t np = strlen(pattern);
+// facts.c stays one file so it can be copied beside a program's sources.
+// It is divided by lines that say "border": first the four edges, each
+// holding the words of a model that is someone else's (gdb, JUnit, the
+// dynamic loader, the operating system's processes), then the core.
+// An edge calls nothing in the core; the core calls the edges.
+// test/borders.sh keeps each edge's words inside its edge.
 
-  // fast exit for match-all pattern
-  if (np == 1 && pattern[0] == '*')
-    return 1;
-
-  size_t ns = strlen(str);
-
-  size_t nb = (np + 2) / 8 + ((np + 2) % 8 != 0);
-  size_t k;
-
-  uint8_t *state0 = (uint8_t *)calloc(nb, 1);
-  uint8_t *state1 = (uint8_t *)calloc(nb, 1);
-
-  if (!state0 || !state1) { free(state0); free(state1); return 0; }
-  state0[0] = 1;
-  for (k = 1; pattern[k - 1] == '*'; ++k)
-    state0[k / 8] |= (1 << (k % 8));
-
-  for (size_t i = 0; i <= ns; ++i)
-  {
-    unsigned char c = str[i];
-
-    memset(state1, 0, nb);
-    for (size_t j = 0; j <= np; ++j)
-    {
-      if (state0[j / 8] & (1 << (j % 8)))
-      {
-        if (pattern[j] == '*')
-        {
-          k = j;
-          state1[k / 8] |= (1 << (k % 8));
-          ++k;
-          state1[k / 8] |= (1 << (k % 8));
-        }
-        else if (pattern[j] == c)
-        {
-          k = j + 1;
-          state1[k / 8] |= (1 << (k % 8));
-          while (pattern[k] == '*')
-          {
-            ++k;
-            state1[k / 8] |= (1 << (k % 8));
-          }
-        }
-      }
-    }
-
-    uint8_t *tmp = state0;
-    state0 = state1;
-    state1 = tmp;
-  }
-
-  k = np + 1;
-  int result = (state0[k / 8] & (1 << (k % 8))) != 0;
-  free(state0);
-  free(state1);
-  return result;
-}
+// ==== border: edge-gdb ====
+// gdb's command language is gdb's: the hints printed on a fiction are spelled here.
 
 // Fiction break point.
 //
@@ -176,313 +101,114 @@ FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
   printf("%s(gdb)%s run --facts_include=%s\n",FACTS_GREEN,FACTS_RESET,facts->name);
 }
 
-// Include FACTS to check with wildncard pattern.
+// ==== border: edge-junit ====
+// JUnit's model is JUnit's: its words (suite, case, skipped, failure) and its
+// XML stay in this section, so a change to that format is an edit here only.
+// It reads a group's name and status and never changes them.
 
-FACTS_EXTERN void FactsInclude(const char *pattern)
-{
-  if (head == NULL)
-  {
-    FactsRegisterAll();
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
-    {
-      if (facts->status == FACTS_STATE_INCLUDE)
-      {
-        facts->status = FACTS_STATE_EXCLUDE;
-      }
-    }
-  }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
-  {
-    if (facts->status == FACTS_STATE_EXCLUDE && FactsMatches(facts->name, pattern))
-    {
-      facts->status = FACTS_STATE_INCLUDE;
+// Write len bytes to stdout with XML entity escaping.
+static void FactsXmlEscape(const char *s, size_t len) {
+  for (size_t i = 0; i < len; ++i) {
+    switch (s[i]) {
+      case '<':  printf("&lt;");   break;
+      case '>':  printf("&gt;");   break;
+      case '&':  printf("&amp;");  break;
+      case '"':  printf("&quot;"); break;
+      default:   putchar(s[i]);    break;
     }
   }
 }
 
-// Exclude facts with wildcard pattern.
-// Normally all FACTS are checked.
-FACTS_EXTERN void FactsExclude(const char *pattern)
-{
-  if (head == NULL)
-  {
-    FactsRegisterAll();
-  }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
-  {
-    if (facts->status == FACTS_STATE_INCLUDE && FactsMatches(facts->name, pattern))
-    {
-      facts->status = FACTS_STATE_EXCLUDE;
-    }
-  }
+static void FactsXmlEscapeStr(const char *s) {
+  FactsXmlEscape(s, strlen(s));
 }
-
-FACTS_EXTERN void FactsRegister(Facts *facts)
-{
-  if (facts->prev == NULL && facts->next == NULL && facts != head)
-  {
-    facts->prev = tail;
-    facts->next = NULL;
-    if (tail != NULL)
-    {
-      tail->next = facts;
-    }
-    if (head == NULL)
-    {
-      head = facts;
-    }
-    tail = facts;
-  }
-}
-
-// Fact find (internals).
-//
-// C does not provide a way to initialize a list of
-// FACTS checks.  So we search memory for them by the
-// Symmetric relative error.
-FACTS_EXTERN double FactsRelErr(double a, double b)
-{
-  double abserr = a >= b ? a - b : b - a;
-  a = a >= 0 ? a : -a;
-  b = b >= 0 ? b : -b;
-  double maxabs = a >= b ? a : b;
-  if (maxabs == 0.0) return abserr;
-  return abserr / maxabs;
-}
-
-// Absolute error.
-FACTS_EXTERN double FactsAbsErr(double a, double b)
-{
-  double abserr = a >= b ? a - b : b - a;
-  return abserr;
-}
-
-// Print with dynamic formats.
-// format can contain %? patterns.  These
-// are replaced with strings in the va-args
-// list FIRST.  After the %? substitution,
-// the remaing argmuments are processed with
-// the modified format string is passed to
-// vfprintf.
-FACTS_EXTERN void FactsPrint(const char *format, ...)
-{
-  int i, j;
-  int reformatSize = strlen(format) + 1;
-
-  va_list ap;
-  va_start(ap, format);
-  for (i = 0, j = 0; format[i] != 0;)
-  {
-    if (format[i] == '%' && format[i + 1] == '?')
-    {
-      const char *fs = va_arg(ap, const char *);
-      reformatSize += strlen(fs);
-      i += 2;
-    }
-    else
-    {
-      i += 1;
-    }
-  }
-
-  char *reformat = (char *)malloc(reformatSize);
-  if (!reformat) { va_end(ap); return; }
-  va_end(ap);
-  va_start(ap, format);
-  for (i = 0, j = 0; format[i] != 0;)
-  {
-    if (format[i] == '%' && format[i + 1] == '?')
-    {
-      const char *fs = va_arg(ap, const char *);
-      strncpy(reformat + j, fs, reformatSize - j);
-      j += strlen(fs);
-      i += 2;
-    }
-    else
-    {
-      reformat[j] = format[i];
-      ++j;
-      ++i;
-    }
-  }
-  reformat[j] = 0;
-  vprintf(reformat, ap);
-  va_end(ap);
-  free(reformat);
-}
-
 #define FACTS_BLOCKSIZE 1024
-// Execute facts checks.
-//
-// You can preceed this with FactsInclude and FactsExlude to pick out
-// a particular set.
-//
-//
-FACTS_EXTERN void FactsCheck()
+
+// Between "group began" and "group ended" stdout and stderr are redirected to
+// temporary files, so whatever the group and the console report print lands
+// inside that group's element.
+static FILE *junit_tmpout = NULL, *junit_tmperr = NULL;
+static int junit_oldout = -1, junit_olderr = -1;
+
+static void FactsJUnitRunBegan(void)
 {
-  if (head == NULL)
-  {
-    FactsRegisterAll();
-  }
+  printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  printf("<testsuite name=\"facts\">\n");
+}
 
-  FILE *tmpout = NULL, *tmperr = NULL;
-  int oldout = -1, olderr = -1;
-  if (FACTS_JUNIT)
-  {
-    printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    printf("<testsuite name=\"facts\">\n");
-  }
-  for (Facts *facts = head; facts != NULL; facts = facts->next)
-  {
-    if (FACTS_JUNIT)
-    {
-      printf("<testcase name=\"");
-      FactsXmlEscapeStr(facts->name);
-      printf("\">\n");
-      fflush(stdout);
-      fflush(stderr);
-      tmpout = tmpfile();
-      tmperr = tmpfile();
-      if (tmpout != NULL && tmperr != NULL) {
-        oldout = dup(STDOUT_FILENO);
-        olderr = dup(STDERR_FILENO);
-        if (oldout >= 0 && olderr >= 0) {
-          dup2(fileno(tmpout), STDOUT_FILENO);
-          dup2(fileno(tmperr), STDERR_FILENO);
-        }
-      }
+static void FactsJUnitGroupBegan(Facts *facts)
+{
+  printf("<testcase name=\"");
+  FactsXmlEscapeStr(facts->name);
+  printf("\">\n");
+  fflush(stdout);
+  fflush(stderr);
+  junit_tmpout = tmpfile();
+  junit_tmperr = tmpfile();
+  if (junit_tmpout != NULL && junit_tmperr != NULL) {
+    junit_oldout = dup(STDOUT_FILENO);
+    junit_olderr = dup(STDERR_FILENO);
+    if (junit_oldout >= 0 && junit_olderr >= 0) {
+      dup2(fileno(junit_tmpout), STDOUT_FILENO);
+      dup2(fileno(junit_tmperr), STDERR_FILENO);
     }
-    if (facts->status == FACTS_STATE_INCLUDE)
-    {
-      printf("%s %d: %s facts check started\n",
-             facts->file, facts->line, facts->name);
-#ifdef __cplusplus
-      FactsTrace::reset(facts);
-#endif
-      facts->function(facts);
-      if (facts->status == FACTS_STATE_INCLUDE)
-      {
-        facts->status = FACTS_STATE_PASS;
-      }
-      if (facts->status == FACTS_STATE_FAIL) {
-        printf("%s %d: %s facts check ended %sbadly%s\n",
-               facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
-      } else {
-        printf("%s %d: %s facts check ended\n",
-               facts->file, facts->line, facts->name);
-      }
-    }
-    else
-    {
-      printf("%s %d: %s facts check %sexcluded%s.\n",
-             facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
-    }
-    if (FACTS_JUNIT)
-    {
-      fflush(stdout);
-      fflush(stderr);
-      if (tmpout != NULL && tmperr != NULL && oldout >= 0 && olderr >= 0) {
-        int64_t outlen = lseek(STDOUT_FILENO, 0, SEEK_CUR);
-        int64_t errlen = lseek(STDERR_FILENO, 0, SEEK_CUR);
-        dup2(oldout, STDOUT_FILENO);
-        dup2(olderr, STDERR_FILENO);
-        close(oldout);
-        close(olderr);
-        oldout = olderr = -1;
-        if (outlen > 0) {
-          fseek(tmpout, 0L, SEEK_SET);
-          printf("<system-out>");
-          for (int64_t p = 0; p < outlen; p += FACTS_BLOCKSIZE)
-          {
-            char data[FACTS_BLOCKSIZE];
-            int n = (int)(outlen - p);
-            if (n > FACTS_BLOCKSIZE) n = FACTS_BLOCKSIZE;
-            if (fread(data, n, 1, tmpout) == 1)
-              FactsXmlEscape(data, n);
-          }
-          printf("</system-out>\n");
-        }
-        if (errlen > 0) {
-          fseek(tmperr, 0L, SEEK_SET);
-          printf("<system-err>");
-          for (int64_t p = 0; p < errlen; p += FACTS_BLOCKSIZE)
-          {
-            char data[FACTS_BLOCKSIZE];
-            int n = (int)(errlen - p);
-            if (n > FACTS_BLOCKSIZE) n = FACTS_BLOCKSIZE;
-            if (fread(data, n, 1, tmperr) == 1)
-              FactsXmlEscape(data, n);
-          }
-          printf("</system-err>\n");
-        }
-      }
-      if (facts->status == FACTS_STATE_EXCLUDE)
-      {
-        printf("<skipped />\n");
-      }
-      if (facts->status == FACTS_STATE_FAIL)
-      {
-        printf("<failure>See stdout</failure>\n");
-      }
-      printf("</testcase>\n\n");
-      if (tmpout != NULL) fclose(tmpout);
-      if (tmperr != NULL) fclose(tmperr);
-      tmpout = tmperr = NULL;
-    }
-  }
-
-  if (FACTS_CONSOLE)
-  {
-    printf("facts summary.\n");
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
-    {
-      if (facts->status == FACTS_STATE_PASS)
-      {
-        printf("facts check %s %spassed%s\n", facts->name, FACTS_GREEN, FACTS_RESET);
-      }
-    }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
-    {
-      if (facts->status == FACTS_STATE_FAIL)
-      {
-        printf("facts check %s %sfailed%s\n", facts->name, FACTS_RED, FACTS_RESET);
-      }
-    }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
-    {
-      if (facts->status == FACTS_STATE_EXCLUDE)
-      {
-        printf("facts check %s %sexcluded%s\n", facts->name, FACTS_RED, FACTS_RESET);
-      }
-    }
-    for (Facts *facts = head; facts != NULL; facts = facts->next)
-    {
-      if (facts->status != FACTS_STATE_PASS &&
-          facts->status != FACTS_STATE_FAIL &&
-          facts->status != FACTS_STATE_EXCLUDE)
-      {
-        printf("facts check %s status %d\n", facts->name, facts->status);
-      }
-    }
-    double checks = ((double)facts_truths) + ((double)facts_fictions);
-    double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
-    printf("%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
-           facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
-  }
-
-  if (FACTS_JUNIT)
-  {
-    printf("</testsuite>\n");
   }
 }
 
-//
-// You can call this from your main to process facts
-// checks.  Return status 0 is good, it means a fact check was
-// called and passed all (at least one) FACT check, 1 means at
-// least one FACT failed, and 2 means no facts were checked.
-//
-//
+// Copy the first len bytes of a capture file to stdout inside <tag>.
+static void FactsJUnitCaptured(const char *tag, FILE *tmp, int64_t len)
+{
+  if (len <= 0) return;
+  fseek(tmp, 0L, SEEK_SET);
+  printf("<%s>", tag);
+  for (int64_t p = 0; p < len; p += FACTS_BLOCKSIZE)
+  {
+    char data[FACTS_BLOCKSIZE];
+    int n = (int)(len - p);
+    if (n > FACTS_BLOCKSIZE) n = FACTS_BLOCKSIZE;
+    if (fread(data, n, 1, tmp) == 1)
+      FactsXmlEscape(data, n);
+  }
+  printf("</%s>\n", tag);
+}
+
+static void FactsJUnitGroupEnded(Facts *facts)
+{
+  fflush(stdout);
+  fflush(stderr);
+  if (junit_tmpout != NULL && junit_tmperr != NULL && junit_oldout >= 0 && junit_olderr >= 0) {
+    int64_t outlen = lseek(STDOUT_FILENO, 0, SEEK_CUR);
+    int64_t errlen = lseek(STDERR_FILENO, 0, SEEK_CUR);
+    dup2(junit_oldout, STDOUT_FILENO);
+    dup2(junit_olderr, STDERR_FILENO);
+    close(junit_oldout);
+    close(junit_olderr);
+    junit_oldout = junit_olderr = -1;
+    FactsJUnitCaptured("system-out", junit_tmpout, outlen);
+    FactsJUnitCaptured("system-err", junit_tmperr, errlen);
+  }
+  if (facts->status == FACTS_STATE_EXCLUDE)
+  {
+    printf("<skipped />\n");
+  }
+  if (facts->status == FACTS_STATE_FAIL)
+  {
+    printf("<failure>See stdout</failure>\n");
+  }
+  printf("</testcase>\n\n");
+  if (junit_tmpout != NULL) fclose(junit_tmpout);
+  if (junit_tmperr != NULL) fclose(junit_tmperr);
+  junit_tmpout = junit_tmperr = NULL;
+}
+
+static void FactsJUnitRunEnded(void)
+{
+  printf("</testsuite>\n");
+}
+
+// ==== border: edge-os-symbols ====
+// The dynamic loader's model is the platform's: symbol lookup is spelled here.
+
 // Look up a Facts struct by name using dynamic symbol lookup.
 // Returns NULL if not found (e.g. not compiled into this binary).
 static Facts *FactsLookup(const char *name) {
@@ -495,67 +221,8 @@ static Facts *FactsLookup(const char *name) {
 #endif
 }
 
-// Scan a source file for FACTS(Name) declarations.
-// If register_mode, look up and register each test found.
-// Otherwise, print FACTS_REGISTER(Name) lines to stdout.
-static void FactsScanFile(const char *filename, int register_mode) {
-  FILE *f = fopen(filename, "r");
-  if (!f) {
-    fprintf(stderr, "facts: cannot open %s\n", filename);
-    return;
-  }
-
-  char line[4096];
-  while (fgets(line, sizeof(line), f)) {
-    // skip preprocessor directives (#define, #include, etc.)
-    const char *trimmed = line;
-    while (*trimmed == ' ' || *trimmed == '\t') ++trimmed;
-    if (*trimmed == '#') continue;
-
-    const char *p = line;
-    while ((p = strstr(p, "FACTS(")) != NULL) {
-      // word boundary: previous char must not be identifier char
-      if (p > line) {
-        char c = p[-1];
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-            (c >= '0' && c <= '9') || c == '_') {
-          p += 6;
-          continue;
-        }
-      }
-
-      // extract identifier
-      const char *start = p + 6;
-      const char *end = start;
-      while ((*end >= 'A' && *end <= 'Z') || (*end >= 'a' && *end <= 'z') ||
-             (*end >= '0' && *end <= '9') || *end == '_')
-        ++end;
-
-      if (*end == ')' && end > start) {
-        int len = (int)(end - start);
-        if (register_mode) {
-          char name[256];
-          if (len < (int)sizeof(name)) {
-            memcpy(name, start, len);
-            name[len] = '\0';
-            Facts *facts = FactsLookup(name);
-            if (facts) {
-              FactsRegister(facts);
-            } else {
-              fprintf(stderr, "facts: %s not found in executable\n", name);
-            }
-          }
-        } else {
-          printf("    FACTS_REGISTER(%.*s);\n", len, start);
-        }
-      }
-
-      p = (end > p) ? end : p + 1;
-    }
-  }
-
-  fclose(f);
-}
+// ==== border: edge-os-process ====
+// The operating system's model (process, signal, exit status) stays here, once for Windows and once for POSIX.
 
 // Re-exec self as a child process with --facts_unsafe, monitoring for
 // crashes and timeouts.  Returns the exit code to propagate.
@@ -671,6 +338,407 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
 #endif
 }
 
+// ==== border: core ====
+// Everything that is facts' own: which groups are registered and included,
+// the helpers the FACT macros call, the run, the console report, and the
+// command line.
+
+// Wildcard pattern matcher.
+//
+// Desiged to work on small systems with possibly no regex library.
+//
+//
+// 5+2*sizeof(void*)+strlen(pattern)/4
+//
+// bytes of (stack) memory.
+FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
+{
+  size_t np = strlen(pattern);
+
+  // fast exit for match-all pattern
+  if (np == 1 && pattern[0] == '*')
+    return 1;
+
+  size_t ns = strlen(str);
+
+  size_t nb = (np + 2) / 8 + ((np + 2) % 8 != 0);
+  size_t k;
+
+  uint8_t *state0 = (uint8_t *)calloc(nb, 1);
+  uint8_t *state1 = (uint8_t *)calloc(nb, 1);
+
+  if (!state0 || !state1) { free(state0); free(state1); return 0; }
+  state0[0] = 1;
+  for (k = 1; pattern[k - 1] == '*'; ++k)
+    state0[k / 8] |= (1 << (k % 8));
+
+  for (size_t i = 0; i <= ns; ++i)
+  {
+    unsigned char c = str[i];
+
+    memset(state1, 0, nb);
+    for (size_t j = 0; j <= np; ++j)
+    {
+      if (state0[j / 8] & (1 << (j % 8)))
+      {
+        if (pattern[j] == '*')
+        {
+          k = j;
+          state1[k / 8] |= (1 << (k % 8));
+          ++k;
+          state1[k / 8] |= (1 << (k % 8));
+        }
+        else if (pattern[j] == c)
+        {
+          k = j + 1;
+          state1[k / 8] |= (1 << (k % 8));
+          while (pattern[k] == '*')
+          {
+            ++k;
+            state1[k / 8] |= (1 << (k % 8));
+          }
+        }
+      }
+    }
+
+    uint8_t *tmp = state0;
+    state0 = state1;
+    state1 = tmp;
+  }
+
+  k = np + 1;
+  int result = (state0[k / 8] & (1 << (k % 8))) != 0;
+  free(state0);
+  free(state1);
+  return result;
+}
+
+// Include FACTS to check with wildncard pattern.
+
+FACTS_EXTERN void FactsInclude(const char *pattern)
+{
+  if (head == NULL)
+  {
+    FactsRegisterAll();
+    for (Facts *facts = head; facts != NULL; facts = facts->next)
+    {
+      if (facts->status == FACTS_STATE_INCLUDE)
+      {
+        facts->status = FACTS_STATE_EXCLUDE;
+      }
+    }
+  }
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status == FACTS_STATE_EXCLUDE && FactsMatches(facts->name, pattern))
+    {
+      facts->status = FACTS_STATE_INCLUDE;
+    }
+  }
+}
+
+// Exclude facts with wildcard pattern.
+// Normally all FACTS are checked.
+FACTS_EXTERN void FactsExclude(const char *pattern)
+{
+  if (head == NULL)
+  {
+    FactsRegisterAll();
+  }
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status == FACTS_STATE_INCLUDE && FactsMatches(facts->name, pattern))
+    {
+      facts->status = FACTS_STATE_EXCLUDE;
+    }
+  }
+}
+
+FACTS_EXTERN void FactsRegister(Facts *facts)
+{
+  if (facts->prev == NULL && facts->next == NULL && facts != head)
+  {
+    facts->prev = tail;
+    facts->next = NULL;
+    if (tail != NULL)
+    {
+      tail->next = facts;
+    }
+    if (head == NULL)
+    {
+      head = facts;
+    }
+    tail = facts;
+  }
+}
+
+// Scan a source file for FACTS(Name) declarations.
+// If register_mode, look up and register each test found.
+// Otherwise, print FACTS_REGISTER(Name) lines to stdout.
+static void FactsScanFile(const char *filename, int register_mode) {
+  FILE *f = fopen(filename, "r");
+  if (!f) {
+    fprintf(stderr, "facts: cannot open %s\n", filename);
+    return;
+  }
+
+  char line[4096];
+  while (fgets(line, sizeof(line), f)) {
+    // skip preprocessor directives (#define, #include, etc.)
+    const char *trimmed = line;
+    while (*trimmed == ' ' || *trimmed == '\t') ++trimmed;
+    if (*trimmed == '#') continue;
+
+    const char *p = line;
+    while ((p = strstr(p, "FACTS(")) != NULL) {
+      // word boundary: previous char must not be identifier char
+      if (p > line) {
+        char c = p[-1];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') || c == '_') {
+          p += 6;
+          continue;
+        }
+      }
+
+      // extract identifier
+      const char *start = p + 6;
+      const char *end = start;
+      while ((*end >= 'A' && *end <= 'Z') || (*end >= 'a' && *end <= 'z') ||
+             (*end >= '0' && *end <= '9') || *end == '_')
+        ++end;
+
+      if (*end == ')' && end > start) {
+        int len = (int)(end - start);
+        if (register_mode) {
+          char name[256];
+          if (len < (int)sizeof(name)) {
+            memcpy(name, start, len);
+            name[len] = '\0';
+            Facts *facts = FactsLookup(name);
+            if (facts) {
+              FactsRegister(facts);
+            } else {
+              fprintf(stderr, "facts: %s not found in executable\n", name);
+            }
+          }
+        } else {
+          printf("    FACTS_REGISTER(%.*s);\n", len, start);
+        }
+      }
+
+      p = (end > p) ? end : p + 1;
+    }
+  }
+
+  fclose(f);
+}
+
+// Helpers the FACT macros in facts.h call from the author's code.
+
+// Symmetric relative error.
+FACTS_EXTERN double FactsRelErr(double a, double b)
+{
+  double abserr = a >= b ? a - b : b - a;
+  a = a >= 0 ? a : -a;
+  b = b >= 0 ? b : -b;
+  double maxabs = a >= b ? a : b;
+  if (maxabs == 0.0) return abserr;
+  return abserr / maxabs;
+}
+
+// Absolute error.
+FACTS_EXTERN double FactsAbsErr(double a, double b)
+{
+  double abserr = a >= b ? a - b : b - a;
+  return abserr;
+}
+
+// Print with dynamic formats.
+// format can contain %? patterns.  These
+// are replaced with strings in the va-args
+// list FIRST.  After the %? substitution,
+// the remaing argmuments are processed with
+// the modified format string is passed to
+// vfprintf.
+FACTS_EXTERN void FactsPrint(const char *format, ...)
+{
+  int i, j;
+  int reformatSize = strlen(format) + 1;
+
+  va_list ap;
+  va_start(ap, format);
+  for (i = 0, j = 0; format[i] != 0;)
+  {
+    if (format[i] == '%' && format[i + 1] == '?')
+    {
+      const char *fs = va_arg(ap, const char *);
+      reformatSize += strlen(fs);
+      i += 2;
+    }
+    else
+    {
+      i += 1;
+    }
+  }
+
+  char *reformat = (char *)malloc(reformatSize);
+  if (!reformat) { va_end(ap); return; }
+  va_end(ap);
+  va_start(ap, format);
+  for (i = 0, j = 0; format[i] != 0;)
+  {
+    if (format[i] == '%' && format[i + 1] == '?')
+    {
+      const char *fs = va_arg(ap, const char *);
+      strncpy(reformat + j, fs, reformatSize - j);
+      j += strlen(fs);
+      i += 2;
+    }
+    else
+    {
+      reformat[j] = format[i];
+      ++j;
+      ++i;
+    }
+  }
+  reformat[j] = 0;
+  vprintf(reformat, ap);
+  va_end(ap);
+  free(reformat);
+}
+
+// The console report.
+
+static void FactsConsoleGroupBegan(Facts *facts)
+{
+  printf("%s %d: %s facts check started\n",
+         facts->file, facts->line, facts->name);
+}
+
+// ran is 0 for a group that was not included when the run reached it.
+static void FactsConsoleGroupEnded(Facts *facts, int ran)
+{
+  if (!ran)
+  {
+    printf("%s %d: %s facts check %sexcluded%s.\n",
+           facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
+  }
+  else if (facts->status == FACTS_STATE_FAIL)
+  {
+    printf("%s %d: %s facts check ended %sbadly%s\n",
+           facts->file, facts->line, facts->name, FACTS_RED, FACTS_RESET);
+  }
+  else
+  {
+    printf("%s %d: %s facts check ended\n",
+           facts->file, facts->line, facts->name);
+  }
+}
+
+static void FactsConsoleRunEnded(void)
+{
+  printf("facts summary.\n");
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status == FACTS_STATE_PASS)
+    {
+      printf("facts check %s %spassed%s\n", facts->name, FACTS_GREEN, FACTS_RESET);
+    }
+  }
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status == FACTS_STATE_FAIL)
+    {
+      printf("facts check %s %sfailed%s\n", facts->name, FACTS_RED, FACTS_RESET);
+    }
+  }
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status == FACTS_STATE_EXCLUDE)
+    {
+      printf("facts check %s %sexcluded%s\n", facts->name, FACTS_RED, FACTS_RESET);
+    }
+  }
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    if (facts->status != FACTS_STATE_PASS &&
+        facts->status != FACTS_STATE_FAIL &&
+        facts->status != FACTS_STATE_EXCLUDE)
+    {
+      printf("facts check %s status %d\n", facts->name, facts->status);
+    }
+  }
+  double checks = ((double)facts_truths) + ((double)facts_fictions);
+  double rate = 100.0 / (checks > 0.0 ? checks : 1.0);
+  printf("%" PRIu64 " (%1.1f%%) truths and %" PRIu64 " (%1.1f%%) fictions checked.\n",
+         facts_truths, facts_truths * rate, facts_fictions, facts_fictions * rate);
+}
+
+// The four moments a run tells its reports about.  This is the only place
+// that knows which reports are listening; the run below never asks.
+// The console's lines for a group are printed in both formats: under JUnit
+// they are captured into that group's element.
+
+static void FactsReportRunBegan(void)
+{
+  if (FACTS_JUNIT) FactsJUnitRunBegan();
+}
+
+static void FactsReportGroupBegan(Facts *facts, int ran)
+{
+  if (FACTS_JUNIT) FactsJUnitGroupBegan(facts);
+  if (ran) FactsConsoleGroupBegan(facts);
+}
+
+static void FactsReportGroupEnded(Facts *facts, int ran)
+{
+  FactsConsoleGroupEnded(facts, ran);
+  if (FACTS_JUNIT) FactsJUnitGroupEnded(facts);
+}
+
+static void FactsReportRunEnded(void)
+{
+  if (FACTS_CONSOLE) FactsConsoleRunEnded();
+  if (FACTS_JUNIT) FactsJUnitRunEnded();
+}
+
+// Execute facts checks.
+//
+// You can preceed this with FactsInclude and FactsExlude to pick out
+// a particular set.
+FACTS_EXTERN void FactsCheck()
+{
+  if (head == NULL)
+  {
+    FactsRegisterAll();
+  }
+
+  FactsReportRunBegan();
+  for (Facts *facts = head; facts != NULL; facts = facts->next)
+  {
+    int ran = (facts->status == FACTS_STATE_INCLUDE);
+    FactsReportGroupBegan(facts, ran);
+    if (ran)
+    {
+#ifdef __cplusplus
+      FactsTrace::reset(facts);
+#endif
+      facts->function(facts);
+      if (facts->status == FACTS_STATE_INCLUDE)
+      {
+        facts->status = FACTS_STATE_PASS;
+      }
+    }
+    FactsReportGroupEnded(facts, ran);
+  }
+  FactsReportRunEnded();
+}
+
+// You can call this from your main to process facts checks.
+// Exit code: 0 when no FACT was fiction (also when none ran), 1 when at
+// least one was, 2 when safe execution saw the run crash, time out, or
+// fail to start.
 FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 {
   // Check for --facts_unsafe and --facts_timeout before anything else.
