@@ -3,7 +3,7 @@ hello.c 19: AboutF facts check ended
 hello.c 29: AboutG facts check started
 hello.c/AboutG 32: 23 {=23} == g(10) {=17} is fiction
 (gdb) break facts_AboutG_function
-(gdb) run --facts_include=AboutG
+(gdb) run --facts_unsafe --facts_include=AboutG
 hello.c 29: AboutG facts check ended badly
 facts summary.
 facts check AboutF passed

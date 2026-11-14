@@ -306,9 +306,17 @@ extern "C"
     return FactsExprCheck(facts, file, line, expr, value, FactsNoFootnote());
   }
 
+  // The label is only there for a debugger to break at (FACTS_WATCH), so
+  // nothing in the program jumps to it.
+  #if defined(__GNUC__) || defined(__clang__)
+  #define FACTS_UNUSED_LABEL __attribute__((unused))
+  #else
+  #define FACTS_UNUSED_LABEL
+  #endif
+
   #define FACTS_TRACE_SUFFIX(note,suffix) \
     FactsTrace facts_trace##suffix([=](Facts *facts, std::ostream&out) { out << __FILE__ << "/" << facts->name << ":" << __LINE__ << " " << note << std::endl; }); \
-    facts_trace_##suffix:
+    facts_trace_##suffix: FACTS_UNUSED_LABEL
   #define FACTS_TRACE_COUNT(note,counter) FACTS_TRACE_SUFFIX(note,counter)
   #define FACTS_TRACE(note) FACTS_TRACE_COUNT(note,__COUNTER__)
 
@@ -343,7 +351,7 @@ extern "C"
     _1,_2,_3,_4,_5,_6,_7,_8,_9,_10,                                     \
     _11,_12,_13,_14,_15,_16,_17,_18,_19,_20,N,...) N
   #define FACTS_ARGC(...) FACTS_ARGC_(__VA_ARGS__,                       \
-    20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1)
+    20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0)
   #define FACTS_PASTE_(a,b) a##b
   #define FACTS_PASTE(a,b)  FACTS_PASTE_(a,b)
 

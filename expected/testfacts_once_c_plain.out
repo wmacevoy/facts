@@ -3,7 +3,7 @@ test/testfacts_once.c 8: OnceWhenTruth facts check ended
 test/testfacts_once.c 14: OnceWhenFiction facts check started
 test/testfacts_once.c/OnceWhenFiction 16: next() {=1} == 5 {=5} is fiction
 (gdb) break facts_OnceWhenFiction_function
-(gdb) run --facts_include=OnceWhenFiction
+(gdb) run --facts_unsafe --facts_include=OnceWhenFiction
 test/testfacts_once.c 14: OnceWhenFiction facts check ended badly
 facts summary.
 facts check OnceWhenTruth passed

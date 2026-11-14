@@ -99,7 +99,9 @@ FACTS_EXTERN void FactsFiction(const char *file, int line, Facts *facts,
   #ifdef __cplusplus
       FactsTrace::notes();
   #endif
-  printf("%s(gdb)%s run --facts_include=%s\n",FACTS_GREEN,FACTS_RESET,facts->name);
+  // --facts_unsafe: otherwise the facts run in a child process, where the
+  // debugger's breakpoints are never reached.
+  printf("%s(gdb)%s run --facts_unsafe --facts_include=%s\n",FACTS_GREEN,FACTS_RESET,facts->name);
 }
 
 // ==== border: edge-junit ====

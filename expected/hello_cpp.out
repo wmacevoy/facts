@@ -4,7 +4,7 @@ hello.cpp 23: AboutG facts check started
 hello.cpp/AboutG 29: [1;31mg(x) {=-3} == y {=3} is fiction[0m
 [1;32m(gdb)[0m break facts_AboutG_function
 hello.cpp/AboutG:27 [1;32m(gdb)[0m break facts_AboutG_function:facts_trace_0 if x==0 && y==3
-[1;32m(gdb)[0m run --facts_include=AboutG
+[1;32m(gdb)[0m run --facts_unsafe --facts_include=AboutG
 hello.cpp 23: AboutG facts check ended [1;31mbadly[0m
 facts summary.
 facts check AboutF [1;32mpassed[0m

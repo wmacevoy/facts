@@ -4,7 +4,7 @@
 <system-out>test/testfacts.c 3: Alpha facts check started
 test/testfacts.c/Alpha 4: 'c' {=c} &lt;= 'b' {=b} is fiction
 (gdb) break facts_Alpha_function
-(gdb) run --facts_include=Alpha
+(gdb) run --facts_unsafe --facts_include=Alpha
 test/testfacts.c 3: Alpha facts check ended badly
 </system-out>
 <failure>See stdout</failure>
@@ -14,7 +14,7 @@ test/testfacts.c 3: Alpha facts check ended badly
 <system-out>test/testfacts.c 7: Integer facts check started
 test/testfacts.c/Integer 9: a {=1} == b {=2} is fiction
 (gdb) break facts_Integer_function
-(gdb) run --facts_include=Integer
+(gdb) run --facts_unsafe --facts_include=Integer
 test/testfacts.c 7: Integer facts check ended badly
 </system-out>
 <failure>See stdout</failure>
@@ -24,7 +24,7 @@ test/testfacts.c 7: Integer facts check ended badly
 <system-out>test/testfacts.c 12: Double facts check started
 test/testfacts.c/Double 14: a {=1.3} == b {=2.4} is fiction
 (gdb) break facts_Double_function
-(gdb) run --facts_include=Double
+(gdb) run --facts_unsafe --facts_include=Double
 test/testfacts.c 12: Double facts check ended badly
 </system-out>
 <failure>See stdout</failure>
