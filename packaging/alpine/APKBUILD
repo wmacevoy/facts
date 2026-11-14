@@ -30,4 +30,4 @@ package() {
 
 # Update after creating release tarball:
 #   sha512sum v2.2.0.tar.gz
-sha512sums="PLACEHOLDER"
+sha512sums="6f3821d74e8d132a8014c8d2bc94a58289a95325507367399a80536f54875fe5aadd45a0755e1e49d451ff85e0fd0fe567f971af49cd3ff56f5e952c1e20ec68  libfacts-2.2.0.tar.gz"
