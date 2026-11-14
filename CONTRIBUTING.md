@@ -49,8 +49,7 @@ Constraints the code cannot show.
   the diff before keeping it.
 - **`facts.h`, the command-line options, the console and JUnit formats, and the exit codes are
   published.** A change to any of them is a stop-and-ask (`docs/DESIGN_v1.md`, one-way doors).
-- **The version number lives in more places than `PACKAGING.md` lists.** Its release checklist
-  names three; `grep -rn "2\.0\.0"` finds the rest (queue #6).
+- **The version number lives in six files.** `PACKAGING.md` lists them under *Versioning*.
 - **`vendor/se1/` and `AGENTS.md` are copies of the guide; do not edit them.** Local rules go
   here, and this file wins where they disagree.
 - **A change in a requirement's meaning is a new version** (`docs/REQUIREMENTS_v2.md`).

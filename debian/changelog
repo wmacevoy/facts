@@ -1,3 +1,18 @@
+libfacts (2.1.0) unstable; urgency=low
+
+  * C++: FACT(a op b) writes the comparison directly and still prints both
+    values; FACT(a op b, note) adds a footnote built only for a fiction.
+  * FACT(a,op,b) evaluates each side once in C with gcc or clang and in C++;
+    elsewhere the console report warns when a run evaluated twice.
+    New symbol: facts_twice.
+  * The printed gdb hint runs with --facts_unsafe, so its breakpoints are
+    reached under safe execution.
+  * FACTS_TRACE and FACTS_WATCH build without warnings under -Wall -Wextra.
+  * The console and JUnit reports are separated from the run; output is
+    unchanged apart from the gdb hint.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Sat, 14 Nov 2026 00:00:00 +0000
+
 libfacts (2.0.0) unstable; urgency=low
 
   * Safe execution: fork/exec wrapper with crash detection, timeout, niceness.
