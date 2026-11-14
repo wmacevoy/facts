@@ -76,6 +76,9 @@ Constraints the code cannot show.
   repository under `exemplars/shapes/` and are not copied here.
 - **`./se --doctor`** says what the adoption still lacks. `se`, `se.ps1`, and `se.py` are the
   guide's, unedited.
+- **For users of facts:** `README.md`, and one page each in `QUICKREF-C.md` and `QUICKREF-CC.md`, for
+  people and for agents. Their examples were compiled and run; a change to a macro, an option, an
+  exit code, or the report updates them in the same change.
 - **Packaging:** `PACKAGING.md`. **The editor extension:** `vscode-facts/`.
 - **Done** means: the item's *done* sentence is met, `make check` printed its success line, a test
   naming the requirement was seen to fail without the change, what the change made untrue in

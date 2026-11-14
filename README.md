@@ -4,6 +4,8 @@
 
 Facts is a tiny, beginner‑friendly C/C++ testing library. It aims to be easy to drop into small programs without build system friction.
 
+One-page references: [QUICKREF-C.md](QUICKREF-C.md) for C, [QUICKREF-CC.md](QUICKREF-CC.md) for C++. They are written for people and for coding agents.
+
 ## What you get
 
 - **C core**: `FACTS(name)` groups and `FACT(a,op,b)` checks with readable failure messages.
