@@ -78,3 +78,29 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
 - **Changed:** the hint now prints `run --facts_unsafe --facts_include=Name`; `expected/` was
   regenerated and every changed line is that one. No test runs gdb: the check still confirms the
   text only (queue #13 could add one where gdb exists).
+
+## 2026-11-14 — Find has never worked on macOS
+
+- **What happened:** the first check of `--facts_find` (REQ1/RG-2) passed on Linux and failed in
+  the macOS CI job: every group was "not found in executable". `facts.c` sets `_POSIX_C_SOURCE`,
+  macOS then hides `RTLD_DEFAULT`, and the file's own fallback defines it as a null handle, which
+  macOS's `dlsym` rejects. The cause is read from the headers' documented behavior; the fix
+  (`_DARWIN_C_SOURCE`) is confirmed only by the CI run that follows it.
+- **Kind:** K3: a fallback that kept the build green and made the feature fail quietly (SE1/U7).
+- **Cost:** the README's one-line workflow has not worked on macOS since 2.0.
+- **Findable by:** any test of find, run on each platform the README names.
+- **Changed:** `_DARWIN_C_SOURCE` is defined on Apple platforms; the find cases in
+  `test/check.sh` run in the macOS job. The null-handle fallback is still there for other
+  platforms and would fail the same way.
+
+## 2026-11-14 — A suppression that suppressed nothing
+
+- **What happened:** the expression form silenced clang's warning about `<<` and comparisons
+  with a pragma inside the macro. It was written without a clang to compile it. The macOS job
+  showed the warning at six facts; a local clang 14 reproduced it. The pragma covers the macro's
+  own tokens, and the warning is located in the argument.
+- **Kind:** K3, stated as untested at the time, which is why CI ran before the release tag.
+- **Cost:** one CI round and a second spelling: `<=` with clang, `<<` elsewhere.
+- **Findable by:** compiling with the compiler the claim is about.
+- **Changed:** see the design decision. Compiled clean under `-Wall -Wextra -pedantic` with
+  gcc 12 and clang 14 in C++11 and C++20; MSVC built it in CI with no warning from `facts.h`.

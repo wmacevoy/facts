@@ -140,9 +140,11 @@ extern "C"
 #define FACTS_FACT_PICK(_1, _2, _3, name, ...) name
 #define FACT(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CERR, FACT_NOTE, FACT_EXPR, )(__VA_ARGS__))
 #define FACT_CHECK(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CHECK_CERR, FACT_CHECK_NOTE, FACT_CHECK_EXPR, )(__VA_ARGS__))
-// clang warns that << binds tighter than a comparison, which is the point here.
+// The operator that takes the expression apart is the one each compiler is
+// quiet about: gcc suggests parentheses at every "<= a == b", clang at
+// "<< a + 1 == b", and neither warning can be switched off from inside a macro.
 #if defined(__clang__)
-#define FACTS_DECOMPOSE(expr) _Pragma("clang diagnostic push") _Pragma("clang diagnostic ignored \"-Woverloaded-shift-op-parentheses\"") FactsDecompose() << expr _Pragma("clang diagnostic pop")
+#define FACTS_DECOMPOSE(expr) FactsDecompose() <= expr
 #else
 #define FACTS_DECOMPOSE(expr) FactsDecompose() << expr
 #endif
@@ -218,12 +220,12 @@ extern "C"
   //
   // "FactsDecompose() << a == b" parses as "(FactsDecompose() << a) == b",
   // because << binds tighter than every comparison and looser than arithmetic.
+  // (With clang it is <=, which binds no looser than the other comparisons.)
   // The first step keeps a reference to a, the comparison keeps a reference to
   // b and the answer, so a fiction can print both values without evaluating
   // either side again.  An expression joined by && or || is checked as a whole
-  // and prints no values.  A shift on the left needs its own parentheses:
-  // FACT((x << 1) == 4).  (<= in place of << would not, but gcc then suggests
-  // parentheses at every FACT, and cannot be told not to inside an expression.)
+  // and prints no values.  A shift on the left needs its own parentheses to
+  // compile everywhere: FACT((x << 1) == 4).
 
   extern "C" {
     extern uint64_t facts_fictions;
@@ -264,6 +266,7 @@ extern "C"
   struct FactsDecompose
   {
     template <class L> FactsLhs<L> operator<<(const L &lhs) const { return FactsLhs<L>{lhs}; }
+    template <class L> FactsLhs<L> operator<=(const L &lhs) const { return FactsLhs<L>{lhs}; }
   };
 
   // Is it true, and what values does a fiction show: one pair of overloads

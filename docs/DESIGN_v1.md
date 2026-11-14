@@ -175,12 +175,14 @@ review by someone who did not share the author's assumptions.
   Source: this adoption; the golden files did not change.
 - **The console's per-group lines print under JUnit too** — REQ1/JU-1 — they are captured into
   the case, which is how the published XML already looks. *(inferred)*
-- **The expression form splits on `<<`, not `<=`** — REQ1/WR-5 — with `<=`, gcc suggests
-  parentheses at every `FACT` under `-Wall`, and gcc 12 refuses a pragma inside an expression
-  (tried, 2026-11-14). The price: `FACT(x << 1 == 4)` needs parentheses, and clang's warning about
-  `<<` and comparisons is switched off inside the macro, which has not been compiled with clang
-  here. Rejected: marking `facts.h` a system header (hides every warning in it). Source: this
-  session.
+- **The expression form splits on `<<`, and on `<=` with clang** — REQ1/WR-5 — each compiler
+  warns about the other spelling at every `FACT` under its default or `-Wall` warnings (gcc:
+  parentheses around a comparison; clang: `<<` against a comparison), and neither can be
+  silenced from inside a macro: gcc 12 refuses a pragma inside an expression, and clang's pragma
+  does not reach a warning located in the macro's argument (both tried, 2026-11-14). The price:
+  `FACT(x << 1 == 4)` compiles with clang and not with gcc, so the README says to parenthesize.
+  Rejected: marking `facts.h` a system header (hides every warning in it). Source: this session,
+  and the macOS CI run that showed the first attempt failing.
 - **The footnote is written without a stream name**, `FACT(a == b, "i=" << i)` — REQ1/WR-5 — the
   same as `FACTS_TRACE` here and as ArduinoUnit, the owner's sibling project. Source: this
   session; the owner has not yet said which he meant.

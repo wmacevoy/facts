@@ -3,6 +3,12 @@
 #define _GNU_SOURCE
 #endif
 
+// macOS hides RTLD_DEFAULT when _POSIX_C_SOURCE is set, unless this is too.
+// Without it the fallback below is used, and there every symbol lookup fails.
+#if defined(__APPLE__) && !defined(_DARWIN_C_SOURCE)
+#define _DARWIN_C_SOURCE 1
+#endif
+
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS 1
 #endif
