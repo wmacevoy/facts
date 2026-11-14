@@ -52,21 +52,22 @@ Constraints the code cannot show.
 - **The version number lives in six files.** `PACKAGING.md` lists them under *Versioning*.
 - **`vendor/se1/` and `AGENTS.md` are copies of the guide; do not edit them.** Local rules go
   here, and this file wins where they disagree.
-- **A change in a requirement's meaning is a new version** (`docs/REQUIREMENTS_v2.md`).
+- **A change in a requirement's meaning is a new version** (`docs/REQUIREMENTS_v3.md` next). Cite
+  a requirement by the version that last changed it: `REQ1/WR-2`, `REQ2/CK-3`.
 
 ## Where things are
 
 | AGENTS.md says                 | In this repository                                    |
 | ------------------------------ | ----------------------------------------------------- |
 | the repository guide           | `CONTRIBUTING.md` (this file)                         |
-| the requirements               | `docs/REQUIREMENTS_v1.md`                             |
+| the requirements               | `docs/REQUIREMENTS_v2.md`                             |
 | the design                     | `docs/DESIGN_v1.md`                                   |
 | the queue                      | `docs/QUEUE.md`                                       |
 | findings                       | `docs/FINDINGS.md`                                    |
 | the check command              | `make check`; success prints `facts: all checks passed` |
 | the handoff check              | `./se --post`, run by a `SessionStart` hook in `.claude/settings.json` at startup, resume, and compaction |
-| `Non-goals`, `Scope decisions` | sections of `docs/REQUIREMENTS_v1.md`                 |
-| the glossary                   | the first section of `docs/REQUIREMENTS_v1.md`        |
+| `Non-goals`, `Scope decisions` | sections of `docs/REQUIREMENTS_v2.md`                 |
+| the glossary                   | the first section of `docs/REQUIREMENTS_v2.md`        |
 
 - **The guide:** `vendor/se1/`, copied on 2026-11-14 from a local checkout at `v1.7-4-g98c4756`:
   release v1.7 plus four unreleased commits, which add the draft of SE1/D14 that the fundamental

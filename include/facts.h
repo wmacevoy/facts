@@ -49,6 +49,7 @@ extern "C"
   double FactsRelErr(double a, double b);
 
   int FactsMain(int argc, const char *argv[]);
+  int FactsMainIf(int argc, const char *argv[], const char *own);
 
 // https://stackoverflow.com/questions/24844970/how-to-print-types-of-unknown-size-like-ino-t
 #define FACTS_PRINT_FORMAT(X) _Generic((X),                    \
@@ -187,7 +188,7 @@ extern "C"
     for (int argi=1; argi<argc; ++argi) {				\
       const char *arg=argv[argi];					\
       for (int c=0; arg[c] == facts[c]; ++c) {				\
-        if (arg[c] == 0) return FactsMain(argc, argv);			\
+        if (arg[c] == 0) return FactsMainIf(argc, argv, facts);		\
       }									\
     }									\
     return FactsMainElse(argc,argv);					\

@@ -530,6 +530,8 @@ static void FactsScanFile(const char *filename, int register_mode) {
             } else {
               fprintf(stderr, "facts: %s not found in executable\n", name);
             }
+          } else {
+            fprintf(stderr, "facts: a group name in %s is over %d characters\n", filename, (int)sizeof(name) - 1);
           }
         } else {
           printf("    FACTS_REGISTER(%.*s);\n", len, start);
@@ -752,10 +754,17 @@ FACTS_EXTERN void FactsCheck()
 }
 
 // You can call this from your main to process facts checks.
-// Exit code: 0 when no FACT was fiction (also when none ran), 1 when at
-// least one was, 2 when safe execution saw the run crash, time out, or
-// fail to start.
-FACTS_EXTERN int FactsMain(int argc, const char *argv[])
+// Exit code: 0 when facts were checked and none was fiction (or the options
+// asked for no run), 1 when at least one was fiction, 2 when no result can
+// be trusted: an unknown option, a run that checked no fact, or a crash,
+// timeout, or failure to start seen by safe execution.
+//
+// Arguments beginning "--fact" are reserved: each must be an option facts
+// knows.  Any other argument is the program's own and is left alone, since a
+// program may need arguments even while its facts are checked.  own is the
+// one reserved argument that is the program's: the switch FACTS_MAIN_IF was
+// given (NULL when there is none).
+static int FactsMainWith(int argc, const char *argv[], const char *own)
 {
   // Check for --facts_unsafe and --facts_timeout before anything else.
   // If --facts_unsafe is absent, re-exec under a safe wrapper.
@@ -763,7 +772,17 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
   int timeout = 10;
   for (int i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "--facts_unsafe") == 0) unsafe = 1;
-    else if (strncmp(argv[i], "--facts_timeout=", 16) == 0) timeout = atoi(argv[i] + 16);
+    else if (strncmp(argv[i], "--facts_timeout=", 16) == 0) {
+      const char *text = argv[i] + 16;
+      char *end = NULL;
+      long seconds = strtol(text, &end, 10);
+      // The upper limit keeps seconds * 1000 inside an int for Windows.
+      if (end == text || *end != 0 || seconds <= 0 || seconds > 2000000) {
+        fprintf(stderr, "facts: --facts_timeout needs a positive number of seconds, not '%s'\n", text);
+        return 2;
+      }
+      timeout = (int)seconds;
+    }
   }
 
   if (!unsafe) {
@@ -772,6 +791,7 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
 
   int status = 0;
   int check = 1;
+  int unknown = 0;
   for (int argi = 1; argi < argc; ++argi)
   {
     const char *arg = (argi < argc) ? argv[argi] : NULL;
@@ -861,12 +881,41 @@ FACTS_EXTERN int FactsMain(int argc, const char *argv[])
         continue;
       }
     }
+    if (strncmp(arg, "--fact", 6) == 0 && (own == NULL || strcmp(arg, own) != 0))
+    {
+      fprintf(stderr, "facts: unknown option %s (--facts_help lists the options)\n", arg);
+      unknown = 1;
+    }
+  }
+
+  if (unknown)
+  {
+    return 2;
   }
 
   if (check)
   {
     FactsCheck();
+    if (facts_truths + facts_fictions == 0)
+    {
+      // Asked to check and checked nothing: a pattern that matched no group,
+      // no group registered, or groups with no FACT in them.  Not a pass.
+      fflush(stdout);
+      fprintf(stderr, "facts: no facts were checked\n");
+      return 2;
+    }
   }
 
   return (facts_fictions == 0) ? 0 : 1;
+}
+
+FACTS_EXTERN int FactsMain(int argc, const char *argv[])
+{
+  return FactsMainWith(argc, argv, NULL);
+}
+
+// For FACTS_MAIN_IF: own is the switch that asked for the facts.
+FACTS_EXTERN int FactsMainIf(int argc, const char *argv[], const char *own)
+{
+  return FactsMainWith(argc, argv, own);
 }

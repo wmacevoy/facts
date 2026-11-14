@@ -1,6 +1,6 @@
 # Design — v1: facts
 
-How the code satisfies `REQUIREMENTS_v1.md`, and what was rejected. Every mechanism here is
+How the code satisfies `REQUIREMENTS_v2.md`, and what was rejected. Every mechanism here is
 replaceable without renegotiating a requirement (SE1/R5). Rebuilt from the structure on 2026-11-14
 by an agent (Claude Fable 5.2); reasons nobody wrote down are marked *(inferred)* (SE1/W12).
 
@@ -202,6 +202,17 @@ review by someone who did not share the author's assumptions.
   fallback. Rejected: a spare bit of `facts_format` (a second meaning for a word, REQ1/SHAPE-1).
   `FACTS_EVAL_TWICE` forces the fallback so the check can run it on gcc. The JUnit report does
   not carry the warning. MSVC is treated as unable, untried. Source: this session.
+- **`FactsMainIf` carries the program's switch** — REQ2/CK-5 — `--fact*` is reserved, and the
+  switch given to `FACTS_MAIN_IF` (`--facts` in the README) begins that way, so facts has to be
+  told which one argument to let through. A second new symbol after `facts_twice`. The price: a
+  program built with an older `facts.h` calls `FactsMain`, so if it is linked to this shared
+  library its own `--facts` switch is refused until it is rebuilt. Rejected: reserving only
+  `--facts_` (the owner said `--fact*`). Source: the owner, 2026-11-14.
+- **Exit code 2 means "no result to trust"** — REQ2/CK-3, REQ2/CK-5, REQ2/SX-4 — an unknown
+  reserved option, a refused timeout, and a run that checked no fact join crash and timeout,
+  so a CI job with a typo no longer passes. The count of facts decides, not the count of
+  groups: a group with no `FACT` in it checks nothing. Source: the owner, 2026-11-14; the code's
+  own comment before 2.0 said "2 means no facts were checked".
 - **Explicit registration and find, no memory search** — REQ1/RG-2 — linkers reorder data.
   Source: commit `177d015`.
 - **Safe execution by re-running the program, on by default** — REQ1/SX-1 — source: commit

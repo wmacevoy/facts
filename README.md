@@ -149,7 +149,13 @@ default is to check all registered facts
     --facts_timeout=N             timeout in seconds (default 10)
 ```
 
-Exit code: 0 if no `FACT` failed (also if no facts ran), 1 if any did, 2 if the run crashed, timed out, or could not start.
+Exit code:
+
+- 0: facts were checked and none failed.
+- 1: at least one `FACT` failed.
+- 2: there is no result to trust. The run crashed, timed out, or could not start; or an option was wrong; or facts were asked to run and no `FACT` was checked (no group matched, none was registered, or the groups had no `FACT` in them).
+
+Arguments beginning `--fact` are reserved: a misspelled one, such as `--facts_inclde=X`, is an error and nothing runs. Any other argument is your program's own and is left alone, so a program can take its usual arguments while its facts are checked.
 
 ## Safe execution
 

@@ -2,7 +2,7 @@
 # The full check.  `make check` builds the test programs and the examples and
 # then runs this; CI runs `make check`.  Success prints the last line below.
 #
-# Each case names the requirement it asserts (docs/REQUIREMENTS_v1.md).
+# Each case names the requirement it asserts (docs/REQUIREMENTS_v2.md).
 # The golden files in expected/ are the published console and JUnit formats:
 # refresh them with `make expected` only when a format change is intended.
 
@@ -62,10 +62,31 @@ for lang in c cpp; do
   # REQ1/SX-3 --facts_unsafe runs in this process and reports the same.
   golden testfacts_${lang}_plain.out  $t --facts_unsafe --facts_plain
 
-  # REQ1/CK-3 exit code 1 when any fact was fiction, 0 when none was.
+  # REQ2/CK-3 exit code 1 when any fact was fiction; 2, and a line on stderr, when facts
+  # were run and no fact was checked; 0 when the facts were not asked to run.
   exits 1 $t
-  exits 0 $t --facts_include=Out
+  exits 2 $t --facts_include=Out
+  says  "facts: no facts were checked" $t --facts_include=Out
+  exits 2 $t --facts_include=NoSuchGroup
+  says  "facts: no facts were checked" $t --facts_junit --facts_include=NoSuchGroup
+  exits 0 $t --facts_skip
   exits 0 $tif
+
+  # REQ2/CK-5 an argument beginning --fact is reserved: it must be an option facts knows,
+  # or nothing runs.  Any other argument is the program's own and is left alone.
+  exits 2 $t --facts_inclde=Out
+  says  "facts: unknown option --facts_inclde=Out (--facts_help lists the options)" $t --facts_inclde=Out
+  quiet "test/testfacts.$lang 3: Alpha facts check started" $t --facts_plain --facts_inclde=Out
+  exits 2 $t --factor=3
+  golden testfacts_${lang}_plain.out $t --facts_plain --an_option_of_the_program input.txt
+  golden testfacts_if_facts_${lang}.out $tif --facts --an_option_of_the_program
+  exits 2 $tif --facts --facts_inclde=Out
+  says  "facts: unknown option --facts_inclde=Out (--facts_help lists the options)" $tif --facts --facts_inclde=Out
+
+  # REQ2/SX-4 a timeout that is not a positive number of seconds is refused.
+  exits 2 $t --facts_timeout=abc
+  says  "facts: --facts_timeout needs a positive number of seconds, not 'abc'" $t --facts_timeout=abc
+  exits 2 $t --facts_timeout=0
 
   # REQ1/RG-3 include starts from nothing and adds what matches; exclude removes what matches.
   says  "test/testfacts.$lang 17: Err facts check started"      $t --facts_plain '--facts_include=*Err'
@@ -102,6 +123,13 @@ found=$(bin/testfacts_c --facts_find test/find_subset.txt \; --facts_register_al
 # REQ1/RG-2 a declared group that is not in the executable is named, and the rest still register.
 says  "facts: AboutInts not found in executable" bin/testfacts_c --facts_find test/sample_facts.c test/find_subset.txt \; --facts_skip
 quiet "facts: Out not found in executable"       bin/testfacts_c --facts_find test/sample_facts.c test/find_subset.txt \; --facts_skip
+
+# REQ2/CK-3 a run whose facts were all truths exits 0.
+exits 0 bin/testfacts_once_cpp --facts_include=OnceWhenTruth
+
+# REQ1/RG-2 a group name too long to look up is named, not dropped.
+printf 'FACTS(%0300d) {\n' 0 > bin/long_name.txt
+says "facts: a group name in bin/long_name.txt is over 255 characters" bin/testfacts_c --facts_find bin/long_name.txt \; --facts_skip
 
 # REQ1/SHAPE-3 each foreign model's words stay inside its edge of src/facts.c (a veto, not the verdict).
 sh test/borders.sh src/facts.c || { echo "FAIL: test/borders.sh"; fail=1; }
