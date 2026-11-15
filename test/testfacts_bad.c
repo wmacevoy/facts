@@ -27,9 +27,17 @@ FACTS_EXCLUDE(Aborts) {
   abort();
 }
 
-/* Hangs while asleep. */
+/* Hangs while asleep.  If FACTS_TEST_PIDFILE names a file, this process writes
+   its id there first, so the check can tell whether it outlives its parent. */
 FACTS_EXCLUDE(Sleeps) {
   FACT(1,==,1);
+#ifndef _WIN32
+  const char *pidfile = getenv("FACTS_TEST_PIDFILE");
+  if (pidfile != NULL) {
+    FILE *out = fopen(pidfile, "w");
+    if (out != NULL) { fprintf(out, "%ld\n", (long)getpid()); fclose(out); }
+  }
+#endif
   for (;;) sleep(1000);
 }
 

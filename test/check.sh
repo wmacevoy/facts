@@ -174,6 +174,28 @@ exits 2 $bad --facts_timeout=1 --facts_include=Sleeps
 says  "facts: TIMEOUT after 1 seconds" $bad --facts_timeout=1 --facts_include=Sleeps
 exits 2 $bad --facts_timeout=1 --facts_include=Spins
 says  "facts: TIMEOUT after 1 seconds" $bad --facts_timeout=1 --facts_include=Spins
+# REQ3/SX-5 a signal sent to the parent alone (kill, a stop button, a cancelled job) also ends
+# the run it was supervising: the child is gone, and the parent ends by that same signal.
+# SIGINT takes the same path but cannot be tried here: a shell starts a background job with
+# SIGINT ignored, and facts leaves an ignored signal ignored.
+for sig in TERM HUP; do
+  pidfile=bin/sleeps.pid; rm -f $pidfile
+  FACTS_TEST_PIDFILE=$pidfile $bad --facts_timeout=60 --facts_include=Sleeps >/dev/null 2>&1 &
+  parent=$!
+  tries=0
+  until [ -s $pidfile ] || [ $tries -ge 50 ]; do tries=$((tries + 1)); sleep 0.1 2>/dev/null || sleep 1; done
+  child=$(cat $pidfile 2>/dev/null)
+  kill -$sig $parent
+  wait $parent; code=$?
+  case $sig in TERM) want=143;; HUP) want=129;; esac
+  [ "$code" = "$want" ] || { echo "FAIL: parent sent SIG$sig exited $code, expected $want"; fail=1; }
+  if [ -n "$child" ] && kill -0 "$child" 2>/dev/null; then
+    echo "FAIL: after SIG$sig to the parent, the child $child is still running"; fail=1
+    kill -KILL "$child" 2>/dev/null
+  fi
+  [ -n "$child" ] || { echo "FAIL: the child never wrote $pidfile"; fail=1; }
+done
+
 # REQ1/SX-2 safe execution does not wait when there is nothing to wait for: twenty short runs
 # in well under the twenty seconds they took when the parent looked once a second.
 start=$(date +%s)

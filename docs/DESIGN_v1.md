@@ -122,7 +122,9 @@ the run loop does not test the report format (REQ1/SHAPE-2); nothing checks that
   output and says nothing.
 - **Process edge.** Timeout 10 seconds, or `--facts_timeout=N`. On POSIX the parent sleeps until
   the child ends or an alarm rings, with both signals blocked except while it sleeps, so it
-  neither polls nor misses one. A crash or a timeout loses everything the child had not
+  neither polls nor misses one. If the parent is told to stop, it kills the child, restores the
+  signal's old handling, and raises the signal again, so it ends the way the sender meant
+  (REQ3/SX-5). A crash or a timeout loses everything the child had not
   flushed, and leaves a JUnit report unfinished (a scope decision).
 - **Symbol edge.** Needs the executable to export its symbols (`-rdynamic` on Linux). Without it
   every lookup fails and each group is named as not found.
@@ -246,6 +248,13 @@ review by someone who did not share the author's assumptions.
 - **An interval prints with 17 digits, and so does the value compared with it** — REQ3/WR-7 —
   at the usual 6, a tolerance of 1e-9 prints as `[1,1]`. The three-argument form prints its
   left side with the usual 6. Source: this session.
+- **A stopped parent kills its child, and does not ask it** — REQ3/SX-5 — the child may be hung
+  or ignoring signals, which is why it is being supervised. Rejected: passing the same signal
+  on (a group that ignores it would survive); a process group for the child (it would take the
+  child out of the terminal's Ctrl-C). An ignored signal is left ignored, as `nohup` expects.
+  The check tries SIGTERM and SIGHUP; a shell cannot deliver SIGINT to a background job, so
+  that one was tried by hand. Windows would need a job object and is not done. Source: the
+  owner, 2026-11-15, queue #9.
 - **Explicit registration and find, no memory search** — REQ1/RG-2 — linkers reorder data.
   Source: commit `177d015`.
 - **Safe execution by re-running the program, on by default** — REQ1/SX-1 — source: commit

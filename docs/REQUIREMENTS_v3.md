@@ -21,6 +21,7 @@ with it.*
 - **ED-1** is retired: the VS Code extension is deprecated.
 - **ED-2** is new: a VSCodium extension, queued and not started.
 - **WR-7** is new: intervals in C++ facts (added 2026-11-15, before v3 was merged).
+- **SX-5** is new: stopping the supervisor stops the run (added 2026-11-15).
 - A crash under `--facts_junit` leaves the XML unfinished, on purpose (Scope decisions).
 
 *Since v1 (in v2):* CK-3 changed meaning, and CK-5 and SX-4 were added.
@@ -196,6 +197,11 @@ Numbers are the code's.
   is killed; stderr says it timed out and the exit code is 2.
 - **SX-3** *(since v1)* `--facts_unsafe` runs in the calling process, for use under a debugger,
   and reports the same.
+- **SX-5** *(since v3)* When the process supervising a run is told to stop (SIGINT, SIGTERM, or
+  SIGHUP), the run it started is ended too, and the supervisor then ends by that same signal, so
+  whoever sent it sees an interrupted process. A hung group never outlives the process that was
+  timing it. A signal the caller had set to be ignored stays ignored. POSIX only; on Windows a
+  killed supervisor still leaves its child running. *The owner, 2026-11-15: "9 fix."*
 - **SX-4** *(since v2)* `--facts_timeout=N` takes a positive whole number of seconds. Anything
   else is refused: stderr says so, nothing runs, and the exit code is 2. *From the agent's
   table, which the owner did not change, 2026-11-14.*
@@ -238,7 +244,11 @@ No "?" is left: v1's were answered by the owner on 2026-11-14.
 - **Recovery:** nothing is kept between runs, so there is nothing to recover.
 - **Resources:** no allocation while a group runs, except in the report of a fiction. The pattern
   matcher uses memory in proportion to the pattern's length, not the name's.
-- **Interruption:** not examined: what Ctrl-C does to the parent and the child (queue #9).
+- **Interruption:** Ctrl-C and a closed terminal reach both processes, and both end. A signal to
+  the supervising process alone (`kill`, a stop button, a cancelled CI job) ends the run too
+  (REQ3/SX-5); through 2.2.0 it left the child running, with nothing left to time it out.
+  Tried on Linux, 2026-11-15, each of the four ways. Not covered: SIGKILL of the supervisor,
+  which cannot be caught, and Windows.
 
 ## Security, law, and ethics
 

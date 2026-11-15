@@ -234,11 +234,18 @@ static Facts *FactsLookup(const char *name) {
 // The operating system's model (process, signal, exit status) stays here, once for Windows and once for POSIX.
 
 #ifndef _WIN32
-// Set by the alarm; the SIGCHLD that shares this handler only has to wake the wait.
+// What the parent is told while it waits for the child.  SIGCHLD only has to
+// wake the wait; the alarm and an interrupt each leave a note.
 static volatile sig_atomic_t facts_alarm_rang = 0;
+static volatile sig_atomic_t facts_interrupted = 0;   // the signal, or 0
 static void FactsChildSignal(int sig) {
   if (sig == SIGALRM) facts_alarm_rang = 1;
+  else if (sig != SIGCHLD) facts_interrupted = sig;
 }
+
+// SIGCHLD and SIGALRM, then the signals that ask this process to stop.
+static const int facts_watched[] = {SIGCHLD, SIGALRM, SIGINT, SIGTERM, SIGHUP};
+#define FACTS_WATCHED ((int)(sizeof(facts_watched) / sizeof(facts_watched[0])))
 #endif
 
 // Re-exec self as a child process with --facts_unsafe, monitoring for
@@ -308,30 +315,34 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
 
 #else // POSIX
   // Wait for the child with no polling: SIGCHLD says it ended, SIGALRM says
-  // the timeout passed.  Both are blocked except while sigsuspend waits, so
-  // neither can arrive in the gap between looking and waiting and be missed.
+  // the timeout passed, and SIGINT, SIGTERM or SIGHUP says someone wants this
+  // run stopped.  All are blocked except while sigsuspend waits, so none can
+  // arrive in the gap between looking and waiting and be missed.
   sigset_t block, before, waiting;
   sigemptyset(&block);
-  sigaddset(&block, SIGCHLD);
-  sigaddset(&block, SIGALRM);
+  for (int w = 0; w < FACTS_WATCHED; ++w) sigaddset(&block, facts_watched[w]);
   sigprocmask(SIG_BLOCK, &block, &before);
   waiting = before;
-  sigdelset(&waiting, SIGCHLD);
-  sigdelset(&waiting, SIGALRM);
+  for (int w = 0; w < FACTS_WATCHED; ++w) sigdelset(&waiting, facts_watched[w]);
 
-  struct sigaction note, old_chld, old_alrm;
+  struct sigaction note, old[FACTS_WATCHED];
   memset(&note, 0, sizeof(note));
   note.sa_handler = FactsChildSignal;
   sigemptyset(&note.sa_mask);
   facts_alarm_rang = 0;
-  sigaction(SIGCHLD, &note, &old_chld);
-  sigaction(SIGALRM, &note, &old_alrm);
+  facts_interrupted = 0;
+  for (int w = 0; w < FACTS_WATCHED; ++w) {
+    sigaction(facts_watched[w], NULL, &old[w]);
+    // A signal the caller chose to ignore (nohup, a shell's background job)
+    // stays ignored, here and in the child.
+    if (w >= 2 && old[w].sa_handler == SIG_IGN) continue;
+    sigaction(facts_watched[w], &note, NULL);
+  }
 
   pid_t pid = fork();
   if (pid < 0) {
     perror("facts: fork");
-    sigaction(SIGCHLD, &old_chld, NULL);
-    sigaction(SIGALRM, &old_alrm, NULL);
+    for (int w = 0; w < FACTS_WATCHED; ++w) sigaction(facts_watched[w], &old[w], NULL);
     sigprocmask(SIG_SETMASK, &before, NULL);
     free(child_argv);
     return 2;
@@ -354,22 +365,31 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
 
   int wstatus = 0;
   int timed_out = 0;
+  int interrupted = 0;
   alarm((unsigned)timeout);
   for (;;) {
     pid_t ended = waitpid(pid, &wstatus, WNOHANG);
     if (ended != 0) break;          // it ended (or waitpid failed)
-    if (facts_alarm_rang) {
+    if (facts_alarm_rang || facts_interrupted) {
+      // The child may be stuck or ignoring signals, so it is not asked.
       kill(pid, SIGKILL);
       waitpid(pid, &wstatus, 0);
-      timed_out = 1;
+      interrupted = facts_interrupted;
+      timed_out = !interrupted;
       break;
     }
-    sigsuspend(&waiting);           // sleep until one of the two signals
+    sigsuspend(&waiting);           // sleep until one of the watched signals
   }
   alarm(0);
-  sigaction(SIGCHLD, &old_chld, NULL);
-  sigaction(SIGALRM, &old_alrm, NULL);
+  for (int w = 0; w < FACTS_WATCHED; ++w) sigaction(facts_watched[w], &old[w], NULL);
   sigprocmask(SIG_SETMASK, &before, NULL);
+
+  if (interrupted) {
+    // The run is over and its child is gone.  Now end the way the signal
+    // meant, so whoever sent it sees an interrupted process and not exit 2.
+    raise(interrupted);
+    return 2;                       // only if the caller handles that signal itself
+  }
 
   if (timed_out) {
     fprintf(stderr, "\nfacts: TIMEOUT after %d seconds\n", timeout);

@@ -126,3 +126,18 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
   find. Not checked there: the golden files (paths differ), and `abort()`. Seen red on Windows too:
   with the crash report switched off for one commit, the job failed in exactly the crash case,
   "exit code Access violation, expected 2".
+
+## 2026-11-15 — A killed supervisor left its hung test running
+
+- **What happened:** a hung group was run under safe execution and interrupted four ways.
+  Ctrl-C and a closed terminal ended both processes. `kill` on the parent alone, and SIGINT to
+  the parent alone, ended the parent and left the child running, and the parent was the only
+  thing that would ever have timed it out.
+- **Kind:** K2. Row 9 asked what Ctrl-C does; Ctrl-C was fine, and the case next to it was not.
+- **Cost:** unknown. A stop button or a cancelled CI job would leave a process behind.
+- **Findable by:** signalling the supervisor alone and looking for the child.
+- **Changed:** the parent now ends the child and then itself by the same signal (REQ3/SX-5).
+  `test/check.sh` does it with SIGTERM and SIGHUP and looks for the child by its process id;
+  both cases failed before the fix. SIGINT was tried by hand: a shell starts background jobs
+  with it ignored, and the first version of the test waited out a 60-second timeout because of
+  that.
