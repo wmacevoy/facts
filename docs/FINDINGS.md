@@ -123,4 +123,6 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
 - **Changed:** `test/expect.cmake` requires the exact exit code and a piece of the output, and
   `CMakeLists.txt` runs seventeen cases through it; a crash on Windows now exits 2. On Windows
   all seventeen ran and passed on the first CI round, including the crash, both timeouts, and
-  find. Not checked there: the golden files (paths differ), and `abort()`.
+  find. Not checked there: the golden files (paths differ), and `abort()`. Seen red on Windows too:
+  with the crash report switched off for one commit, the job failed in exactly the crash case,
+  "exit code Access violation, expected 2".
