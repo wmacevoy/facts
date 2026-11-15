@@ -141,3 +141,32 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
   both cases failed before the fix. SIGINT was tried by hand: a shell starts background jobs
   with it ignored, and the first version of the test waited out a 60-second timeout because of
   that.
+
+## 2026-11-15 — Known and left: on Windows a killed supervisor leaves its child
+
+- **What happened:** REQ3/SX-5 was built for POSIX only. On Windows, safe execution starts the
+  child with `CreateProcess` and waits on its handle; if the supervising process is itself
+  killed, nothing ends the child, and a hung group keeps running with nothing left to time it
+  out. Read from the code; not tried on Windows.
+- **Kind:** K1: known, not yet done.
+- **Cost:** a stopped or cancelled run on Windows can leave a process behind.
+- **Findable by:** killing the supervisor of a hung run on Windows and looking for the child.
+- **Changed:** nothing, on purpose. The requirement says "POSIX only" and this entry says why
+  there is no queue row: the owner chose to note it (2026-11-15). The usual fix is a job object
+  that ends its processes when the last handle to it closes.
+
+## 2026-11-15 — Known and left: the install layout has no test that names it
+
+- **What happened:** REQ1/PK-1 (header, static and shared libraries for C and C++, and a
+  pkg-config file for each, from `make install` and from the CMake install) is checked in CI by
+  the `test-unix`, `package-debian`, `package-alpine`, `package-homebrew` and `package-choco`
+  jobs, which look for the files. No test cites REQ1/PK-1, `make check` does not install, and
+  nothing checks the second half of the requirement, that a minor release replaces the shared
+  library without relinking.
+- **Kind:** K1.
+- **Cost:** none seen. 2.1 through 2.3 each added symbols and kept the soname; no program was
+  run against a newer library to confirm it.
+- **Findable by:** `./se --doctor`, whose trace row lists PK-1; and by building a program
+  against one release and running it with the next.
+- **Changed:** nothing, on purpose; noted at the owner's word (2026-11-15), with queue row 13
+  closed.
