@@ -20,6 +20,7 @@ with it.*
   answered.
 - **ED-1** is retired: the VS Code extension is deprecated.
 - **ED-2** is new: a VSCodium extension, queued and not started.
+- **WR-7** is new: intervals in C++ facts (added 2026-11-15, before v3 was merged).
 - A crash under `--facts_junit` leaves the XML unfinished, on purpose (Scope decisions).
 
 *Since v1 (in v2):* CK-3 changed meaning, and CK-5 and SX-4 were added.
@@ -37,6 +38,7 @@ and its output today. Below they are never used bare.
 | Group | writing | A named block of facts: `FACTS(Name) { ... }`. The output calls it "facts check Name"; the README calls it a group. |
 | Trace | writing (C++) | A note left by `FACTS_TRACE`, printed if a later fact in its scope is fiction. |
 | Watch | writing (C++) | A trace whose note is a gdb breakpoint condition: `FACTS_WATCH(i,j)`. |
+| Interval | writing (C++) | A range of numbers with each end in or out: `fact::interval`. `x == interval` means x is inside it. `fact::pm(eps)` is the one from -eps to eps. From the owner's darter project, 2026-11-15. |
 | Footnote | writing (C++) | A note given with one fact, `FACT(a op b, note)`, printed only if that fact is fiction. The owner's word, 2026-11-14. |
 | Registered | registration | Said of a group the program knows about. Registered groups have an order. |
 | Find | registration | Registering the groups a source file declares, by reading the file and looking each name up in the executable: `--facts_find`. |
@@ -138,6 +140,13 @@ Numbers are the code's.
   compiler a fiction evaluates each side a second time to print it, and when that happened in a
   run, the last line of the console report is a warning saying how many times. A program must
   not need C23, or anything past C11, to use facts. *The owner, 2026-11-14.*
+- **WR-7** *(since v3)* In C++, a fact can compare a number with an interval: `x == interval` is
+  true when x is inside, `!=` when it is outside. `fact::pm(eps)` is the closed interval from
+  -eps to eps; a number plus an interval shifts it, and a number times an interval scales it
+  (turning it around for a negative number), so `y + pm(e)` and `y * (1 + pm(e))` state an
+  absolute and a relative tolerance. An end can be in or out. A fiction prints the value and the
+  interval with enough digits to tell them apart. *Asked for by the owner, 2026-11-15, from
+  darter's `interval`.*
 
 **Registration**
 

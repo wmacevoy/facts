@@ -43,7 +43,7 @@ FACTS_MAIN                     /* main() that checks the facts */
 | `FACT_CHECK(a,op,b)` | The same, but keep going. Its value is 1 for true, 0 for false. |
 | `FACT_PRINT(a,op,b,"%x")` | `FACT` with your own `printf` format for both values. |
 | `FACTS_EXCLUDE(Name) { ... }` | A group that is registered but not run unless included by an option. |
-| `FactsAbsErr(a,b)`, `FactsRelErr(a,b)` | Absolute and relative error of two doubles, for `FACT(FactsRelErr(a,b),<,1e-12)`. |
+| `FactsAbsErr(a,b)`, `FactsRelErr(a,b)` | Absolute error, and error relative to the larger magnitude (0 when both are 0), of two doubles: `FACT(FactsRelErr(a,b),<,1e-12)`. |
 | `FACTS_MAIN_IF(--facts) { ... }` | Your program keeps its own `main` (the block); the facts run only when `--facts` is given. |
 
 ## Things that bite

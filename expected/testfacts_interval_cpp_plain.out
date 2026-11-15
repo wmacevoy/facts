@@ -1,0 +1,41 @@
+test/testfacts_interval.cpp 11: OpenInterval facts check started
+test/testfacts_interval.cpp 11: OpenInterval facts check ended
+test/testfacts_interval.cpp 35: ClosedInterval facts check started
+test/testfacts_interval.cpp 35: ClosedInterval facts check ended
+test/testfacts_interval.cpp 54: ClosedOpenInterval facts check started
+test/testfacts_interval.cpp 54: ClosedOpenInterval facts check ended
+test/testfacts_interval.cpp 69: Tolerance facts check started
+test/testfacts_interval.cpp 69: Tolerance facts check ended
+test/testfacts_interval.cpp 79: OutsideAbsolute facts check started
+test/testfacts_interval.cpp/OutsideAbsolute 81: x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction
+(gdb) break facts_OutsideAbsolute_function
+(gdb) run --facts_unsafe --facts_include=OutsideAbsolute
+test/testfacts_interval.cpp 79: OutsideAbsolute facts check ended badly
+test/testfacts_interval.cpp 84: OutsideRelative facts check started
+test/testfacts_interval.cpp/OutsideRelative 86: x == 1.0 * (1 + pm(1e-9)) {1.0000009999999999 == [0.99999999900000003,1.0000000010000001]} is fiction: a millionth off, a billionth allowed
+(gdb) break facts_OutsideRelative_function
+(gdb) run --facts_unsafe --facts_include=OutsideRelative
+test/testfacts_interval.cpp 84: OutsideRelative facts check ended badly
+test/testfacts_interval.cpp 89: OutsideThreeArguments facts check started
+test/testfacts_interval.cpp/OutsideThreeArguments 91: x {=2.5} == 2.0 + pm(0.25) {=[1.75,2.25]} is fiction
+(gdb) break facts_OutsideThreeArguments_function
+(gdb) run --facts_unsafe --facts_include=OutsideThreeArguments
+test/testfacts_interval.cpp 89: OutsideThreeArguments facts check ended badly
+test/testfacts_interval.cpp 94: InsideWhenItShouldNotBe facts check started
+test/testfacts_interval.cpp/InsideWhenItShouldNotBe 96: x != interval::open(0, 1) {0.5 != (0,1)} is fiction
+(gdb) break facts_InsideWhenItShouldNotBe_function
+(gdb) run --facts_unsafe --facts_include=InsideWhenItShouldNotBe
+test/testfacts_interval.cpp/InsideWhenItShouldNotBe 97: x != interval(0.5, 1, true, false) {0.5 != [0.5,1)} is fiction
+(gdb) break facts_InsideWhenItShouldNotBe_function
+(gdb) run --facts_unsafe --facts_include=InsideWhenItShouldNotBe
+test/testfacts_interval.cpp 94: InsideWhenItShouldNotBe facts check ended badly
+facts summary.
+facts check OpenInterval passed
+facts check ClosedInterval passed
+facts check ClosedOpenInterval passed
+facts check Tolerance passed
+facts check OutsideAbsolute failed
+facts check OutsideRelative failed
+facts check OutsideThreeArguments failed
+facts check InsideWhenItShouldNotBe failed
+38 (88.4%) truths and 5 (11.6%) fictions checked.

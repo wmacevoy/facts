@@ -234,6 +234,65 @@ extern "C"
     extern int facts_format;
   }
 
+  // ---- fact::interval: a value within a tolerance ----
+  //
+  //   FACT(x == y + fact::pm(1e-9));          // within 1e-9 of y
+  //   FACT(x == y * (1 + fact::pm(1e-9)));    // within one part in 1e9 of y
+  //   FACT(x != fact::interval::open(0, 1));  // not strictly between 0 and 1
+  //
+  // "x == interval" asks whether x is in it.  pm(eps) is [-eps,eps]; adding a
+  // number shifts an interval and multiplying by one scales it, so the two
+  // lines above read as written.  From the darter project, by the same author.
+  namespace fact
+  {
+    struct interval
+    {
+      double a;
+      double b;
+      bool ainc;   // is a itself inside?
+      bool binc;   // is b itself inside?
+      interval(double _a, double _b, bool _ainc = true, bool _binc = true)
+          : a(_a), b(_b), ainc(_ainc), binc(_binc) {}
+      static interval open(double a, double b) { return interval(a, b, false, false); }
+      static interval closed(double a, double b) { return interval(a, b, true, true); }
+    };
+
+    inline interval pm(double eps) { return interval::closed(-eps, eps); }
+
+    inline interval operator+(double x, const interval &i)
+    {
+      return interval(i.a + x, i.b + x, i.ainc, i.binc);
+    }
+
+    // A negative factor turns the interval around, ends and all.
+    inline interval operator*(double x, const interval &i)
+    {
+      return (x >= 0) ? interval(x * i.a, x * i.b, i.ainc, i.binc)
+                      : interval(x * i.b, x * i.a, i.binc, i.ainc);
+    }
+
+    inline bool operator==(double x, const interval &i)
+    {
+      if (i.b < i.a) return false;
+      if (i.a < x && x < i.b) return true;
+      if (i.ainc && i.a == x) return true;
+      if (i.binc && i.b == x) return true;
+      return false;
+    }
+
+    inline bool operator!=(double x, const interval &i) { return !(x == i); }
+
+    // 17 digits: a tolerance of 1e-9 printed with the usual 6 would show
+    // [1,1], which says nothing about why the fact was fiction.
+    inline std::ostream &operator<<(std::ostream &out, const interval &i)
+    {
+      std::streamsize digits = out.precision(17);
+      out << (i.ainc ? "[" : "(") << i.a << "," << i.b << (i.binc ? "]" : ")");
+      out.precision(digits);
+      return out;
+    }
+  }
+
   template <class L, class R> struct FactsBinary
   {
     const L &lhs;
@@ -279,6 +338,15 @@ extern "C"
   inline void FactsExprValues(std::ostream &, bool) {}
   template <class L> void FactsExprValues(std::ostream &out, const FactsLhs<L> &one) { out << " {" << one.lhs << "}"; }
   template <class L, class R> void FactsExprValues(std::ostream &out, const FactsBinary<L, R> &two) { out << " {" << two.lhs << " " << two.op << " " << two.rhs << "}"; }
+
+  // Against an interval, the value is printed with the interval's 17 digits.
+  template <class L> void FactsExprValues(std::ostream &out, const FactsBinary<L, fact::interval> &two)
+  {
+    std::streamsize digits = out.precision(17);
+    out << " {" << two.lhs << " " << two.op << " ";
+    out.precision(digits);
+    out << two.rhs << "}";
+  }
 
   struct FactsNoFootnote {};
   inline void FactsExprFootnote(std::ostream &, const FactsNoFootnote &) {}

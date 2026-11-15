@@ -120,6 +120,15 @@ done
 found=$(bin/testfacts_c --facts_find test/find_subset.txt \; --facts_register_all 2>/dev/null | tr -d ' \n')
 [ "$found" = "FACTS_REGISTER_ALL(){FACTS_REGISTER(Out);FACTS_REGISTER(Alpha);}" ] ||
   { echo "FAIL: --facts_find test/find_subset.txt did not register Out then Alpha, got: $found"; fail=1; }
+# REQ1/WR-4 FactsAbsErr and FactsRelErr: nineteen facts about them, all truths.
+exits 0 bin/testfacts_err_c
+says  "19 (100.0%) truths and 0 (0.0%) fictions checked." bin/testfacts_err_c --facts_plain
+
+# REQ3/WR-7 in C++, "x == interval" asks whether x is inside; pm, + and * build one around a
+# value; a fiction prints the value and the interval with enough digits to see why.
+golden testfacts_interval_cpp_plain.out bin/testfacts_interval_cpp --facts_plain
+says  "test/testfacts_interval.cpp/OutsideAbsolute 81: x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction" bin/testfacts_interval_cpp --facts_plain
+
 # REQ1/RG-3 include narrows what find registered, whichever option comes first.
 for order in "--facts_find test/testfacts.c ; --facts_include=Integer" "--facts_include=Integer --facts_find test/testfacts.c ;"; do
   says  "test/testfacts.c 7: Integer facts check started" bin/testfacts_c --facts_plain $order
