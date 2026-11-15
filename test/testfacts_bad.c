@@ -2,12 +2,24 @@
    by its declaration, so the check runs exactly one at a time by name. */
 #include <signal.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include <windows.h>
+#define sleep(seconds) Sleep((seconds) * 1000)
+#else
 #include <unistd.h>
+#endif
 #include "facts.h"
 
 FACTS_EXCLUDE(Crashes) {
   FACT(1,==,1);
+#ifdef _WIN32
+  /* A real access violation, with the "program has stopped working" box off. */
+  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+  volatile int *nowhere = 0;
+  *nowhere = 1;
+#else
   raise(SIGSEGV);
+#endif
 }
 
 FACTS_EXCLUDE(Aborts) {

@@ -92,39 +92,68 @@ option(FACTS_BUILD_TESTS "Build test binaries" OFF)
 if(FACTS_BUILD_TESTS)
   enable_testing()
 
-  add_executable(testfacts_c test/testfacts.c)
-  target_link_libraries(testfacts_c PRIVATE facts_c_static)
-  add_test(NAME testfacts_c COMMAND testfacts_c)
-  set_tests_properties(testfacts_c PROPERTIES WILL_FAIL TRUE)
+  # facts_expect(<test name> <target> <exit code> <text the output must contain> [arguments...])
+  # Each test requires the exact exit code and the text, so a crash cannot pass
+  # for an intended failure (REQ1/PK-2).  The same cases, and more, are in
+  # test/check.sh for `make check`.
+  function(facts_expect name target code says)
+    add_test(NAME ${name}
+      COMMAND ${CMAKE_COMMAND} -DPROGRAM=$<TARGET_FILE:${target}> "-DARGS=${ARGN}"
+              -DEXIT=${code} "-DSAYS=${says}" -P ${CMAKE_CURRENT_SOURCE_DIR}/test/expect.cmake)
+    set_tests_properties(${name} PROPERTIES TIMEOUT 120)
+  endfunction()
 
-  add_executable(testfacts_cpp test/testfacts.cpp)
-  target_link_libraries(testfacts_cpp PRIVATE facts_cpp_static)
-  add_test(NAME testfacts_cpp COMMAND testfacts_cpp)
-  set_tests_properties(testfacts_cpp PROPERTIES WILL_FAIL TRUE)
+  function(facts_test_program target source library)
+    add_executable(${target} ${source})
+    target_link_libraries(${target} PRIVATE ${library})
+    # --facts_find looks groups up by symbol, so the program must export them.
+    set_target_properties(${target} PROPERTIES ENABLE_EXPORTS ON)
+  endfunction()
 
-  add_executable(testfacts_if_c test/testfacts_if.c)
-  target_link_libraries(testfacts_if_c PRIVATE facts_c_static)
-  add_test(NAME testfacts_if_c COMMAND testfacts_if_c)
+  facts_test_program(testfacts_c        test/testfacts.c        facts_c_static)
+  facts_test_program(testfacts_cpp      test/testfacts.cpp      facts_cpp_static)
+  facts_test_program(testfacts_if_c     test/testfacts_if.c     facts_c_static)
+  facts_test_program(testfacts_if_cpp   test/testfacts_if.cpp   facts_cpp_static)
+  facts_test_program(testfacts_expr_cpp test/testfacts_expr.cpp facts_cpp_static)
+  facts_test_program(testfacts_find_c   test/testfacts_find.c   facts_c_static)
+  facts_test_program(testfacts_once_c   test/testfacts_once.c   facts_c_static)
+  facts_test_program(testfacts_once_cpp test/testfacts_once.cpp facts_cpp_static)
+  facts_test_program(testfacts_bad_c    test/testfacts_bad.c    facts_c_static)
 
-  add_executable(testfacts_if_cpp test/testfacts_if.cpp)
-  target_link_libraries(testfacts_if_cpp PRIVATE facts_cpp_static)
-  add_test(NAME testfacts_if_cpp COMMAND testfacts_if_cpp)
+  set(three_fictions "0 (0.0%) truths and 3 (100.0%) fictions checked.")
 
-  add_executable(testfacts_expr_cpp test/testfacts_expr.cpp)
-  target_link_libraries(testfacts_expr_cpp PRIVATE facts_cpp_static)
-  add_test(NAME testfacts_expr_cpp COMMAND testfacts_expr_cpp)
-  set_tests_properties(testfacts_expr_cpp PROPERTIES WILL_FAIL TRUE)
-
-  add_executable(testfacts_find_c test/testfacts_find.c)
-  target_link_libraries(testfacts_find_c PRIVATE facts_c_static)
-
-  add_executable(testfacts_once_c test/testfacts_once.c)
-  target_link_libraries(testfacts_once_c PRIVATE facts_c_static)
-  add_test(NAME testfacts_once_c COMMAND testfacts_once_c)
-  set_tests_properties(testfacts_once_c PROPERTIES WILL_FAIL TRUE)
-
-  add_executable(testfacts_once_cpp test/testfacts_once.cpp)
-  target_link_libraries(testfacts_once_cpp PRIVATE facts_cpp_static)
-  add_test(NAME testfacts_once_cpp COMMAND testfacts_once_cpp)
-  set_tests_properties(testfacts_once_cpp PROPERTIES WILL_FAIL TRUE)
+  # REQ1/CK-1, REQ2/CK-3: the report's last line, and exit code 1 for a fiction.
+  facts_expect(testfacts_c          testfacts_c   1 "${three_fictions}")
+  facts_expect(testfacts_cpp        testfacts_cpp 1 "${three_fictions}")
+  # REQ1/SX-3: the same in this process.
+  facts_expect(testfacts_c_unsafe   testfacts_c   1 "${three_fictions}" --facts_unsafe)
+  # REQ1/CK-4: the program's own main without the switch, the facts with it.
+  facts_expect(testfacts_if_c       testfacts_if_c   0 "main")
+  facts_expect(testfacts_if_cpp     testfacts_if_cpp 0 "main")
+  facts_expect(testfacts_if_c_facts   testfacts_if_c   1 "${three_fictions}" --facts)
+  facts_expect(testfacts_if_cpp_facts testfacts_if_cpp 1 "${three_fictions}" --facts)
+  # REQ1/WR-5: the C++ expression form.
+  facts_expect(testfacts_expr_cpp   testfacts_expr_cpp 1 "18 (66.7%) truths and 9 (33.3%) fictions checked.")
+  # REQ1/WR-6: once in C++ everywhere; in C once with gcc and clang, twice and warned about elsewhere.
+  facts_expect(testfacts_once_cpp   testfacts_once_cpp 1 "3 (75.0%) truths and 1 (25.0%) fictions checked.")
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    facts_expect(testfacts_once_c   testfacts_once_c 1 "3 (75.0%) truths and 1 (25.0%) fictions checked.")
+  else()
+    facts_expect(testfacts_once_c   testfacts_once_c 1 "warning: 2 of those fictions evaluated each side twice")
+  endif()
+  # REQ1/RG-2, REQ2/CK-3: find registers what a source file declares; without it this program knows no group.
+  facts_expect(testfacts_find_c       testfacts_find_c 0 "2 (100.0%) truths and 0 (0.0%) fictions checked."
+               --facts_find ${CMAKE_CURRENT_SOURCE_DIR}/test/testfacts_find.c)
+  facts_expect(testfacts_find_c_none  testfacts_find_c 2 "facts: no facts were checked")
+  # REQ2/CK-5: a reserved argument facts does not know.
+  facts_expect(testfacts_c_reserved   testfacts_c 2 "facts: unknown option --facts_inclde=Out" --facts_inclde=Out)
+  # REQ1/SX-1, REQ1/SX-2, REQ2/CK-3: a crash and a hang are reported, with exit code 2.
+  facts_expect(testfacts_bad_c_fine   testfacts_bad_c 0 "1 (100.0%) truths and 0 (0.0%) fictions checked.")
+  if(WIN32)
+    facts_expect(testfacts_bad_c_crash testfacts_bad_c 2 "facts: child crashed" --facts_include=Crashes)
+  else()
+    facts_expect(testfacts_bad_c_crash testfacts_bad_c 2 "facts: child killed by signal 11 (SIGSEGV)" --facts_include=Crashes)
+  endif()
+  facts_expect(testfacts_bad_c_sleeps testfacts_bad_c 2 "facts: TIMEOUT after 1 seconds" --facts_timeout=1 --facts_include=Sleeps)
+  facts_expect(testfacts_bad_c_spins  testfacts_bad_c 2 "facts: TIMEOUT after 1 seconds" --facts_timeout=1 --facts_include=Spins)
 endif()

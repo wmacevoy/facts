@@ -295,7 +295,13 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
   CloseHandle(pi.hProcess);
   CloseHandle(pi.hThread);
 
-  if (exit_code > 1) {
+  // An unhandled exception ends a process with its exception code, and all of
+  // those are 0xC0000000 or above: that is a crash, not a choice of exit code.
+  if (exit_code >= 0xC0000000UL) {
+    fprintf(stderr, "\nfacts: child crashed (exception 0x%08lX)\n", (unsigned long)exit_code);
+    return 2;
+  }
+  if (exit_code > 2) {
     fprintf(stderr, "\nfacts: child exited with code %lu\n", (unsigned long)exit_code);
   }
   return (int)exit_code;
