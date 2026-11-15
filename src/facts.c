@@ -297,7 +297,7 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
 
   // An unhandled exception ends a process with its exception code, and all of
   // those are 0xC0000000 or above: that is a crash, not a choice of exit code.
-  if (0 && exit_code >= 0xC0000000UL) {  /* TEMPORARY: seeing the Windows crash test fail; reverted next commit */
+  if (exit_code >= 0xC0000000UL) {
     fprintf(stderr, "\nfacts: child crashed (exception 0x%08lX)\n", (unsigned long)exit_code);
     return 2;
   }
