@@ -1,4 +1,9 @@
-# Facts Test Runner for VSCode
+# Facts Test Runner for VSCode (deprecated)
+
+> **Deprecated on 2026-11-14.** This extension gets no fixes, and it does not work as it stands:
+> it looks for `PASS` and `FAIL` lines that facts never prints, so every test shows "did not
+> produce output". An extension for VSCodium is planned to replace it (`docs/QUEUE.md`, row 18).
+> What follows describes what it was meant to do.
 
 Run and debug [Facts](https://github.com/wmacevoy/facts) C/C++ tests directly from VSCode.
 

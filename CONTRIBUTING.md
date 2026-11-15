@@ -27,7 +27,7 @@ same change (SE1/W11). Principle IDs such as `SE1/A3` are defined in `vendor/se1
   its requirement.
 - **Seeing one fire:** change `facts check started` in `src/facts.c` and run it; add the word
   `testcase` to a comment outside the `edge-junit` section and run it (SE1/T3).
-- **Time:** under a minute, because every safe run waits at least one second (queue #3).
+- **Time:** about 6 seconds; two of them are the timeout cases waiting out their one second each.
 - **Not in the check:** install layout, Debian, Alpine, Homebrew, Windows, and the VS Code
   extension build run only in CI (`.github/workflows/c-cpp.yml`).
 
@@ -52,7 +52,7 @@ Constraints the code cannot show.
 - **The version number lives in six files.** `PACKAGING.md` lists them under *Versioning*.
 - **`vendor/se1/` and `AGENTS.md` are copies of the guide; do not edit them.** Local rules go
   here, and this file wins where they disagree.
-- **A change in a requirement's meaning is a new version** (`docs/REQUIREMENTS_v3.md` next). Cite
+- **A change in a requirement's meaning is a new version** (`docs/REQUIREMENTS_v4.md` next). Cite
   a requirement by the version that last changed it: `REQ1/WR-2`, `REQ2/CK-3`.
 
 ## Where things are
@@ -60,14 +60,14 @@ Constraints the code cannot show.
 | AGENTS.md says                 | In this repository                                    |
 | ------------------------------ | ----------------------------------------------------- |
 | the repository guide           | `CONTRIBUTING.md` (this file)                         |
-| the requirements               | `docs/REQUIREMENTS_v2.md`                             |
+| the requirements               | `docs/REQUIREMENTS_v3.md`                             |
 | the design                     | `docs/DESIGN_v1.md`                                   |
 | the queue                      | `docs/QUEUE.md`                                       |
 | findings                       | `docs/FINDINGS.md`                                    |
 | the check command              | `make check`; success prints `facts: all checks passed` |
 | the handoff check              | `./se --post`, run by a `SessionStart` hook in `.claude/settings.json` at startup, resume, and compaction |
-| `Non-goals`, `Scope decisions` | sections of `docs/REQUIREMENTS_v2.md`                 |
-| the glossary                   | the first section of `docs/REQUIREMENTS_v2.md`        |
+| `Non-goals`, `Scope decisions` | sections of `docs/REQUIREMENTS_v3.md`                 |
+| the glossary                   | the first section of `docs/REQUIREMENTS_v3.md`        |
 
 - **The guide:** `vendor/se1/`, copied on 2026-11-14 from a local checkout at `v1.7-4-g98c4756`:
   release v1.7 plus four unreleased commits, which add the draft of SE1/D14 that the fundamental
@@ -79,7 +79,7 @@ Constraints the code cannot show.
 - **For users of facts:** `README.md`, and one page each in `QUICKREF-C.md` and `QUICKREF-CC.md`, for
   people and for agents. Their examples were compiled and run; a change to a macro, an option, an
   exit code, or the report updates them in the same change.
-- **Packaging:** `PACKAGING.md`. **The editor extension:** `vscode-facts/`.
+- **Packaging:** `PACKAGING.md`. **The editor extension:** `vscode-facts/`, deprecated; leave it alone.
 - **Done** means: the item's *done* sentence is met, `make check` printed its success line, a test
   naming the requirement was seen to fail without the change, what the change made untrue in
   `docs/` and here is updated, and a human has read the diff. Only a human marks a queue row done.

@@ -162,7 +162,9 @@ cosmocc -Iinclude -o check your.c libfacts.a
 
 The resulting `check` binary runs on Linux, macOS, Windows, FreeBSD, OpenBSD, and NetBSD without recompilation.
 
-## VSCode extension
+## VSCode extension (deprecated)
+
+**Deprecated on 2026-11-14.** It gets no fixes and does not read facts' output correctly; a VSCodium extension is planned (`docs/QUEUE.md`, row 18). CI still builds it so the build does not rot unnoticed. The rest of this section is kept for whoever picks up the replacement.
 
 **Location:** `vscode-facts/`
 

@@ -167,14 +167,6 @@ jobs:
           ```sh
           cc -std=c11 -rdynamic -o check your.c -lfacts && ./check --facts_find your.c
           ```
-
-          ## VSCode Extension
-
-          Download `facts-test-runner-*.vsix` from the CI artifacts and install:
-          ```sh
-          code --install-extension facts-test-runner-*.vsix
-          ```
-          Or in VSCode: Extensions → ⋯ → Install from VSIX.
         files: |
           artifacts/deb-packages/*.deb
           artifacts/alpine-package/*.tar.gz

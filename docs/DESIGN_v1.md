@@ -1,6 +1,6 @@
 # Design — v1: facts
 
-How the code satisfies `REQUIREMENTS_v2.md`, and what was rejected. Every mechanism here is
+How the code satisfies `REQUIREMENTS_v3.md`, and what was rejected. Every mechanism here is
 replaceable without renegotiating a requirement (SE1/R5). Rebuilt from the structure on 2026-11-14
 by an agent (Claude Fable 5.2); reasons nobody wrote down are marked *(inferred)* (SE1/W12).
 
@@ -70,7 +70,7 @@ the file and the core last.
 | Core: registration | border `core` | core | Keeps the registered groups in order; includes and excludes by pattern; finds groups from source files. | The list of groups, and each one's selection |
 | Core: checking | border `core` | core | `FactsCheck` runs each included group once and sets its outcome. The `FactsReport...` functions pass the four moments to the console report and, when asked for, the JUnit edge. | Each group's outcome |
 | Core: command line | border `core` | core | `FactsMain` reads the options and calls the rest in the order given. | The report format |
-| Editor extension | `vscode-facts/` | edge, separate program | Lists groups from source, runs the executable, shows outcomes in VS Code's test view. | A copy of the scan rule |
+| Editor extension | `vscode-facts/` | edge, separate program, **deprecated 2026-11-14** | Was to list groups from source, run the executable, and show outcomes in VS Code's test view. A VSCodium extension is to replace it (REQ3/ED-2). | A copy of the scan rule |
 
 The rule: the core calls the edges, and an edge calls nothing in the core. Two things enforce
 part of it (SE1/D10). The order of the file: C needs a function declared before it is used, so an
@@ -120,13 +120,15 @@ the run loop does not test the report format (REQ1/SHAPE-2); nothing checks that
 
 - **Reports.** A report that fails to open its temporary files writes the case with no captured
   output and says nothing.
-- **Process edge.** Timeout 10 seconds, or `--facts_timeout=N`. The parent looks once a second,
-  so the wait is at least one second and the timeout is good to a second. A crash or a timeout
-  loses everything the child had not flushed.
+- **Process edge.** Timeout 10 seconds, or `--facts_timeout=N`. On POSIX the parent sleeps until
+  the child ends or an alarm rings, with both signals blocked except while it sleeps, so it
+  neither polls nor misses one. A crash or a timeout loses everything the child had not
+  flushed, and leaves a JUnit report unfinished (a scope decision).
 - **Symbol edge.** Needs the executable to export its symbols (`-rdynamic` on Linux). Without it
   every lookup fails and each group is named as not found.
-- **Editor extension.** Reads the console report. Today it looks for lines that begin `PASS` or
-  `FAIL`, which the console report has never printed (finding 2026-11-14, queue #1).
+- **Editor extension.** Deprecated. It looks for lines that begin `PASS` or `FAIL`, which the
+  console report has never printed (finding 2026-11-14). Its replacement reads a real report
+  from `expected/` in its first test (queue #18).
 
 ## Five likely changes, and where each should land
 
@@ -213,6 +215,19 @@ review by someone who did not share the author's assumptions.
   so a CI job with a typo no longer passes. The count of facts decides, not the count of
   groups: a group with no `FACT` in it checks nothing. Source: the owner, 2026-11-14; the code's
   own comment before 2.0 said "2 means no facts were checked".
+- **A torn JUnit report stays torn** — REQ1/JU-1, REQ1/SX-1 — after a crash or a timeout the
+  child is gone and the XML has no closing elements. Rejected: the parent closing or replacing
+  the report (it would have to know the format, which is the JUnit edge's, in the process
+  edge). Exit code 2 and stderr carry the news. Source: the owner, 2026-11-14.
+- **Find is read before the other options** — REQ1/RG-3 — so an include or exclude applies to
+  what find registered wherever it is written; and "the first include" is remembered, not read
+  off an empty list. Source: queue #5.
+- **The parent waits on signals, not on a clock** — REQ1/SX-2 — it used to look once a second, so
+  every run cost a second. Rejected: looking every 10 ms (still polling; the owner asked for
+  the clean version); having the child set its own alarm (a group that uses `alarm` would
+  cancel its own timeout). The parent installs handlers for `SIGCHLD` and `SIGALRM` only while
+  it waits, and it is the wrapper process, which runs nothing else. Windows already waited on
+  the process handle. Source: the owner, 2026-11-14, queue #3.
 - **Explicit registration and find, no memory search** — REQ1/RG-2 — linkers reorder data.
   Source: commit `177d015`.
 - **Safe execution by re-running the program, on by default** — REQ1/SX-1 — source: commit

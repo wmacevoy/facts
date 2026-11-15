@@ -1,7 +1,7 @@
 {
   "name": "facts-test-runner",
-  "displayName": "Facts Test Runner",
-  "description": "Run and debug Facts C/C++ tests with auto-discovery, breakpoints, and JUnit output",
+  "displayName": "Facts Test Runner (deprecated)",
+  "description": "Deprecated: does not read facts' output; a VSCodium extension is planned. Was: run and debug Facts C/C++ tests.",
   "version": "0.1.0",
   "publisher": "wmacevoy",
   "license": "MIT",

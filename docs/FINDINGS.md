@@ -23,7 +23,9 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
 - **Kind:** K2.
 - **Cost:** a second per run for every user since 2.0; half a minute per check here.
 - **Findable by:** a speed line in the operating envelope, and timing one run.
-- **Changed:** queue #3; the envelope records the measurement.
+- **Changed:** queue #3; the envelope records the measurement. Fixed on 2026-11-14: the parent
+  waits on signals. A short safe run now takes 3 ms and the check about 6 seconds, down from
+  about 50. The check holds it there with a coarse bound: twenty runs in under 5 seconds.
 
 ## 2026-11-14 — A new test that could not fail
 
@@ -45,7 +47,11 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
 - **Cost:** none known; the README's one-line workflow uses find, so a user narrowing a run that
   way gets every group and no warning.
 - **Findable by:** a case combining the two options.
-- **Changed:** queue #5; the requirements' inputs table.
+- **Changed:** queue #5; the requirements' inputs table. Fixed on 2026-11-14: find is read before
+  the other options, and the first include is remembered. `test/testfacts_find.c` has no
+  registration block, as in the README's one-line workflow, and the check runs find with
+  include and exclude in both orders. With a block the bug hid in one order; without one it
+  showed in both.
 
 ## 2026-11-14 — A fluent shape, written and withdrawn the same day
 

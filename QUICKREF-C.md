@@ -2,7 +2,7 @@
 
 One page for a person or an agent writing facts in C (C11). For C++ see
 [QUICKREF-CC.md](QUICKREF-CC.md); for the full story, [README.md](README.md).
-Every example here was compiled and run with facts 2.2.0.
+Every example here was compiled and run with facts 2.2.0; the options were rechecked at 2.2.1.
 
 ## Set up
 
@@ -106,5 +106,5 @@ can be pasted into `gdb ./check` to stop in that group.
 - A fact that fails is reported by the line `file/Group line: ... is fiction`; grep for
   `is fiction`.
 - After adding a group, add it to `FACTS_REGISTER_ALL`, or run with `--facts_find` on the files.
-- Do not combine `--facts_find` with `--facts_include` yet: the include narrows nothing (a known
-  bug in 2.2.0).
+- `--facts_include` and `--facts_exclude` apply to what `--facts_find` registered, in either
+  order (from 2.2.1; in 2.2.0 an include after find narrowed nothing).
