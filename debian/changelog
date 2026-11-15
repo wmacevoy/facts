@@ -1,3 +1,18 @@
+libfacts (2.3.0) unstable; urgency=low
+
+  * C++: facts::interval and facts::pm, so FACT(x == y + facts::pm(1e-9))
+    states a tolerance; a fiction prints the value and the interval.
+  * Safe execution no longer waits a second per run: the parent sleeps until
+    the child ends or the timeout rings.
+  * Stopping the supervising process (SIGINT, SIGTERM, SIGHUP) also stops the
+    run it started.
+  * --facts_include and --facts_exclude apply to what --facts_find registered,
+    in either order.
+  * Windows: a crash in a group is reported and exits 2.
+  * The VS Code extension is deprecated.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Sun, 15 Nov 2026 00:00:00 +0000
+
 libfacts (2.2.0) unstable; urgency=low
 
   * A run that checks no FACT is an error: exit code 2, not 0.

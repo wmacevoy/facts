@@ -3,7 +3,7 @@
 One page for a person or an agent writing facts in C++ (C++11 or later). For C see
 [QUICKREF-C.md](QUICKREF-C.md); for the full story, [README.md](README.md).
 Every example here was compiled and run with facts 2.2.0; the options and the interval were
-checked at 2.2.1.
+checked at 2.3.0.
 
 ## Set up
 
@@ -148,4 +148,4 @@ the failing case.
   names its input.
 - After adding a group, add it to `FACTS_REGISTER_ALL`, or run with `--facts_find` on the files.
 - `--facts_include` and `--facts_exclude` apply to what `--facts_find` registered, in either
-  order (from 2.2.1; in 2.2.0 an include after find narrowed nothing).
+  order (from 2.3.0; in 2.2.0 an include after find narrowed nothing).
