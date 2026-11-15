@@ -234,16 +234,18 @@ extern "C"
     extern int facts_format;
   }
 
-  // ---- fact::interval: a value within a tolerance ----
+  // ---- facts::interval: a value within a tolerance ----
   //
-  //   FACT(x == y + fact::pm(1e-9));          // within 1e-9 of y
-  //   FACT(x == y * (1 + fact::pm(1e-9)));    // within one part in 1e9 of y
-  //   FACT(x != fact::interval::open(0, 1));  // not strictly between 0 and 1
+  //   FACT(x == y + facts::pm(1e-9));          // within 1e-9 of y
+  //   FACT(x == y * (1 + facts::pm(1e-9)));    // within one part in 1e9 of y
+  //   FACT(x != facts::interval::open(0, 1));  // not strictly between 0 and 1
   //
   // "x == interval" asks whether x is in it.  pm(eps) is [-eps,eps]; adding a
   // number shifts an interval and multiplying by one scales it, so the two
   // lines above read as written.  From the darter project, by the same author.
-  namespace fact
+  // Inside a group `facts` is also the name of a parameter; `facts::pm` still
+  // means this namespace, because a name before :: is never a variable.
+  namespace facts
   {
     struct interval
     {
@@ -340,7 +342,7 @@ extern "C"
   template <class L, class R> void FactsExprValues(std::ostream &out, const FactsBinary<L, R> &two) { out << " {" << two.lhs << " " << two.op << " " << two.rhs << "}"; }
 
   // Against an interval, the value is printed with the interval's 17 digits.
-  template <class L> void FactsExprValues(std::ostream &out, const FactsBinary<L, fact::interval> &two)
+  template <class L> void FactsExprValues(std::ostream &out, const FactsBinary<L, facts::interval> &two)
   {
     std::streamsize digits = out.precision(17);
     out << " {" << two.lhs << " " << two.op << " ";

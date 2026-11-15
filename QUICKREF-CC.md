@@ -51,8 +51,8 @@ FACTS_MAIN                     // main() that checks the facts
 | `FACT(a == b)` | The comparison must be true. If not, print both values and leave the group. Any of `== != < <= > >=`. |
 | `FACT(a == b, "n=" << n)` | The same, with a footnote printed only if the fact is false. Write it as you would after `std::cout <<`. |
 | `FACT_CHECK(a == b)`, `FACT_CHECK(a == b, note)` | The same, but keep going. Its value is 1 for true, 0 for false. |
-| `FACT(x == y + fact::pm(1e-9))` | `x` is within `1e-9` of `y`. `y * (1 + fact::pm(1e-9))` is one part in 1e9. `==` an interval means inside, `!=` outside. |
-| `fact::interval::open(a,b)`, `::closed(a,b)`, `fact::interval(a,b,true,false)` | An interval with its ends out, in, or one of each. |
+| `FACT(x == y + facts::pm(1e-9))` | `x` is within `1e-9` of `y`. `y * (1 + facts::pm(1e-9))` is one part in 1e9. `==` an interval means inside, `!=` outside. |
+| `facts::interval::open(a,b)`, `::closed(a,b)`, `facts::interval(a,b,true,false)` | An interval with its ends out, in, or one of each. |
 | `FACT(a,==,b)` | The form C has. It still works. |
 | `FACTS_TRACE("n=" << n)` | A note for every fact below it in the same block; printed if one of them is false. |
 | `FACTS_WATCH(n, m)` | A trace that prints a gdb breakpoint stopping only when `n` and `m` have these values. 1 to 20 variables. |
@@ -86,7 +86,7 @@ FACTS(AboutTable) {
 - **C strings are pointers.** `FACT(p == "abc")` with a `const char *` compares addresses. Make
   one side a `std::string`.
 - **Floating point is rarely equal.** `FACT(0.1 * 7 == 0.7)` is false. Use an interval:
-  `FACT(x == 0.7 + fact::pm(1e-12))`. A value compared with an interval prints with 17 digits.
+  `FACT(x == 0.7 + facts::pm(1e-12))`. A value compared with an interval prints with 17 digits.
 - **`&&` and `||` print no values.** `FACT(a == 1 && b == 2)` is checked as a whole. Write two
   facts.
 - **Parenthesize a shift on the left:** `FACT((x << 1) == 4)`.

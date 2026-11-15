@@ -75,7 +75,7 @@ FACTS(AboutFloats) {
 In C++ a tolerance can be written as an interval instead:
 
 ```C++
-using fact::pm;
+using facts::pm;
 
 FACTS(AboutFloats) {
   double a = 0.1 * 7;
@@ -85,7 +85,7 @@ FACTS(AboutFloats) {
 // x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction
 ```
 
-`x == interval` asks whether `x` is inside it, and `!=` whether it is outside. `pm(eps)` is the interval from `-eps` to `eps`; adding a number shifts an interval and multiplying by one scales it. `fact::interval::open(a,b)` and `fact::interval::closed(a,b)` leave the ends out or in, and `fact::interval(a,b,true,false)` sets each end. When such a fact fails, the value and the interval are printed with 17 digits, so a tolerance of `1e-9` is visible.
+`x == interval` asks whether `x` is inside it, and `!=` whether it is outside. `pm(eps)` is the interval from `-eps` to `eps`; adding a number shifts an interval and multiplying by one scales it. `facts::interval::open(a,b)` and `facts::interval::closed(a,b)` leave the ends out or in, and `facts::interval(a,b,true,false)` sets each end. When such a fact fails, the value and the interval are printed with 17 digits, so a tolerance of `1e-9` is visible.
 
 Important: on a failure the values of `a` and `b` are printed. On some compilers that means each side is evaluated twice in that case, so avoid side effects (like `++x`) in `FACT(a,op,b)`. With gcc or clang, and in C++ with any compiler, each side is evaluated once. If a run did evaluate twice, the last line of the report is a warning that says so.
 

@@ -233,14 +233,16 @@ review by someone who did not share the author's assumptions.
   the smaller, and checks an exit code and one line where the first compares whole reports: the
   golden files hold POSIX paths. Rejected: one list (it would need a shell on Windows, or CMake
   on every Unix). The cost is two places to add a case. Source: queue #10.
-- **The interval lives in `namespace fact`, in `facts.h`** — REQ3/WR-7 — darter calls its type
+- **The interval lives in `namespace facts`, in `facts.h`** — REQ3/WR-7 — darter calls its type
   `interval` and its helper `pm`, names too common to put in every program's global namespace
-  from a testing header. `facts` cannot be the namespace: inside a group `facts` is the
-  parameter. The operators are found without a `using`, because the type is in the namespace;
-  `using fact::pm;` gives the short spelling. All inline, so the library gains no symbol.
-  Darter's own `interval.h` can go once it uses this one. Rejected: `FactsInterval` and
-  `FactsPm` (not fluent, which was the point). Source: the owner asked for the feature,
-  2026-11-15; **the namespace and the names are the agent's choice and his to change**.
+  from a testing header. Inside a group `facts` is also a parameter, and `facts::pm` still means
+  the namespace: a name before `::` is looked up among namespaces and types only (compiled with
+  gcc, clang and MSVC). The operators are found without a `using`, because the type is in the
+  namespace; `using facts::pm;` gives the short spelling. All inline, so the library gains no
+  symbol. Darter's own `interval.h` can go once it uses this one. Rejected: `FactsInterval` and
+  `FactsPm` (not fluent); `namespace fact`, the agent's first draft, made on the mistaken belief
+  that the parameter would hide the namespace. Source: the owner, 2026-11-15: "facts namespace
+  is better."
 - **An interval prints with 17 digits, and so does the value compared with it** — REQ3/WR-7 —
   at the usual 6, a tolerance of 1e-9 prints as `[1,1]`. The three-argument form prints its
   left side with the usual 6. Source: this session.

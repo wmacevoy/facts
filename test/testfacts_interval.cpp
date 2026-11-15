@@ -1,10 +1,10 @@
-// REQ3/WR-7: fact::interval and fact::pm in C++ facts.
+// REQ3/WR-7: facts::interval and facts::pm in C++ facts.
 // The first three groups are darter's own interval tests, where the type comes from.
 #include <limits>
 #include "facts.h"
 
-using fact::interval;
-using fact::pm;
+using facts::interval;
+using facts::pm;
 
 static const double eps = std::numeric_limits<double>::epsilon();
 

@@ -145,7 +145,7 @@ if(FACTS_BUILD_TESTS)
   endif()
   # REQ1/WR-4: the error helpers; every fact is a truth.
   facts_expect(testfacts_err_c      testfacts_err_c 0 "19 (100.0%) truths and 0 (0.0%) fictions checked.")
-  # REQ3/WR-7: fact::interval.
+  # REQ3/WR-7: facts::interval.
   facts_expect(testfacts_interval_cpp testfacts_interval_cpp 1 "38 (88.4%) truths and 5 (11.6%) fictions checked.")
   # REQ1/RG-2, REQ2/CK-3: find registers what a source file declares; without it this program knows no group.
   facts_expect(testfacts_find_c       testfacts_find_c 0 "2 (100.0%) truths and 0 (0.0%) fictions checked."
