@@ -115,6 +115,9 @@ if(FACTS_BUILD_TESTS)
   add_test(NAME testfacts_expr_cpp COMMAND testfacts_expr_cpp)
   set_tests_properties(testfacts_expr_cpp PROPERTIES WILL_FAIL TRUE)
 
+  add_executable(testfacts_find_c test/testfacts_find.c)
+  target_link_libraries(testfacts_find_c PRIVATE facts_c_static)
+
   add_executable(testfacts_once_c test/testfacts_once.c)
   target_link_libraries(testfacts_once_c PRIVATE facts_c_static)
   add_test(NAME testfacts_once_c COMMAND testfacts_once_c)

@@ -101,7 +101,7 @@ CFLAGS_DEBUG   = -g -std=$(CSTD) -Iinclude
 CXXFLAGS_DEBUG = -g -std=$(CXXSTD) -Iinclude
 
 .PHONY: tests
-tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp
+tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c
 
 bin/testfacts_c: test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
@@ -135,6 +135,14 @@ bin/testfacts_twice_c: test/testfacts_once.c src/facts.c include/facts.h
 bin/testfacts_once_cpp: test/testfacts_once.cpp test/testfacts_once.c src/facts.cpp src/facts.c include/facts.h
 	mkdir -p bin
 	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_once.cpp src/facts.cpp $(LDLIBS_DL)
+
+bin/testfacts_find_c: test/testfacts_find.c src/facts.c include/facts.h
+	mkdir -p bin
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_find.c src/facts.c $(LDLIBS_DL)
+
+bin/testfacts_bad_c: test/testfacts_bad.c src/facts.c include/facts.h
+	mkdir -p bin
+	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_bad.c src/facts.c $(LDLIBS_DL)
 
 # --- Examples ---
 .PHONY: examples

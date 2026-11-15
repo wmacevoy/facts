@@ -25,7 +25,7 @@ function only(owner, words) {
 {
   # Each foreign model is spelled at one edge.
   only("edge-junit",      "testsuite|testcase|system-out|system-err|<skipped|<failure")
-  only("edge-os-process", "fork\\(|execv\\(|waitpid\\(|WIFSIGNALED|WTERMSIG|SIGKILL|CreateProcess|TerminateProcess|WaitForSingleObject")
+  only("edge-os-process", "fork\\(|execv\\(|waitpid\\(|sigaction\\(|sigsuspend\\(|sigprocmask\\(|WIFSIGNALED|WTERMSIG|SIGKILL|SIGCHLD|SIGALRM|CreateProcess|TerminateProcess|WaitForSingleObject")
   only("edge-os-symbols", "dlsym\\(|GetProcAddress\\(")
   only("edge-gdb",        "\\(gdb\\)")
 }

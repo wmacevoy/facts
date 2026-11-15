@@ -233,6 +233,14 @@ static Facts *FactsLookup(const char *name) {
 // ==== border: edge-os-process ====
 // The operating system's model (process, signal, exit status) stays here, once for Windows and once for POSIX.
 
+#ifndef _WIN32
+// Set by the alarm; the SIGCHLD that shares this handler only has to wake the wait.
+static volatile sig_atomic_t facts_alarm_rang = 0;
+static void FactsChildSignal(int sig) {
+  if (sig == SIGALRM) facts_alarm_rang = 1;
+}
+#endif
+
 // Re-exec self as a child process with --facts_unsafe, monitoring for
 // crashes and timeouts.  Returns the exit code to propagate.
 static int FactsExecSafe(int argc, const char *argv[], int timeout) {
@@ -293,15 +301,40 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
   return (int)exit_code;
 
 #else // POSIX
+  // Wait for the child with no polling: SIGCHLD says it ended, SIGALRM says
+  // the timeout passed.  Both are blocked except while sigsuspend waits, so
+  // neither can arrive in the gap between looking and waiting and be missed.
+  sigset_t block, before, waiting;
+  sigemptyset(&block);
+  sigaddset(&block, SIGCHLD);
+  sigaddset(&block, SIGALRM);
+  sigprocmask(SIG_BLOCK, &block, &before);
+  waiting = before;
+  sigdelset(&waiting, SIGCHLD);
+  sigdelset(&waiting, SIGALRM);
+
+  struct sigaction note, old_chld, old_alrm;
+  memset(&note, 0, sizeof(note));
+  note.sa_handler = FactsChildSignal;
+  sigemptyset(&note.sa_mask);
+  facts_alarm_rang = 0;
+  sigaction(SIGCHLD, &note, &old_chld);
+  sigaction(SIGALRM, &note, &old_alrm);
+
   pid_t pid = fork();
   if (pid < 0) {
     perror("facts: fork");
+    sigaction(SIGCHLD, &old_chld, NULL);
+    sigaction(SIGALRM, &old_alrm, NULL);
+    sigprocmask(SIG_SETMASK, &before, NULL);
     free(child_argv);
     return 2;
   }
 
   if (pid == 0) {
-    // Child: lower priority and exec
+    // Child: the signal mask survives exec, so put it back first.
+    sigprocmask(SIG_SETMASK, &before, NULL);
+    // Lower priority and exec
     nice(10);
     execv(argv[0], (char *const *)child_argv);
     // If exec fails, try /proc/self/exe (Linux)
@@ -310,24 +343,29 @@ static int FactsExecSafe(int argc, const char *argv[], int timeout) {
     _exit(2);
   }
 
-  // Parent: wait with timeout
+  // Parent
   free(child_argv);
 
-  int remaining = timeout;
-  int wstatus;
-  pid_t result;
-
-  while (remaining > 0) {
-    result = waitpid(pid, &wstatus, WNOHANG);
-    if (result != 0) break;
-    sleep(1);
-    --remaining;
+  int wstatus = 0;
+  int timed_out = 0;
+  alarm((unsigned)timeout);
+  for (;;) {
+    pid_t ended = waitpid(pid, &wstatus, WNOHANG);
+    if (ended != 0) break;          // it ended (or waitpid failed)
+    if (facts_alarm_rang) {
+      kill(pid, SIGKILL);
+      waitpid(pid, &wstatus, 0);
+      timed_out = 1;
+      break;
+    }
+    sigsuspend(&waiting);           // sleep until one of the two signals
   }
+  alarm(0);
+  sigaction(SIGCHLD, &old_chld, NULL);
+  sigaction(SIGALRM, &old_alrm, NULL);
+  sigprocmask(SIG_SETMASK, &before, NULL);
 
-  if (remaining <= 0) {
-    // Timeout: kill child
-    kill(pid, SIGKILL);
-    waitpid(pid, &wstatus, 0);
+  if (timed_out) {
     fprintf(stderr, "\nfacts: TIMEOUT after %d seconds\n", timeout);
     return 2;
   }
@@ -426,9 +464,17 @@ FACTS_EXTERN int FactsMatches(const char *str, const char *pattern)
 
 FACTS_EXTERN void FactsInclude(const char *pattern)
 {
+  // The first include starts from nothing; later ones add to it.  "First" is
+  // remembered here and not read off the list being empty, because find may
+  // have registered groups before any include is seen.
+  static int narrowed = 0;
   if (head == NULL)
   {
     FactsRegisterAll();
+  }
+  if (!narrowed)
+  {
+    narrowed = 1;
     for (Facts *facts = head; facts != NULL; facts = facts->next)
     {
       if (facts->status == FACTS_STATE_INCLUDE)
@@ -789,6 +835,19 @@ static int FactsMainWith(int argc, const char *argv[], const char *own)
     return FactsExecSafe(argc, argv, timeout);
   }
 
+  // Register what --facts_find names before reading the other options, so
+  // an include or exclude applies to those groups wherever it is written.
+  for (int argi = 1; argi < argc; ++argi)
+  {
+    if (strcmp(argv[argi], "--facts_find") == 0)
+    {
+      for (++argi; argi < argc; ++argi) {
+        if (strcmp(argv[argi], ";") == 0) break;
+        FactsScanFile(argv[argi], 1);
+      }
+    }
+  }
+
   int status = 0;
   int check = 1;
   int unknown = 0;
@@ -818,9 +877,9 @@ static int FactsMainWith(int argc, const char *argv[], const char *own)
       const char *op = "--facts_find";
       if (strcmp(arg, op) == 0)
       {
+        // Already registered above; step over its files.
         for (++argi; argi < argc; ++argi) {
           if (strcmp(argv[argi], ";") == 0) break;
-          FactsScanFile(argv[argi], 1);
         }
         continue;
       }

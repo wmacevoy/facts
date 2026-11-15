@@ -2,7 +2,7 @@
 # The full check.  `make check` builds the test programs and the examples and
 # then runs this; CI runs `make check`.  Success prints the last line below.
 #
-# Each case names the requirement it asserts (docs/REQUIREMENTS_v2.md).
+# Each case names the requirement it asserts (docs/REQUIREMENTS_v3.md).
 # The golden files in expected/ are the published console and JUnit formats:
 # refresh them with `make expected` only when a format change is intended.
 
@@ -120,6 +120,27 @@ done
 found=$(bin/testfacts_c --facts_find test/find_subset.txt \; --facts_register_all 2>/dev/null | tr -d ' \n')
 [ "$found" = "FACTS_REGISTER_ALL(){FACTS_REGISTER(Out);FACTS_REGISTER(Alpha);}" ] ||
   { echo "FAIL: --facts_find test/find_subset.txt did not register Out then Alpha, got: $found"; fail=1; }
+# REQ1/RG-3 include narrows what find registered, whichever option comes first.
+for order in "--facts_find test/testfacts.c ; --facts_include=Integer" "--facts_include=Integer --facts_find test/testfacts.c ;"; do
+  says  "test/testfacts.c 7: Integer facts check started" bin/testfacts_c --facts_plain $order
+  says  "test/testfacts.c 3: Alpha facts check excluded." bin/testfacts_c --facts_plain $order
+  quiet "test/testfacts.c 3: Alpha facts check started"   bin/testfacts_c --facts_plain $order
+done
+
+# REQ1/RG-2, REQ1/RG-3 the same in a program with no registration block: find alone runs
+# both groups; with an include, in either order, only the one named; with no find, nothing is
+# known, and that is an error (REQ2/CK-3).
+f=bin/testfacts_find_c
+says  "2 (100.0%) truths and 0 (0.0%) fictions checked." $f --facts_plain --facts_find test/testfacts_find.c
+exits 0 $f --facts_find test/testfacts_find.c
+for order in "--facts_find test/testfacts_find.c ; --facts_include=FoundSecond" "--facts_include=FoundSecond --facts_find test/testfacts_find.c"; do
+  says  "test/testfacts_find.c 9: FoundSecond facts check started" $f --facts_plain $order
+  says  "test/testfacts_find.c 5: FoundFirst facts check excluded." $f --facts_plain $order
+  says  "1 (100.0%) truths and 0 (0.0%) fictions checked." $f --facts_plain $order
+done
+says  "test/testfacts_find.c 5: FoundFirst facts check excluded." $f --facts_plain --facts_exclude=FoundFirst --facts_find test/testfacts_find.c
+exits 2 $f
+
 # REQ1/RG-2 a declared group that is not in the executable is named, and the rest still register.
 says  "facts: AboutInts not found in executable" bin/testfacts_c --facts_find test/sample_facts.c test/find_subset.txt \; --facts_skip
 quiet "facts: Out not found in executable"       bin/testfacts_c --facts_find test/sample_facts.c test/find_subset.txt \; --facts_skip
@@ -130,6 +151,26 @@ exits 0 bin/testfacts_once_cpp --facts_include=OnceWhenTruth
 # REQ1/RG-2 a group name too long to look up is named, not dropped.
 printf 'FACTS(%0300d) {\n' 0 > bin/long_name.txt
 says "facts: a group name in bin/long_name.txt is over 255 characters" bin/testfacts_c --facts_find bin/long_name.txt \; --facts_skip
+
+# REQ1/SX-1 a group that crashes does not take the caller down: stderr names the signal,
+# REQ2/CK-3 and the exit code is 2.  Without the crash the same program exits 0.
+bad=bin/testfacts_bad_c
+exits 0 $bad
+exits 2 $bad --facts_include=Crashes
+says  "facts: child killed by signal 11 (SIGSEGV)" $bad --facts_include=Crashes
+exits 2 $bad --facts_include=Aborts
+says  "facts: child killed by signal 6 (SIGABRT)" $bad --facts_include=Aborts
+# REQ1/SX-2 a run still going at its timeout is killed, asleep or busy, and stderr says so.
+exits 2 $bad --facts_timeout=1 --facts_include=Sleeps
+says  "facts: TIMEOUT after 1 seconds" $bad --facts_timeout=1 --facts_include=Sleeps
+exits 2 $bad --facts_timeout=1 --facts_include=Spins
+says  "facts: TIMEOUT after 1 seconds" $bad --facts_timeout=1 --facts_include=Spins
+# REQ1/SX-2 safe execution does not wait when there is nothing to wait for: twenty short runs
+# in well under the twenty seconds they took when the parent looked once a second.
+start=$(date +%s)
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do $bad >/dev/null 2>&1; done
+took=$(( $(date +%s) - start ))
+[ "$took" -lt 5 ] || { echo "FAIL: twenty safe runs took $took seconds, expected under 5"; fail=1; }
 
 # REQ1/SHAPE-3 each foreign model's words stay inside its edge of src/facts.c (a veto, not the verdict).
 sh test/borders.sh src/facts.c || { echo "FAIL: test/borders.sh"; fail=1; }
