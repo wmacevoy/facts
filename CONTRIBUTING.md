@@ -30,6 +30,9 @@ same change (SE1/W11). Principle IDs such as `SE1/A3` are defined in `vendor/se1
 - **Time:** about 6 seconds; two of them are the timeout cases waiting out their one second each.
 - **Not in the check:** install layout, Debian, Alpine, Homebrew, Windows, and the VS Code
   extension build run only in CI (`.github/workflows/c-cpp.yml`).
+- **On Windows** CI runs `ctest`, not this script. Its cases are in `CMakeLists.txt`, each an
+  exact exit code and a piece of output checked by `test/expect.cmake`. To run them anywhere:
+  `cmake -B build -DFACTS_BUILD_TESTS=ON && cmake --build build && ctest --test-dir build`.
 
 ## Rules for this repository
 

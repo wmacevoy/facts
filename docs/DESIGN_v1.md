@@ -228,6 +228,11 @@ review by someone who did not share the author's assumptions.
   cancel its own timeout). The parent installs handlers for `SIGCHLD` and `SIGALRM` only while
   it waits, and it is the wrapper process, which runs nothing else. Windows already waited on
   the process handle. Source: the owner, 2026-11-14, queue #3.
+- **Two test lists, one per build system** — REQ1/PK-2 — `test/check.sh` for `make check` and
+  `facts_expect` cases in `CMakeLists.txt` for ctest, which is all Windows has. The second is
+  the smaller, and checks an exit code and one line where the first compares whole reports: the
+  golden files hold POSIX paths. Rejected: one list (it would need a shell on Windows, or CMake
+  on every Unix). The cost is two places to add a case. Source: queue #10.
 - **Explicit registration and find, no memory search** — REQ1/RG-2 — linkers reorder data.
   Source: commit `177d015`.
 - **Safe execution by re-running the program, on by default** — REQ1/SX-1 — source: commit

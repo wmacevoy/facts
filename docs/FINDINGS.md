@@ -110,3 +110,17 @@ writes (SE1/W10). Blameless: say what would have found it, not who should have a
 - **Findable by:** compiling with the compiler the claim is about.
 - **Changed:** see the design decision. Compiled clean under `-Wall -Wextra -pedantic` with
   gcc 12 and clang 14 in C++11 and C++20; MSVC built it in CI with no warning from `facts.h`.
+
+## 2026-11-15 — On Windows a crash was passed along as an exit code, and nothing checked
+
+- **What happened:** the Windows tests ran under `WILL_FAIL`, which passes on any non-zero exit.
+  Reading the Windows half of the process edge showed that a child killed by an access
+  violation had its exception code returned as the program's exit code, where the requirement
+  says 2 and a line naming the crash.
+- **Kind:** K3 on the tests (green for years, checking nothing); K2 on the crash code.
+- **Cost:** safe execution on Windows had never been verified since 2.0.
+- **Findable by:** a test that expects an exact exit code.
+- **Changed:** `test/expect.cmake` requires the exact exit code and a piece of the output, and
+  `CMakeLists.txt` runs seventeen cases through it; a crash on Windows now exits 2. On Windows
+  all seventeen ran and passed on the first CI round, including the crash, both timeouts, and
+  find. Not checked there: the golden files (paths differ), and `abort()`.
