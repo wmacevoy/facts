@@ -152,6 +152,10 @@ if ($leave --facts_plain 2>&1 || true) | grep -q '^not reached'; then
 fi
 # The same under --facts_unsafe: the run, not the child process, catches the fiction.
 says  "7 (46.7%) truths and 8 (53.3%) fictions checked." $leave --facts_plain --facts_unsafe
+# Linked with the C core compiled as C (libfacts), a fiction still leaves its group: the same report.
+golden testfacts_leave_cpp_plain.out bin/testfacts_leave_clib --facts_plain
+exits 1 bin/testfacts_leave_clib
+
 # Built without exceptions, FACT leaves by return and the report is the same.
 golden testfacts_cpp_plain.out bin/testfacts_noexc_cpp --facts_plain
 

@@ -126,6 +126,8 @@ if(FACTS_BUILD_TESTS)
   facts_test_program(testfacts_current_cpp test/testfacts_current.cpp facts_cpp_static)
   # C groups and C++ groups in one program.
   facts_test_program(testfacts_leave_cpp "test/testfacts_leave.cpp;test/testfacts_leave.c" facts_cpp_static)
+  # The same, linked with the C library.
+  facts_test_program(testfacts_leave_clib "test/testfacts_leave.cpp;test/testfacts_leave.c" facts_c_static)
 
   set(three_fictions "0 (0.0%) truths and 3 (100.0%) fictions checked.")
 
@@ -159,6 +161,7 @@ if(FACTS_BUILD_TESTS)
   facts_expect(testfacts_show_cpp testfacts_show_cpp 1 "x == y {? == ?} is fiction")
   # REQ4/WR-8: a fiction in a C++ helper or lambda ends its group; FACT_BY_RETURN and C leave by return.
   facts_expect(testfacts_leave_cpp testfacts_leave_cpp 1 "7 (46.7%) truths and 8 (53.3%) fictions checked.")
+  facts_expect(testfacts_leave_clib testfacts_leave_clib 1 "7 (46.7%) truths and 8 (53.3%) fictions checked.")
   facts_expect(testfacts_leave_cpp_return testfacts_leave_cpp 1 "reached: ReturnHelperGoesOn went on after its helper returned")
   # REQ1/RG-2, REQ2/CK-3: find registers what a source file declares; without it this program knows no group.
   facts_expect(testfacts_find_c       testfacts_find_c 0 "2 (100.0%) truths and 0 (0.0%) fictions checked."

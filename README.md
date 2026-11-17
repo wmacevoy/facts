@@ -17,7 +17,7 @@ One-page references: [QUICKREF-C.md](QUICKREF-C.md) for C, [QUICKREF-CC.md](QUIC
 1) Add the files beside your sources
 
 - C only: download `include/facts.h` and `src/facts.c`.
-- C++: also add `src/facts.cpp` for tracing helpers.
+- C++: also add `src/facts.cpp`, and compile it instead of `facts.c` (it includes it). It adds the traces.
 
 2) Include the header
 
@@ -53,7 +53,8 @@ c++ -std=c++11 -g -o check your.cpp facts.cpp && ./check --facts_find your.cpp
 Tip: after `make install`, you can also use `pkg-config`:
 
 ```sh
-c++ -std=c++11 -g $(pkg-config --cflags facts) -o check your.cpp $(pkg-config --libs facts)
+cc -std=c11 -g $(pkg-config --cflags facts) -o check your.c $(pkg-config --libs facts)
+c++ -std=c++11 -g $(pkg-config --cflags facts++) -o check your.cpp $(pkg-config --libs facts++)
 ```
 
 ## Writing facts

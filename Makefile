@@ -101,7 +101,7 @@ CFLAGS_DEBUG   = -g -std=$(CSTD) -Iinclude
 CXXFLAGS_DEBUG = -g -std=$(CXXSTD) -Iinclude
 
 .PHONY: tests
-tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c bin/testfacts_leave_cpp bin/testfacts_noexc_cpp bin/testfacts_show_cpp bin/testfacts_current_c bin/testfacts_current_cpp
+tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c bin/testfacts_leave_cpp bin/testfacts_noexc_cpp bin/testfacts_show_cpp bin/testfacts_current_c bin/testfacts_current_cpp bin/testfacts_leave_clib
 
 bin/testfacts_c: test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
@@ -169,6 +169,14 @@ bin/testfacts_leave_cpp: test/testfacts_leave.cpp test/testfacts_leave.c src/fac
 	mkdir -p bin
 	$(CC) $(CFLAGS_DEBUG) -c -o bin/testfacts_leave_c.o test/testfacts_leave.c
 	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_leave.cpp bin/testfacts_leave_c.o src/facts.cpp $(LDLIBS_DL)
+
+# The same C++ program linked with the C core compiled as C, as with libfacts:
+# a fiction must still leave its group (REQ4/WR-8).
+bin/testfacts_leave_clib: test/testfacts_leave.cpp test/testfacts_leave.c src/facts.c include/facts.h
+	mkdir -p bin
+	$(CC) $(CFLAGS_DEBUG) -c -o bin/testfacts_leave_c.o test/testfacts_leave.c
+	$(CC) $(CFLAGS_DEBUG) -c -o bin/facts_core_c.o src/facts.c
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_leave.cpp bin/testfacts_leave_c.o bin/facts_core_c.o $(LDLIBS_DL)
 
 # The C++ tests built without exceptions, where FACT leaves by return (REQ4/WR-8).
 bin/testfacts_noexc_cpp: test/testfacts.cpp src/facts.cpp src/facts.c include/facts.h

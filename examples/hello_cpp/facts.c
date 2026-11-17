@@ -821,12 +821,7 @@ FACTS_EXTERN void FactsCheck()
       FactsTrace::reset(facts);
 #endif
       current = facts;
-#if defined(__cplusplus) && defined(FACTS_EXCEPTIONS)
-      // FACT leaves by exception in C++ (REQ4/WR-8); the group ends here.
-      try { facts->function(facts); } catch (FactsLeave &) {}
-#else
       facts->function(facts);
-#endif
       current = NULL;
       if (facts->status == FACTS_STATE_INCLUDE)
       {

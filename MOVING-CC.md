@@ -10,8 +10,9 @@ Through 2.3.0 several of these steps were harder; where that matters, it says so
 
 ## Build
 
-Use the C++ build of facts: compile `facts.cpp` (it includes `facts.c`) or link `facts++`.
-The C library alone cannot catch a fiction that leaves by exception.
+Use the C++ build of facts: compile `facts.cpp` (it includes `facts.c`) or link `facts++`. It
+has the traces. On 2.4.0 it is also the only build where a fiction can leave its group: there, a
+C++ program linked with the C library aborts at its first fiction. From 2.4.1 either works.
 
 ```sh
 c++ -std=c++11 -g -o test_queue test_queue.cpp facts.cpp && ./test_queue

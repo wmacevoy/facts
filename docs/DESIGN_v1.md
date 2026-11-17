@@ -248,20 +248,26 @@ review by someone who did not share the author's assumptions.
 - **An interval prints with 17 digits, and so does the value compared with it** — REQ3/WR-7 —
   at the usual 6, a tolerance of 1e-9 prints as `[1,1]`. The three-argument form prints its
   left side with the usual 6. Source: this session.
-- **In C++ a fiction leaves by exception, and the run catches it** — REQ4/WR-8 — `FACT` was
-  `if (!check) return`, so in a helper it left only the helper, and in a helper returning a value
-  it did not compile. Now C++ `FACT` throws `FactsLeave` and `FactsCheck` catches it around the
-  call to the group. One `try` in the run covers every group, C++ or C, because a C++ program's
-  run is `facts.c` compiled as C++; `FACTS_DECLARE`, the group's symbol, and the gdb hint are
-  unchanged. The choice is made per fact (`FACT_BY_RETURN`, `FACT_BY_EXCEPTION`), not per
-  group, because a fact in a helper cannot know which group called it, and not per program,
-  because one program can hold C and C++ files. Built without exceptions, `FACT` leaves by
-  return. Rejected: a try in each group's own function (it did the same, and changed the group's
-  symbol); a `-DFACTS_THROW` flag for the program (a C file given the same flag could not obey
-  it); a runtime switch (`return;` does not compile in a helper that returns a value, even where
-  it would never run). A C group calling C++ that throws may not unwind (seen to end in
-  `terminate` with gcc when the C file had no unwind tables); C cannot test C++, so nothing is
-  done for it. Source: the owner, 2026-11-17, from issue #7.
+- **In C++ a fiction leaves by exception, and the group's own code catches it** — REQ4/WR-8 —
+  `FACT` was `if (!check) return`, so in a helper it left only the helper, and in a helper
+  returning a value it did not compile. Now C++ `FACT` throws `FactsLeave`, and in C++
+  `FACTS_DECLARE` adds a static `facts_<name>_caught` that calls the group inside a `try`; the
+  group's data points to it. The group's body keeps the name `facts_<name>_function`, so the gdb
+  hints are unchanged (seen to stop there with gdb 13.1). 2.4.0 had the `try` in `FactsCheck`
+  instead, which exists only in the C++ build of the run: a C++ program linked with the C library
+  (`libfacts`, or `facts.c` alone, which worked through 2.3.0 without traces) aborted at its
+  first fiction. Found writing `MOVING-CC.md`; fixed in 2.4.1, with a test that links the C++
+  test program with the C core compiled as C. The choice is made per fact (`FACT_BY_RETURN`,
+  `FACT_BY_EXCEPTION`), not per group, because a fact in a helper cannot know which group called
+  it, and not per program, because one program can hold C and C++ files. Built without
+  exceptions, `FACT` leaves by return. Rejected: the `try` in the run (2.4.0, above; first
+  chosen because a per-group `try` was thought to change the group's symbol, which naming the
+  wrapper differently avoids); a `-DFACTS_THROW` flag for the program (a C file given the same
+  flag could not obey it); a runtime switch (`return;` does not compile in a helper that returns
+  a value, even where it would never run). A C group calling C++ that throws may not unwind
+  (seen to end in `terminate` with gcc when the C file had no unwind tables); C cannot test C++,
+  so nothing is done for it. Source: the owner, 2026-11-17, from issue #7; the move to the group,
+  the owner's word on the same day.
 - **A fiction shows what it can, picked at compile time** — REQ4/WR-9 — a value's own
   `operator<<` first; then a container (anything `std::begin` accepts) or a pair, shown element by
   element the same way; then `?`. Overloads ranked by a derived-to-base tag pick the first that

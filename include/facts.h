@@ -162,7 +162,7 @@ extern "C"
   return
 // How a fiction leaves (REQ4/WR-8).  By return: the function the fact is
 // written in returns, which ends the group only when that is the group.  By
-// exception: FactsLeave is thrown and FactsCheck catches it, so a fiction in a
+// exception: FactsLeave is thrown and the group's FACTS_DECLARE catches it, so a fiction in a
 // helper, method, or lambda ends the group, and a helper that returns a value
 // can use FACT.  FACT leaves by exception wherever the compiler has them.
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
@@ -185,10 +185,25 @@ struct FactsLeave {};
 #define FACTS_EXTERN
 #endif
 
+#if defined(__cplusplus) && defined(FACTS_EXCEPTIONS)
+// In C++ the run calls facts_<name>_caught, which catches the fiction FACT
+// throws (REQ4/WR-8).  The catch is here, in the program's own code, so it
+// works whichever library is linked, the C one included.  The group's body
+// keeps the name facts_<name>_function, which the gdb hints break in.
+#define FACTS_DECLARE(name, state)                                                                    \
+  void facts_##name##_function(Facts *facts);                                                           \
+  static void facts_##name##_caught(Facts *facts)                                                       \
+  {                                                                                                     \
+    try { facts_##name##_function(facts); } catch (FactsLeave &) {}                                     \
+  }                                                                                                     \
+  Facts facts_##name##_data = {__FILE__, __LINE__, #name, &facts_##name##_caught, state, NULL, NULL};   \
+  void facts_##name##_function(Facts *facts)
+#else
 #define FACTS_DECLARE(name, state)                                                                    \
   void facts_##name##_function(Facts *facts);                                                           \
   Facts facts_##name##_data = {__FILE__, __LINE__, #name, &facts_##name##_function, state, NULL, NULL}; \
   void facts_##name##_function(Facts *facts)
+#endif
 
 #define FACTS_INCLUDE(name) FACTS_DECLARE(name, FACTS_STATE_INCLUDE)
 #define FACTS_EXCLUDE(name) FACTS_DECLARE(name, FACTS_STATE_EXCLUDE)
