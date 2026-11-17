@@ -125,8 +125,9 @@ extern "C"
   if (!FACT_CHECK_PRINT(a, op, b, fmt)) \
   return
 
-// C++: the lambda is there to hold each side by reference while it is compared and printed.
-#define FACT_CHECK_CERR(a, op, b) ([&]() -> int { const auto &facts_a_ = (a); const auto &facts_b_ = (b); return (facts_a_ op facts_b_) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << facts_a_ << "} " << #op << " " << #b << " {=" << facts_b_ << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); }())
+// C++: the lambda is there to hold each side while it is compared and printed
+// (a number by value, anything else by reference: FactsHeld).
+#define FACT_CHECK_CERR(a, op, b) ([&]() -> int { typename FactsHeld<decltype((a))>::type facts_a_ = (a); typename FactsHeld<decltype((b))>::type facts_b_ = (b); return (facts_a_ op facts_b_) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << facts_a_ << "} " << #op << " " << #b << " {=" << facts_b_ << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); }())
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return
@@ -219,6 +220,17 @@ struct FactsLeave {};
 #ifdef __cplusplus
 #include <functional>
 #include <iostream>
+#include <type_traits>
+
+  // How a fact holds a side while it compares and prints it.  A number, enum,
+  // or pointer is copied: a reference to `static const size_t MAX = 64;`,
+  // declared in a class and never defined outside it, fails to link.  Anything
+  // else is held by reference, so it need not be copyable.
+  template <class T> struct FactsHeld
+  {
+    typedef typename std::remove_cv<typename std::remove_reference<T>::type>::type bare;
+    typedef typename std::conditional<std::is_scalar<bare>::value, bare, const bare &>::type type;
+  };
  
   class FactsTrace
   {
@@ -314,9 +326,9 @@ struct FactsLeave {};
 
   template <class L, class R> struct FactsBinary
   {
-    const L &lhs;
+    typename FactsHeld<L>::type lhs;
     const char *op;
-    const R &rhs;
+    typename FactsHeld<R>::type rhs;
     bool truth;
     explicit operator bool() const { return truth; }
   };
@@ -327,25 +339,34 @@ struct FactsLeave {};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #endif
+  // Each comparison twice: a number taken by value, anything else by reference
+  // (FactsHeld).  An array is taken by value too, as the pointer it decays to;
+  // otherwise "abc" would match both.
+#define FACTS_LHS_OP(OP) \
+    template <class R> typename std::enable_if<std::is_scalar<R>::value, FactsBinary<L, R> >::type operator OP(R rhs) const { return FactsBinary<L, R>{lhs, #OP, rhs, static_cast<bool>(lhs OP rhs)}; } \
+    template <class R> typename std::enable_if<!std::is_scalar<R>::value && !std::is_array<R>::value, FactsBinary<L, R> >::type operator OP(const R &rhs) const { return FactsBinary<L, R>{lhs, #OP, rhs, static_cast<bool>(lhs OP rhs)}; }
   template <class L> struct FactsLhs
   {
-    const L &lhs;
+    typename FactsHeld<L>::type lhs;
     explicit operator bool() const { return static_cast<bool>(lhs); }
-    template <class R> FactsBinary<L, R> operator==(const R &rhs) const { return FactsBinary<L, R>{lhs, "==", rhs, static_cast<bool>(lhs == rhs)}; }
-    template <class R> FactsBinary<L, R> operator!=(const R &rhs) const { return FactsBinary<L, R>{lhs, "!=", rhs, static_cast<bool>(lhs != rhs)}; }
-    template <class R> FactsBinary<L, R> operator<(const R &rhs) const { return FactsBinary<L, R>{lhs, "<", rhs, static_cast<bool>(lhs < rhs)}; }
-    template <class R> FactsBinary<L, R> operator<=(const R &rhs) const { return FactsBinary<L, R>{lhs, "<=", rhs, static_cast<bool>(lhs <= rhs)}; }
-    template <class R> FactsBinary<L, R> operator>(const R &rhs) const { return FactsBinary<L, R>{lhs, ">", rhs, static_cast<bool>(lhs > rhs)}; }
-    template <class R> FactsBinary<L, R> operator>=(const R &rhs) const { return FactsBinary<L, R>{lhs, ">=", rhs, static_cast<bool>(lhs >= rhs)}; }
+    FACTS_LHS_OP(==)
+    FACTS_LHS_OP(!=)
+    FACTS_LHS_OP(<)
+    FACTS_LHS_OP(<=)
+    FACTS_LHS_OP(>)
+    FACTS_LHS_OP(>=)
   };
+#undef FACTS_LHS_OP
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
   struct FactsDecompose
   {
-    template <class L> FactsLhs<L> operator<<(const L &lhs) const { return FactsLhs<L>{lhs}; }
-    template <class L> FactsLhs<L> operator<=(const L &lhs) const { return FactsLhs<L>{lhs}; }
+    template <class L> typename std::enable_if<std::is_scalar<L>::value, FactsLhs<L> >::type operator<<(L lhs) const { return FactsLhs<L>{lhs}; }
+    template <class L> typename std::enable_if<!std::is_scalar<L>::value && !std::is_array<L>::value, FactsLhs<L> >::type operator<<(const L &lhs) const { return FactsLhs<L>{lhs}; }
+    template <class L> typename std::enable_if<std::is_scalar<L>::value, FactsLhs<L> >::type operator<=(L lhs) const { return FactsLhs<L>{lhs}; }
+    template <class L> typename std::enable_if<!std::is_scalar<L>::value && !std::is_array<L>::value, FactsLhs<L> >::type operator<=(const L &lhs) const { return FactsLhs<L>{lhs}; }
   };
 
   // Is it true, and what values does a fiction show: one pair of overloads

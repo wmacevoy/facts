@@ -137,7 +137,7 @@ if(FACTS_BUILD_TESTS)
   facts_expect(testfacts_if_c_facts   testfacts_if_c   1 "${three_fictions}" --facts)
   facts_expect(testfacts_if_cpp_facts testfacts_if_cpp 1 "${three_fictions}" --facts)
   # REQ1/WR-5: the C++ expression form.
-  facts_expect(testfacts_expr_cpp   testfacts_expr_cpp 1 "18 (66.7%) truths and 9 (33.3%) fictions checked.")
+  facts_expect(testfacts_expr_cpp   testfacts_expr_cpp 1 "22 (71.0%) truths and 9 (29.0%) fictions checked.")
   # REQ1/WR-6: once in C++ everywhere; in C once with gcc and clang, twice and warned about elsewhere.
   facts_expect(testfacts_once_cpp   testfacts_once_cpp 1 "3 (75.0%) truths and 1 (25.0%) fictions checked.")
   if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")

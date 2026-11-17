@@ -74,6 +74,18 @@ FACTS(ExprCheck) {
   FACT_CHECK(truths == 0, "truths=" << truths);
 }
 
+// REQ1/WR-5: a constant declared in a class and never defined outside it
+// links: each side that is a number is held by value.
+struct Limits { static const size_t MAX = 64; static const int LOW = -1; enum { ONE = 1 }; };
+
+FACTS(ExprStaticConst) {
+  size_t n = 64;
+  FACT(n == Limits::MAX);
+  FACT(Limits::LOW < Limits::ONE);
+  FACT(n, ==, Limits::MAX);
+  FACT_CHECK(Limits::MAX == n, "n=" << n);
+}
+
 FACTS_REGISTER_ALL() {
   FACTS_REGISTER(ExprTruths);
   FACTS_REGISTER(ExprEqual);
@@ -85,6 +97,7 @@ FACTS_REGISTER_ALL() {
   FACTS_REGISTER(ExprNoteLazy);
   FACTS_REGISTER(ExprOnce);
   FACTS_REGISTER(ExprCheck);
+  FACTS_REGISTER(ExprStaticConst);
 }
 
 FACTS_MAIN

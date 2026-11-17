@@ -45,9 +45,12 @@ test/testfacts_expr.cpp/ExprCheck 74: truths == 0 {1 == 0} is fiction: truths=1
 (gdb) break facts_ExprCheck_function
 (gdb) run --facts_unsafe --facts_include=ExprCheck
 test/testfacts_expr.cpp 71: ExprCheck facts check ended badly
+test/testfacts_expr.cpp 81: ExprStaticConst facts check started
+test/testfacts_expr.cpp 81: ExprStaticConst facts check ended
 facts summary.
 facts check ExprTruths passed
 facts check ExprNoteLazy passed
+facts check ExprStaticConst passed
 facts check ExprEqual failed
 facts check ExprArithmetic failed
 facts check ExprString failed
@@ -56,4 +59,4 @@ facts check ExprAnd failed
 facts check ExprNote failed
 facts check ExprOnce failed
 facts check ExprCheck failed
-18 (66.7%) truths and 9 (33.3%) fictions checked.
+22 (71.0%) truths and 9 (29.0%) fictions checked.
