@@ -114,7 +114,13 @@ FACTS(AboutTable) {
 - **Floating point is rarely equal.** `FACT(0.1 * 7 == 0.7)` is false. Use an interval:
   `FACT(x == 0.7 + facts::pm(1e-12))`. A value compared with an interval prints with 17 digits.
 - **`&&` and `||` print no values.** `FACT(a == 1 && b == 2)` is checked as a whole. Write two
-  facts.
+  facts: `FACT(p != nullptr); FACT(p->x == 2);` still never reaches the second when the first is
+  false.
+- **A comma inside a template argument splits the macro's arguments:**
+  `FACT(f<A, B>() == 1)` does not compile. Parenthesize it: `FACT((f<A, B>()) == 1)`.
+- **A footnote is streamed,** so one with a comparison in it needs parentheses:
+  `FACT(x == 2, (a < b))`.
+- **`--facts_timeout=N` is for the whole run** (10 seconds by default). Raise it for a long one.
 - **Parenthesize a shift on the left:** `FACT((x << 1) == 4)`.
 - **Compare pointers with `nullptr`,** not `0`.
 - **`FACT(a = b)` does not compile.** That is deliberate.

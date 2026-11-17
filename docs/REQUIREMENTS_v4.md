@@ -23,6 +23,7 @@ to facts):
   decisions).
 - **WR-9** is new: in C++ a fiction shows a value of any type, so every comparison compiles.
 - **WR-10** is new: `FactsCurrent()`, so a helper can check facts without being passed them.
+- `FACT_ALL` is not built (Scope decisions).
 
 *Since v2 (in v3)*, all decided by the owner on 2026-11-14:
 
@@ -324,6 +325,11 @@ Each was accepted with the document on 2026-11-14, not asked one by one.
   "leave torn."
 - The VS Code extension is deprecated and gets no fixes; an extension for VSCodium replaces it
   — the owner, 2026-11-14.
+- No `FACT_ALL(a, b, ...)`: one form to learn (Non-goals). `FACT` stops at the first fiction, so
+  `FACT(p != nullptr); FACT(p->x == 2);` keeps `&&`'s short-circuit and says which part was false
+  — the owner, 2026-11-17, on issue #7.
+- No timeout per group: `--facts_timeout=N` is for the whole run — the owner, 2026-11-17, on
+  issue #7.
 - Arguments beginning `--fact` are reserved and must match; all others are the program's — the
   owner, 2026-11-14: "a program might need command line args even for tests."
 
