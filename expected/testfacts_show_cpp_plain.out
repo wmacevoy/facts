@@ -1,0 +1,44 @@
+test/testfacts_show.cpp 19: ShowContainers facts check started
+test/testfacts_show.cpp/ShowContainers 21: a == b {{1, 2} == {1, 3}} is fiction
+(gdb) break facts_ShowContainers_function
+(gdb) run --facts_unsafe --facts_include=ShowContainers
+test/testfacts_show.cpp/ShowContainers 22: a {={1, 2}} == b {={1, 3}} is fiction
+(gdb) break facts_ShowContainers_function
+(gdb) run --facts_unsafe --facts_include=ShowContainers
+test/testfacts_show.cpp/ShowContainers 24: nested == other {{{1}, {2, 3}} == {{1}}} is fiction
+(gdb) break facts_ShowContainers_function
+(gdb) run --facts_unsafe --facts_include=ShowContainers
+test/testfacts_show.cpp/ShowContainers 26: m == empty {{(one, 1), (two, 2)} == {}} is fiction
+(gdb) break facts_ShowContainers_function
+(gdb) run --facts_unsafe --facts_include=ShowContainers
+test/testfacts_show.cpp/ShowContainers 28: many == fewer {{7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, ...} == {7, 7, 7}} is fiction
+(gdb) break facts_ShowContainers_function
+(gdb) run --facts_unsafe --facts_include=ShowContainers
+test/testfacts_show.cpp 19: ShowContainers facts check ended badly
+test/testfacts_show.cpp 31: ShowPairs facts check started
+test/testfacts_show.cpp/ShowPairs 33: p == q {(1, x) == (2, y)} is fiction
+(gdb) break facts_ShowPairs_function
+(gdb) run --facts_unsafe --facts_include=ShowPairs
+test/testfacts_show.cpp/ShowPairs 35: p {=(1, x)} > q {=(2, y)} is fiction
+(gdb) break facts_ShowPairs_function
+(gdb) run --facts_unsafe --facts_include=ShowPairs
+test/testfacts_show.cpp 31: ShowPairs facts check ended badly
+test/testfacts_show.cpp 38: ShowOthers facts check started
+test/testfacts_show.cpp/ShowOthers 40: x == y {? == ?} is fiction
+(gdb) break facts_ShowOthers_function
+(gdb) run --facts_unsafe --facts_include=ShowOthers
+test/testfacts_show.cpp/ShowOthers 41: x {=?} == y {=?} is fiction
+(gdb) break facts_ShowOthers_function
+(gdb) run --facts_unsafe --facts_include=ShowOthers
+test/testfacts_show.cpp/ShowOthers 43: n == o {Named#1 == Named#2} is fiction
+(gdb) break facts_ShowOthers_function
+(gdb) run --facts_unsafe --facts_include=ShowOthers
+test/testfacts_show.cpp/ShowOthers 45: s == "abd" {abc == abd} is fiction
+(gdb) break facts_ShowOthers_function
+(gdb) run --facts_unsafe --facts_include=ShowOthers
+test/testfacts_show.cpp 38: ShowOthers facts check ended badly
+facts summary.
+facts check ShowContainers failed
+facts check ShowPairs failed
+facts check ShowOthers failed
+1 (8.3%) truths and 11 (91.7%) fictions checked.

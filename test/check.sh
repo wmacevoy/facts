@@ -129,6 +129,11 @@ says  "19 (100.0%) truths and 0 (0.0%) fictions checked." bin/testfacts_err_c --
 golden testfacts_interval_cpp_plain.out bin/testfacts_interval_cpp --facts_plain
 says  "test/testfacts_interval.cpp/OutsideAbsolute 81: x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction" bin/testfacts_interval_cpp --facts_plain
 
+# REQ4/WR-9 a fiction shows any value: its own operator<<, a container's first 20 elements, a
+# pair, or "?"; every comparison compiles.
+golden testfacts_show_cpp_plain.out bin/testfacts_show_cpp --facts_plain
+says  "test/testfacts_show.cpp/ShowOthers 40: x == y {? == ?} is fiction" bin/testfacts_show_cpp --facts_plain
+
 # REQ4/WR-8 in C++ a fiction in a helper, a value-returning helper, or a lambda ends its group;
 # FACT_BY_RETURN, and every fact in C, leaves only the function it is in; the next group runs.
 leave=bin/testfacts_leave_cpp

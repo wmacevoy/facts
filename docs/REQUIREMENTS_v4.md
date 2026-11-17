@@ -21,6 +21,7 @@ to facts):
   `FACT_BY_RETURN` keeps the old way. *By return* and *by exception* are new words.
 - A C group cannot call C++ that checks facts, and nothing is done for that case (Scope
   decisions).
+- **WR-9** is new: in C++ a fiction shows a value of any type, so every comparison compiles.
 
 *Since v2 (in v3)*, all decided by the owner on 2026-11-14:
 
@@ -165,6 +166,11 @@ Numbers are the code's.
   `FACT_BY_EXCEPTION` names the C++ default; each takes the forms `FACT` takes. In C, `FACT` and
   `FACT_BY_RETURN` leave by return, and `FACT_BY_EXCEPTION` does not compile. A C++ build without
   exceptions leaves by return. *The owner, 2026-11-17, from issue #7.*
+- **WR-9** *(since v4)* In C++, a fact compiles whatever the types of its sides, as long as the
+  comparison does. A fiction shows each value with its own `operator<<` if it has one; otherwise
+  a container as its first 20 elements in braces, `{1, 2, ...}`; a pair as `(first, second)`;
+  and anything else as `?`. Elements and members are shown the same way. *The owner,
+  2026-11-17, from issue #7.*
 
 **Registration**
 

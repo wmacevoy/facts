@@ -101,7 +101,7 @@ CFLAGS_DEBUG   = -g -std=$(CSTD) -Iinclude
 CXXFLAGS_DEBUG = -g -std=$(CXXSTD) -Iinclude
 
 .PHONY: tests
-tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c bin/testfacts_leave_cpp bin/testfacts_noexc_cpp
+tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c bin/testfacts_leave_cpp bin/testfacts_noexc_cpp bin/testfacts_show_cpp
 
 bin/testfacts_c: test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
@@ -151,6 +151,10 @@ bin/testfacts_interval_cpp: test/testfacts_interval.cpp src/facts.cpp src/facts.
 bin/testfacts_err_c: test/testfacts_err.c src/facts.c include/facts.h
 	mkdir -p bin
 	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_err.c src/facts.c $(LDLIBS_DL)
+
+bin/testfacts_show_cpp: test/testfacts_show.cpp src/facts.cpp src/facts.c include/facts.h
+	mkdir -p bin
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_show.cpp src/facts.cpp $(LDLIBS_DL)
 
 # C groups and C++ groups in one program: the C file is compiled as C.
 bin/testfacts_leave_cpp: test/testfacts_leave.cpp test/testfacts_leave.c src/facts.cpp src/facts.c include/facts.h
@@ -211,6 +215,7 @@ expected: tests examples
 	bin/testfacts_twice_c --facts_plain 2>/dev/null >expected/testfacts_twice_c_plain.out || true
 	bin/testfacts_once_cpp --facts_plain 2>/dev/null >expected/testfacts_once_cpp_plain.out || true
 	bin/testfacts_interval_cpp --facts_plain 2>/dev/null >expected/testfacts_interval_cpp_plain.out || true
+	bin/testfacts_show_cpp --facts_plain 2>/dev/null >expected/testfacts_show_cpp_plain.out || true
 	bin/testfacts_leave_cpp --facts_plain 2>/dev/null >expected/testfacts_leave_cpp_plain.out || true
 	examples/hello_c/hello 2>/dev/null >expected/hello_c.out || true
 	examples/hello_cpp/hello 2>/dev/null >expected/hello_cpp.out || true

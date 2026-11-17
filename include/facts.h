@@ -127,7 +127,7 @@ extern "C"
 
 // C++: the lambda is there to hold each side while it is compared and printed
 // (a number by value, anything else by reference: FactsHeld).
-#define FACT_CHECK_CERR(a, op, b) ([&]() -> int { typename FactsHeld<decltype((a))>::type facts_a_ = (a); typename FactsHeld<decltype((b))>::type facts_b_ = (b); return (facts_a_ op facts_b_) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << facts_a_ << "} " << #op << " " << #b << " {=" << facts_b_ << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); }())
+#define FACT_CHECK_CERR(a, op, b) ([&]() -> int { typename FactsHeld<decltype((a))>::type facts_a_ = (a); typename FactsHeld<decltype((b))>::type facts_b_ = (b); return (facts_a_ op facts_b_) ? (++facts_truths, 1) : (std::cout  << __FILE__ << "/" << facts->name << " " << __LINE__ << ": " << FACTS_RED << #a << " {=" << FactsShow(facts_a_) << "} " << #op << " " << #b << " {=" << FactsShow(facts_b_) << "} is fiction" << FACTS_RESET << std::endl, FactsFiction(__FILE__, __LINE__, facts, #a, #op, #b), facts->status = -1, ++facts_fictions, 0); }())
 #define FACT_CERR(a, op, b)  \
   if (!FACT_CHECK_CERR(a, op, b)) \
   return
@@ -221,6 +221,8 @@ struct FactsLeave {};
 #include <functional>
 #include <iostream>
 #include <type_traits>
+#include <iterator>
+#include <utility>
 
   // How a fact holds a side while it compares and prints it.  A number, enum,
   // or pointer is copied: a reference to `static const size_t MAX = 64;`,
@@ -369,6 +371,59 @@ struct FactsLeave {};
     template <class L> typename std::enable_if<!std::is_scalar<L>::value && !std::is_array<L>::value, FactsLhs<L> >::type operator<=(const L &lhs) const { return FactsLhs<L>{lhs}; }
   };
 
+  // ---- How a fiction shows a value (REQ4/WR-9) ----
+  //
+  // With its own operator<< if it has one; else a container as its first 20
+  // elements in braces, a pair as (first, second); else "?".  So every
+  // comparison compiles, whatever its sides.  The ranks pick the first that
+  // compiles: a call with FactsRank2 prefers the overload taking FactsRank2.
+  struct FactsRank0 {};
+  struct FactsRank1 : FactsRank0 {};
+  struct FactsRank2 : FactsRank1 {};
+
+  template <class T> void FactsValue(std::ostream &out, const T &value);
+
+  template <class T> auto FactsValueRanked(std::ostream &out, const T &value, FactsRank2) -> decltype((void)(out << value))
+  {
+    out << value;
+  }
+
+  template <class T> auto FactsValueRanked(std::ostream &out, const T &value, FactsRank1) -> decltype((void)std::begin(value), (void)std::end(value))
+  {
+    const int most = 20;
+    int count = 0;
+    out << "{";
+    for (auto at = std::begin(value); at != std::end(value); ++at, ++count)
+    {
+      if (count == most) { out << ", ..."; break; }
+      if (count > 0) out << ", ";
+      FactsValue(out, *at);
+    }
+    out << "}";
+  }
+
+  template <class A, class B> void FactsValueRanked(std::ostream &out, const std::pair<A, B> &value, FactsRank1)
+  {
+    out << "(";
+    FactsValue(out, value.first);
+    out << ", ";
+    FactsValue(out, value.second);
+    out << ")";
+  }
+
+  template <class T> void FactsValueRanked(std::ostream &out, const T &, FactsRank0) { out << "?"; }
+
+  template <class T> void FactsValue(std::ostream &out, const T &value) { FactsValueRanked(out, value, FactsRank2()); }
+
+  // `out << FactsShow(x)` writes x as FactsValue does, inside a chain of <<.
+  template <class T> struct FactsShowing { const T &value; };
+  template <class T> FactsShowing<T> FactsShow(const T &value) { return FactsShowing<T>{value}; }
+  template <class T> std::ostream &operator<<(std::ostream &out, const FactsShowing<T> &shown)
+  {
+    FactsValue(out, shown.value);
+    return out;
+  }
+
   // Is it true, and what values does a fiction show: one pair of overloads
   // for each thing the expression can come out as.
   inline bool FactsExprTruth(bool whole) { return whole; }
@@ -376,14 +431,14 @@ struct FactsLeave {};
   template <class L, class R> bool FactsExprTruth(const FactsBinary<L, R> &two) { return two.truth; }
 
   inline void FactsExprValues(std::ostream &, bool) {}
-  template <class L> void FactsExprValues(std::ostream &out, const FactsLhs<L> &one) { out << " {" << one.lhs << "}"; }
-  template <class L, class R> void FactsExprValues(std::ostream &out, const FactsBinary<L, R> &two) { out << " {" << two.lhs << " " << two.op << " " << two.rhs << "}"; }
+  template <class L> void FactsExprValues(std::ostream &out, const FactsLhs<L> &one) { out << " {" << FactsShow(one.lhs) << "}"; }
+  template <class L, class R> void FactsExprValues(std::ostream &out, const FactsBinary<L, R> &two) { out << " {" << FactsShow(two.lhs) << " " << two.op << " " << FactsShow(two.rhs) << "}"; }
 
   // Against an interval, the value is printed with the interval's 17 digits.
   template <class L> void FactsExprValues(std::ostream &out, const FactsBinary<L, facts::interval> &two)
   {
     std::streamsize digits = out.precision(17);
-    out << " {" << two.lhs << " " << two.op << " ";
+    out << " {" << FactsShow(two.lhs) << " " << two.op << " ";
     out.precision(digits);
     out << two.rhs << "}";
   }

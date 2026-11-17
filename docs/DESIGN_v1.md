@@ -262,6 +262,13 @@ review by someone who did not share the author's assumptions.
   it would never run). A C group calling C++ that throws may not unwind (seen to end in
   `terminate` with gcc when the C file had no unwind tables); C cannot test C++, so nothing is
   done for it. Source: the owner, 2026-11-17, from issue #7.
+- **A fiction shows what it can, picked at compile time** — REQ4/WR-9 — a value's own
+  `operator<<` first; then a container (anything `std::begin` accepts) or a pair, shown element by
+  element the same way; then `?`. Overloads ranked by a derived-to-base tag pick the first that
+  compiles, in C++11 with no library. A container stops at 20 elements, so a fiction stays one
+  line a person reads; 20 is the agent's choice. Rejected: `{?}` alone (most of the comparisons
+  in issue #7 were vectors and pairs); tuples, `std::optional`, and enum classes, which nobody
+  has asked for yet (an enum class shows `?`). Source: the owner, 2026-11-17, from issue #7.
 - **A stopped parent kills its child, and does not ask it** — REQ3/SX-5 — the child may be hung
   or ignoring signals, which is why it is being supervised. Rejected: passing the same signal
   on (a group that ignores it would survive); a process group for the child (it would take the

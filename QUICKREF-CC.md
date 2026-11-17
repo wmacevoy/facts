@@ -99,8 +99,9 @@ FACTS(AboutTable) {
 
 ## Things that bite
 
-- **Values must print.** Both sides need `operator<<` to a `std::ostream`. For a type without
-  one, compare a member, or give the type an `operator<<`.
+- **Values print as well as they can.** A value with an `operator<<` prints with it. Without
+  one, a container prints its first 20 elements, `{1, 2, ...}`; a pair, `(first, second)`;
+  anything else, `?`. Give a type an `operator<<` to see more than `?`.
 - **C strings are pointers.** `FACT(p == "abc")` with a `const char *` compares addresses. Make
   one side a `std::string`.
 - **Floating point is rarely equal.** `FACT(0.1 * 7 == 0.7)` is false. Use an interval:
