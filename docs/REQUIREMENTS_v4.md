@@ -22,6 +22,7 @@ to facts):
 - A C group cannot call C++ that checks facts, and nothing is done for that case (Scope
   decisions).
 - **WR-9** is new: in C++ a fiction shows a value of any type, so every comparison compiles.
+- **WR-10** is new: `FactsCurrent()`, so a helper can check facts without being passed them.
 
 *Since v2 (in v3)*, all decided by the owner on 2026-11-14:
 
@@ -171,6 +172,10 @@ Numbers are the code's.
   a container as its first 20 elements in braces, `{1, 2, ...}`; a pair as `(first, second)`;
   and anything else as `?`. Elements and members are shown the same way. *The owner,
   2026-11-17, from issue #7.*
+- **WR-10** *(since v4)* `FactsCurrent()` gives the group being run, in C and C++, so a helper
+  or method with no `Facts *` parameter can write `Facts *facts = FactsCurrent();` and then
+  `FACT`. Outside a run it gives `NULL`, and a `FACT` there crashes, which safe execution
+  reports (REQ1/SX-1). *The owner, 2026-11-17, from issue #7.*
 
 **Registration**
 

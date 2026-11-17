@@ -63,7 +63,8 @@ FACTS_MAIN                     // main() that checks the facts
 ## Helpers
 
 `FACT` works in any function that has a `Facts *facts` in scope. A false fact there ends the
-group that called it: the run catches the exception `FACT` throws.
+group that called it: the run catches the exception `FACT` throws. A function that cannot take
+the parameter (a virtual method, a callback) gets the running group from `FactsCurrent()`.
 
 ```C++
 static int half(Facts *facts, int x) {   // a helper may return a value
@@ -74,6 +75,12 @@ static int half(Facts *facts, int x) {   // a helper may return a value
 FACTS(AboutHalf) {
   FACT(half(facts, 8) == 4);
   half(facts, 3);                          // false: the group ends here
+}
+
+int third(int x) {                         // no Facts parameter
+  Facts *facts = FactsCurrent();           // the group being run
+  FACT(x % 3 == 0);
+  return x / 3;
 }
 ```
 

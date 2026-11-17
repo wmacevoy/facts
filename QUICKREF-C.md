@@ -57,7 +57,7 @@ FACTS_MAIN                     /* main() that checks the facts */
   fact evaluates each side twice, and the report ends with a warning if that happened. Keep `++x`
   out of facts.
 - **`FACT` returns from the function it is in.** In a group that ends the group; in a helper,
-  only the helper. Free what you allocated before the first `FACT` that can fail, or use
+  only the helper. A helper with no `Facts *` parameter writes `Facts *facts = FactsCurrent();`. Free what you allocated before the first `FACT` that can fail, or use
   `FACT_CHECK`.
 - **A group you forget to register does not run**, and nothing says so. `--facts_register_all`
   prints the block for what is registered now; `--facts_find` avoids the block altogether.

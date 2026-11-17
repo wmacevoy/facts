@@ -129,6 +129,12 @@ says  "19 (100.0%) truths and 0 (0.0%) fictions checked." bin/testfacts_err_c --
 golden testfacts_interval_cpp_plain.out bin/testfacts_interval_cpp --facts_plain
 says  "test/testfacts_interval.cpp/OutsideAbsolute 81: x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction" bin/testfacts_interval_cpp --facts_plain
 
+# REQ4/WR-10 FactsCurrent() is the running group, so a helper or a method with no Facts
+# parameter can check; in C++ its fiction still ends the group.
+golden testfacts_current_c_plain.out   bin/testfacts_current_c --facts_plain
+golden testfacts_current_cpp_plain.out bin/testfacts_current_cpp --facts_plain
+quiet "not reached: CurrentInMethod went on" bin/testfacts_current_cpp --facts_plain
+
 # REQ4/WR-9 a fiction shows any value: its own operator<<, a container's first 20 elements, a
 # pair, or "?"; every comparison compiles.
 golden testfacts_show_cpp_plain.out bin/testfacts_show_cpp --facts_plain

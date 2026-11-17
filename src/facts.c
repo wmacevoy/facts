@@ -49,6 +49,7 @@
 #define FACTS_C 1
 #include "facts.h"
 static Facts *head = NULL, *tail = NULL;
+static Facts *current = NULL;   // the group FactsCheck is running: FactsCurrent
 
 // These must have C linkage to match the extern declarations in facts.h
 // (which are inside extern "C"). Without this, MSVC mangles the names
@@ -793,6 +794,11 @@ static void FactsReportRunEnded(void)
   if (FACTS_JUNIT) FactsJUnitRunEnded();
 }
 
+FACTS_EXTERN Facts *FactsCurrent(void)
+{
+  return current;
+}
+
 // Execute facts checks.
 //
 // You can preceed this with FactsInclude and FactsExlude to pick out
@@ -814,12 +820,14 @@ FACTS_EXTERN void FactsCheck()
 #ifdef __cplusplus
       FactsTrace::reset(facts);
 #endif
+      current = facts;
 #if defined(__cplusplus) && defined(FACTS_EXCEPTIONS)
       // FACT leaves by exception in C++ (REQ4/WR-8); the group ends here.
       try { facts->function(facts); } catch (FactsLeave &) {}
 #else
       facts->function(facts);
 #endif
+      current = NULL;
       if (facts->status == FACTS_STATE_INCLUDE)
       {
         facts->status = FACTS_STATE_PASS;

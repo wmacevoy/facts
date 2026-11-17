@@ -42,6 +42,9 @@ extern "C"
   void FactsExclude(const char *pattern);
   void FactsRegister(Facts *facts);
   void FactsCheck();
+  // The group being run, or NULL outside a run (REQ4/WR-10).  A helper with no
+  // Facts parameter writes `Facts *facts = FactsCurrent();` and can use FACT.
+  Facts *FactsCurrent(void);
   void FactsFiction(const char *file, int line, Facts *facts,
 		    const char *a, const char *op, const char *b);
 

@@ -1,0 +1,8 @@
+test/testfacts_current.cpp 20: CurrentInMethod facts check started
+test/testfacts_current.cpp/CurrentInMethod 13: sides_ == 4 {5 == 4} is fiction: a square with 5 sides
+(gdb) break facts_CurrentInMethod_function
+(gdb) run --facts_unsafe --facts_include=CurrentInMethod
+test/testfacts_current.cpp 20: CurrentInMethod facts check ended badly
+facts summary.
+facts check CurrentInMethod failed
+2 (66.7%) truths and 1 (33.3%) fictions checked.

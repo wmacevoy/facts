@@ -122,6 +122,8 @@ if(FACTS_BUILD_TESTS)
   facts_test_program(testfacts_err_c    test/testfacts_err.c    facts_c_static)
   facts_test_program(testfacts_interval_cpp test/testfacts_interval.cpp facts_cpp_static)
   facts_test_program(testfacts_show_cpp test/testfacts_show.cpp facts_cpp_static)
+  facts_test_program(testfacts_current_c   test/testfacts_current.c   facts_c_static)
+  facts_test_program(testfacts_current_cpp test/testfacts_current.cpp facts_cpp_static)
   # C groups and C++ groups in one program.
   facts_test_program(testfacts_leave_cpp "test/testfacts_leave.cpp;test/testfacts_leave.c" facts_cpp_static)
 
@@ -150,6 +152,9 @@ if(FACTS_BUILD_TESTS)
   facts_expect(testfacts_err_c      testfacts_err_c 0 "19 (100.0%) truths and 0 (0.0%) fictions checked.")
   # REQ3/WR-7: facts::interval.
   facts_expect(testfacts_interval_cpp testfacts_interval_cpp 1 "38 (88.4%) truths and 5 (11.6%) fictions checked.")
+  # REQ4/WR-10: FactsCurrent() in a helper or a method with no Facts parameter.
+  facts_expect(testfacts_current_c   testfacts_current_c   1 "2 (66.7%) truths and 1 (33.3%) fictions checked.")
+  facts_expect(testfacts_current_cpp testfacts_current_cpp 1 "a square with 5 sides")
   # REQ4/WR-9: any value is shown; a container's elements, a pair, or "?".
   facts_expect(testfacts_show_cpp testfacts_show_cpp 1 "x == y {? == ?} is fiction")
   # REQ4/WR-8: a fiction in a C++ helper or lambda ends its group; FACT_BY_RETURN and C leave by return.

@@ -1,0 +1,11 @@
+test/testfacts_current.c 9: CurrentIsThisGroup facts check started
+test/testfacts_current.c 9: CurrentIsThisGroup facts check ended
+test/testfacts_current.c 14: CurrentInHelper facts check started
+test/testfacts_current.c/CurrentInHelper 6: x % 2 {=1} == 0 {=0} is fiction
+(gdb) break facts_CurrentInHelper_function
+(gdb) run --facts_unsafe --facts_include=CurrentInHelper
+test/testfacts_current.c 14: CurrentInHelper facts check ended badly
+facts summary.
+facts check CurrentIsThisGroup passed
+facts check CurrentInHelper failed
+2 (66.7%) truths and 1 (33.3%) fictions checked.

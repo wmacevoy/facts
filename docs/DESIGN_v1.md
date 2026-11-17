@@ -269,6 +269,12 @@ review by someone who did not share the author's assumptions.
   line a person reads; 20 is the agent's choice. Rejected: `{?}` alone (most of the comparisons
   in issue #7 were vectors and pairs); tuples, `std::optional`, and enum classes, which nobody
   has asked for yet (an enum class shows `?`). Source: the owner, 2026-11-17, from issue #7.
+- **`FactsCurrent()` is a C function, not `facts::current()`** — REQ4/WR-10 — in
+  `Facts *facts = facts::current();` the new variable is already in scope in its own
+  initializer, so `facts::` would name it, not the namespace, and the line does not compile.
+  A C function also serves C helpers. Rejected: macros that use it when no local `facts` is in
+  scope (`FACT_HERE`; a second form to learn); taking the trace's own pointer in `FactsTrace`
+  (C++ only). Source: the owner, 2026-11-17, from issue #7.
 - **A stopped parent kills its child, and does not ask it** — REQ3/SX-5 — the child may be hung
   or ignoring signals, which is why it is being supervised. Rejected: passing the same signal
   on (a group that ignores it would survive); a process group for the child (it would take the
