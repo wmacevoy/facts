@@ -2,7 +2,8 @@
 
 One page for a person or an agent writing facts in C (C11). For C++ see
 [QUICKREF-CC.md](QUICKREF-CC.md); for the full story, [README.md](README.md).
-Every example here was compiled and run with facts 2.2.0, and the options rechecked at 2.3.0.
+Every example here was compiled and run with facts 2.2.0, the options rechecked at 2.3.0, and
+`FactsCurrent()` at 2.4.0.
 
 ## Set up
 

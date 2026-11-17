@@ -1,3 +1,17 @@
+libfacts (2.4.0) unstable; urgency=low
+
+  * C++: FACT leaves its group by exception, so a fiction in a helper, method,
+    or lambda ends the group, and a helper that returns a value can use FACT.
+    FACT_BY_RETURN keeps the old way; FACT_BY_EXCEPTION names the new one.
+    A build without exceptions leaves by return.
+  * C++: a fiction shows a value of any type: its operator<<, a container's
+    first 20 elements, a pair, or "?". Every comparison compiles.
+  * C++: a class constant never defined outside its class links in a fact.
+  * FactsCurrent() gives the group being run, so a helper with no Facts
+    parameter can check facts.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Tue, 17 Nov 2026 00:00:00 +0000
+
 libfacts (2.3.0) unstable; urgency=low
 
   * C++: facts::interval and facts::pm, so FACT(x == y + facts::pm(1e-9))
