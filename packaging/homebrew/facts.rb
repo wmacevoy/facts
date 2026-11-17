@@ -4,7 +4,7 @@ class Facts < Formula
   url "https://github.com/wmacevoy/facts/archive/refs/tags/v2.4.1.tar.gz"
   # Update sha256 after creating the release tarball:
   #   shasum -a 256 v2.4.1.tar.gz
-  sha256 "PLACEHOLDER"
+  sha256 "a38ab929c6f9984c04bbc2df24d94735dea99fd42981f3bf297d4376b6d9e19a"
   license "MIT"
 
   depends_on "cmake" => :build
