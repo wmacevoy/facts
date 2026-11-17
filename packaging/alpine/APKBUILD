@@ -1,6 +1,6 @@
 # Maintainer: Warren MacEvoy <wmacevoy@gmail.com>
 pkgname=libfacts
-pkgver=2.4.0
+pkgver=2.4.1
 pkgrel=0
 pkgdesc="Lightweight, beginner-friendly C/C++ testing library"
 url="https://github.com/wmacevoy/facts"
@@ -29,5 +29,5 @@ package() {
 }
 
 # Update after creating release tarball:
-#   sha512sum v2.4.0.tar.gz
-sha512sums="1a2d7199f4280e978ace388d59f7c93d359e53b60e8e60a89292d13749a8596729276c90c0655931f9a9c3c8731f37502e49c599d311045a4b558bfe03bc7ba5  libfacts-2.4.0.tar.gz"
+#   sha512sum v2.4.1.tar.gz
+sha512sums="PLACEHOLDER"

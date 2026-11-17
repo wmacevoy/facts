@@ -1,10 +1,10 @@
 class Facts < Formula
   desc "Lightweight, beginner-friendly C/C++ testing library"
   homepage "https://github.com/wmacevoy/facts"
-  url "https://github.com/wmacevoy/facts/archive/refs/tags/v2.4.0.tar.gz"
+  url "https://github.com/wmacevoy/facts/archive/refs/tags/v2.4.1.tar.gz"
   # Update sha256 after creating the release tarball:
-  #   shasum -a 256 v2.4.0.tar.gz
-  sha256 "468b019437d63c3bfa4ebc20a22fa0a3412be4971a596fcc02336235243ebcd0"
+  #   shasum -a 256 v2.4.1.tar.gz
+  sha256 "PLACEHOLDER"
   license "MIT"
 
   depends_on "cmake" => :build

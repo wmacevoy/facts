@@ -233,16 +233,16 @@ c++ $(pkg-config --cflags facts++) -o check your.cpp $(pkg-config --libs facts++
 
 ## Versioning
 
-The version (`2.4.0`) is written in six files:
+The version (`2.4.1`) is written in six files:
 
 - `Makefile` — `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`
-- `CMakeLists.txt` — `project(facts VERSION 2.4.0)`
+- `CMakeLists.txt` — `project(facts VERSION 2.4.1)`
 - `debian/changelog` — a new entry at the top
 - `packaging/homebrew/facts.rb` — the tarball `url` (and `sha256` after the release)
 - `packaging/alpine/APKBUILD` — `pkgver` (and `sha512sums` after the release)
 - `packaging/choco/facts.nuspec` — `<version>`
 
-All must be updated together when releasing a new version; `grep -rn "2\.4\.0" --exclude-dir=vendor --exclude-dir=expected .` lists them. The shared library soname uses only the major version (`libfacts.so.2`), so minor and patch releases are ABI-compatible drop-in replacements.
+All must be updated together when releasing a new version; `grep -rn "2\.4\.1" --exclude-dir=vendor --exclude-dir=expected .` lists them. The shared library soname uses only the major version (`libfacts.so.2`), so minor and patch releases are ABI-compatible drop-in replacements.
 
 ## CI/CD — GitHub Actions
 
@@ -338,8 +338,8 @@ brew install facts
 1. Update the version in the six files listed under *Versioning*
 2. Commit, tag, and push:
    ```sh
-   git tag v2.4.0
-   git push origin v2.4.0
+   git tag v2.4.1
+   git push origin v2.4.1
    ```
 3. The release workflow runs automatically and creates the GitHub Release
 4. Update the Homebrew formula `sha256` with the value from the release notes

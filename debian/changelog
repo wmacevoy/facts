@@ -1,3 +1,12 @@
+libfacts (2.4.1) unstable; urgency=medium
+
+  * C++: a program linked with the C library (libfacts, or facts.c alone)
+    no longer aborts at its first fiction. Each C++ group now catches the
+    fiction FACT throws; 2.4.0 caught it only in the C++ library.
+  * MOVING-CC.md: a guide to moving hand-built C++ tests to facts.
+
+ -- Warren MacEvoy <wmacevoy@gmail.com>  Tue, 17 Nov 2026 00:00:00 +0000
+
 libfacts (2.4.0) unstable; urgency=low
 
   * C++: FACT leaves its group by exception, so a fiction in a helper, method,
