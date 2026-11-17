@@ -59,7 +59,7 @@ c++ -std=c++11 -g $(pkg-config --cflags facts) -o check your.cpp $(pkg-config --
 ## Writing facts
 
 - `FACTS(Name) { ... }` declares a group. Each group compiles to `void facts_Name_function(Facts*)`.
-- `FACT(a,op,b)` checks a relation (e.g., `==`, `!=`, `<`, `>=`). On failure it prints the expressions and values and returns from the current `FACTS` group.
+- `FACT(a,op,b)` checks a relation (e.g., `==`, `!=`, `<`, `>=`). On failure it prints the expressions and values and leaves the group. In C it returns from the function it is written in, so in a helper it leaves only the helper. In C++ it throws, and the run catches it, so it ends the group from a helper, method, or lambda too; `FACT_BY_RETURN` keeps C's way.
 - `FACT_CHECK(a,op,b)` behaves like `FACT` but does not early‑return; it evaluates to 1 on success, 0 on failure.
 
 Floating‑point checks: use the helpers for clarity.

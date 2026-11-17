@@ -101,7 +101,7 @@ CFLAGS_DEBUG   = -g -std=$(CSTD) -Iinclude
 CXXFLAGS_DEBUG = -g -std=$(CXXSTD) -Iinclude
 
 .PHONY: tests
-tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c
+tests: bin/testfacts_c bin/testfacts_cpp bin/testfacts_if_c bin/testfacts_if_cpp bin/testfacts_expr_cpp bin/testfacts_once_c bin/testfacts_twice_c bin/testfacts_once_cpp bin/testfacts_find_c bin/testfacts_bad_c bin/testfacts_interval_cpp bin/testfacts_err_c bin/testfacts_leave_cpp bin/testfacts_noexc_cpp
 
 bin/testfacts_c: test/testfacts.c src/facts.c include/facts.h
 	mkdir -p bin
@@ -152,6 +152,17 @@ bin/testfacts_err_c: test/testfacts_err.c src/facts.c include/facts.h
 	mkdir -p bin
 	$(CC) $(CFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_err.c src/facts.c $(LDLIBS_DL)
 
+# C groups and C++ groups in one program: the C file is compiled as C.
+bin/testfacts_leave_cpp: test/testfacts_leave.cpp test/testfacts_leave.c src/facts.cpp src/facts.c include/facts.h
+	mkdir -p bin
+	$(CC) $(CFLAGS_DEBUG) -c -o bin/testfacts_leave_c.o test/testfacts_leave.c
+	$(CXX) $(CXXFLAGS_DEBUG) $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts_leave.cpp bin/testfacts_leave_c.o src/facts.cpp $(LDLIBS_DL)
+
+# The C++ tests built without exceptions, where FACT leaves by return (REQ4/WR-8).
+bin/testfacts_noexc_cpp: test/testfacts.cpp src/facts.cpp src/facts.c include/facts.h
+	mkdir -p bin
+	$(CXX) $(CXXFLAGS_DEBUG) -fno-exceptions $(LDFLAGS) $(LDFLAGS_EXPORT) -o $@ test/testfacts.cpp src/facts.cpp $(LDLIBS_DL)
+
 # --- Examples ---
 .PHONY: examples
 examples: examples/hello_c/hello examples/hello_cpp/hello
@@ -200,6 +211,7 @@ expected: tests examples
 	bin/testfacts_twice_c --facts_plain 2>/dev/null >expected/testfacts_twice_c_plain.out || true
 	bin/testfacts_once_cpp --facts_plain 2>/dev/null >expected/testfacts_once_cpp_plain.out || true
 	bin/testfacts_interval_cpp --facts_plain 2>/dev/null >expected/testfacts_interval_cpp_plain.out || true
+	bin/testfacts_leave_cpp --facts_plain 2>/dev/null >expected/testfacts_leave_cpp_plain.out || true
 	examples/hello_c/hello 2>/dev/null >expected/hello_c.out || true
 	examples/hello_cpp/hello 2>/dev/null >expected/hello_cpp.out || true
 	examples/hello_c/hello --facts_plain 2>/dev/null >expected/hello_c_plain.out || true

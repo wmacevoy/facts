@@ -54,10 +54,28 @@ FACTS_MAIN                     // main() that checks the facts
 | `FACT(x == y + facts::pm(1e-9))` | `x` is within `1e-9` of `y`. `y * (1 + facts::pm(1e-9))` is one part in 1e9. `==` an interval means inside, `!=` outside. |
 | `facts::interval::open(a,b)`, `::closed(a,b)`, `facts::interval(a,b,true,false)` | An interval with its ends out, in, or one of each. |
 | `FACT(a,==,b)` | The form C has. It still works. |
+| `FACT_BY_RETURN(a == b)` | Leave only the function it is written in, as `FACT` did through 2.3.0. Takes every form `FACT` takes. |
 | `FACTS_TRACE("n=" << n)` | A note for every fact below it in the same block; printed if one of them is false. |
 | `FACTS_WATCH(n, m)` | A trace that prints a gdb breakpoint stopping only when `n` and `m` have these values. 1 to 20 variables. |
 | `FACTS_EXCLUDE(Name) { ... }` | A group that is registered but not run unless included by an option. |
 | `FACTS_MAIN_IF(--facts) { ... }` | Your program keeps its own `main` (the block); the facts run only when `--facts` is given. |
+
+## Helpers
+
+`FACT` works in any function that has a `Facts *facts` in scope. A false fact there ends the
+group that called it: the run catches the exception `FACT` throws.
+
+```C++
+static int half(Facts *facts, int x) {   // a helper may return a value
+  FACT(x % 2 == 0, "x=" << x);
+  return x / 2;
+}
+
+FACTS(AboutHalf) {
+  FACT(half(facts, 8) == 4);
+  half(facts, 3);                          // false: the group ends here
+}
+```
 
 ## Many cases
 
@@ -92,8 +110,11 @@ FACTS(AboutTable) {
 - **Parenthesize a shift on the left:** `FACT((x << 1) == 4)`.
 - **Compare pointers with `nullptr`,** not `0`.
 - **`FACT(a = b)` does not compile.** That is deliberate.
-- **`FACT` returns from the group.** In a loop it stops at the first bad case; use `FACT_CHECK`
-  to see them all.
+- **`FACT` leaves the group,** from any depth, by throwing `FactsLeave`. In a loop it stops at the
+  first bad case; use `FACT_CHECK` to see them all. A `catch (...)` of your own around a `FACT`
+  catches it and the group goes on, and a `FACT` in a destructor or `noexcept` function ends the
+  program: use `FACT_CHECK` or `FACT_BY_RETURN` there. Built without exceptions
+  (`-fno-exceptions`), `FACT` leaves by return.
 - **A group you forget to register does not run**, and nothing says so. `--facts_register_all`
   prints the block for what is registered now; `--facts_find` avoids the block altogether.
 - Each side of a fact is evaluated once, and a note is only built when the fact is false.

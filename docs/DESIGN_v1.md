@@ -1,6 +1,6 @@
 # Design — v1: facts
 
-How the code satisfies `REQUIREMENTS_v3.md`, and what was rejected. Every mechanism here is
+How the code satisfies `REQUIREMENTS_v4.md`, and what was rejected. Every mechanism here is
 replaceable without renegotiating a requirement (SE1/R5). Rebuilt from the structure on 2026-11-14
 by an agent (Claude Fable 5.2); reasons nobody wrote down are marked *(inferred)* (SE1/W12).
 
@@ -248,6 +248,20 @@ review by someone who did not share the author's assumptions.
 - **An interval prints with 17 digits, and so does the value compared with it** — REQ3/WR-7 —
   at the usual 6, a tolerance of 1e-9 prints as `[1,1]`. The three-argument form prints its
   left side with the usual 6. Source: this session.
+- **In C++ a fiction leaves by exception, and the run catches it** — REQ4/WR-8 — `FACT` was
+  `if (!check) return`, so in a helper it left only the helper, and in a helper returning a value
+  it did not compile. Now C++ `FACT` throws `FactsLeave` and `FactsCheck` catches it around the
+  call to the group. One `try` in the run covers every group, C++ or C, because a C++ program's
+  run is `facts.c` compiled as C++; `FACTS_DECLARE`, the group's symbol, and the gdb hint are
+  unchanged. The choice is made per fact (`FACT_BY_RETURN`, `FACT_BY_EXCEPTION`), not per
+  group, because a fact in a helper cannot know which group called it, and not per program,
+  because one program can hold C and C++ files. Built without exceptions, `FACT` leaves by
+  return. Rejected: a try in each group's own function (it did the same, and changed the group's
+  symbol); a `-DFACTS_THROW` flag for the program (a C file given the same flag could not obey
+  it); a runtime switch (`return;` does not compile in a helper that returns a value, even where
+  it would never run). A C group calling C++ that throws may not unwind (seen to end in
+  `terminate` with gcc when the C file had no unwind tables); C cannot test C++, so nothing is
+  done for it. Source: the owner, 2026-11-17, from issue #7.
 - **A stopped parent kills its child, and does not ask it** — REQ3/SX-5 — the child may be hung
   or ignoring signals, which is why it is being supervised. Rejected: passing the same signal
   on (a group that ignores it would survive); a process group for the child (it would take the

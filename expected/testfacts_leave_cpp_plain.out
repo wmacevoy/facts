@@ -1,0 +1,52 @@
+test/testfacts_leave.cpp 23: LeaveValueHelper facts check started
+test/testfacts_leave.cpp/LeaveValueHelper 10: x % 2 == 0 {1 == 0} is fiction
+(gdb) break facts_LeaveValueHelper_function
+(gdb) run --facts_unsafe --facts_include=LeaveValueHelper
+test/testfacts_leave.cpp 23: LeaveValueHelper facts check ended badly
+test/testfacts_leave.cpp 29: LeaveVoidHelper facts check started
+test/testfacts_leave.cpp/LeaveVoidHelper 15: x % 2 {=1} == 0 {=0} is fiction
+(gdb) break facts_LeaveVoidHelper_function
+(gdb) run --facts_unsafe --facts_include=LeaveVoidHelper
+test/testfacts_leave.cpp 29: LeaveVoidHelper facts check ended badly
+test/testfacts_leave.cpp 34: LeaveLambda facts check started
+test/testfacts_leave.cpp/LeaveLambda 35: x > 0 {-1 > 0} is fiction: x=-1
+(gdb) break facts_LeaveLambda_function
+(gdb) run --facts_unsafe --facts_include=LeaveLambda
+test/testfacts_leave.cpp 34: LeaveLambda facts check ended badly
+test/testfacts_leave.cpp 41: LeaveNamed facts check started
+test/testfacts_leave.cpp/LeaveNamed 44: 1 == 2 {1 == 2} is fiction
+(gdb) break facts_LeaveNamed_function
+(gdb) run --facts_unsafe --facts_include=LeaveNamed
+test/testfacts_leave.cpp 41: LeaveNamed facts check ended badly
+test/testfacts_leave.cpp 48: ReturnHelperGoesOn facts check started
+test/testfacts_leave.cpp/ReturnHelperGoesOn 19: x % 2 == 0 {1 == 0} is fiction
+(gdb) break facts_ReturnHelperGoesOn_function
+(gdb) run --facts_unsafe --facts_include=ReturnHelperGoesOn
+reached: ReturnHelperGoesOn went on after its helper returned
+test/testfacts_leave.cpp 48: ReturnHelperGoesOn facts check ended badly
+test/testfacts_leave.cpp 53: ReturnForms facts check started
+test/testfacts_leave.cpp/ReturnForms 56: 1 {=1} == 2 {=2} is fiction
+(gdb) break facts_ReturnForms_function
+(gdb) run --facts_unsafe --facts_include=ReturnForms
+test/testfacts_leave.cpp 53: ReturnForms facts check ended badly
+test/testfacts_leave.c 10: CGroupReturns facts check started
+test/testfacts_leave.c/CGroupReturns 11: 1 {=1} == 2 {=2} is fiction
+(gdb) break facts_CGroupReturns_function
+(gdb) run --facts_unsafe --facts_include=CGroupReturns
+test/testfacts_leave.c 10: CGroupReturns facts check ended badly
+test/testfacts_leave.c 15: CGroupHelperReturns facts check started
+test/testfacts_leave.c/CGroupHelperReturns 6: x % 2 {=0} == 1 {=1} is fiction
+(gdb) break facts_CGroupHelperReturns_function
+(gdb) run --facts_unsafe --facts_include=CGroupHelperReturns
+reached: CGroupHelperReturns went on after its helper returned
+test/testfacts_leave.c 15: CGroupHelperReturns facts check ended badly
+facts summary.
+facts check LeaveValueHelper failed
+facts check LeaveVoidHelper failed
+facts check LeaveLambda failed
+facts check LeaveNamed failed
+facts check ReturnHelperGoesOn failed
+facts check ReturnForms failed
+facts check CGroupReturns failed
+facts check CGroupHelperReturns failed
+7 (46.7%) truths and 8 (53.3%) fictions checked.

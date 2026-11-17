@@ -139,7 +139,6 @@ extern "C"
 // FACT_CHECK takes the same three.
 #define FACTS_EXPAND(x) x
 #define FACTS_FACT_PICK(_1, _2, _3, name, ...) name
-#define FACT(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CERR, FACT_NOTE, FACT_EXPR, )(__VA_ARGS__))
 #define FACT_CHECK(...) FACTS_EXPAND(FACTS_FACT_PICK(__VA_ARGS__, FACT_CHECK_CERR, FACT_CHECK_NOTE, FACT_CHECK_EXPR, )(__VA_ARGS__))
 // The operator that takes the expression apart is the one each compiler is
 // quiet about: gcc suggests parentheses at every "<= a == b", clang at
@@ -157,10 +156,28 @@ extern "C"
 #define FACT_NOTE(expr, note)  \
   if (!FACT_CHECK_NOTE(expr, note)) \
   return
+// How a fiction leaves (REQ4/WR-8).  By return: the function the fact is
+// written in returns, which ends the group only when that is the group.  By
+// exception: FactsLeave is thrown and FactsCheck catches it, so a fiction in a
+// helper, method, or lambda ends the group, and a helper that returns a value
+// can use FACT.  FACT leaves by exception wherever the compiler has them.
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+#define FACTS_EXCEPTIONS 1
+#endif
+struct FactsLeave {};
+#define FACT_BY_RETURN(...) if (!FACT_CHECK(__VA_ARGS__)) return
+#ifdef FACTS_EXCEPTIONS
+#define FACT_BY_EXCEPTION(...) if (!FACT_CHECK(__VA_ARGS__)) throw FactsLeave()
+#define FACT(...) FACT_BY_EXCEPTION(__VA_ARGS__)
+#else
+#define FACT(...) FACT_BY_RETURN(__VA_ARGS__)
+#endif
 #define FACTS_EXTERN extern "C"
 #else
 #define FACT(a, op, b) FACT_PRINT(a, op, b, FACTS_PRINT_FORMAT(a))
 #define FACT_CHECK(a, op, b) FACT_CHECK_PRINT(a, op, b, FACTS_PRINT_FORMAT(a))
+#define FACT_BY_RETURN(a, op, b) FACT(a, op, b)
+#define FACT_BY_EXCEPTION(a, op, b) _Static_assert(0, "FACT_BY_EXCEPTION is C++ only; C leaves by return")
 #define FACTS_EXTERN
 #endif
 

@@ -2,7 +2,7 @@
 # The full check.  `make check` builds the test programs and the examples and
 # then runs this; CI runs `make check`.  Success prints the last line below.
 #
-# Each case names the requirement it asserts (docs/REQUIREMENTS_v3.md).
+# Each case names the requirement it asserts (docs/REQUIREMENTS_v4.md).
 # The golden files in expected/ are the published console and JUnit formats:
 # refresh them with `make expected` only when a format change is intended.
 
@@ -128,6 +128,21 @@ says  "19 (100.0%) truths and 0 (0.0%) fictions checked." bin/testfacts_err_c --
 # value; a fiction prints the value and the interval with enough digits to see why.
 golden testfacts_interval_cpp_plain.out bin/testfacts_interval_cpp --facts_plain
 says  "test/testfacts_interval.cpp/OutsideAbsolute 81: x == 2.0 + pm(0.25) {2.5 == [1.75,2.25]} is fiction" bin/testfacts_interval_cpp --facts_plain
+
+# REQ4/WR-8 in C++ a fiction in a helper, a value-returning helper, or a lambda ends its group;
+# FACT_BY_RETURN, and every fact in C, leaves only the function it is in; the next group runs.
+leave=bin/testfacts_leave_cpp
+golden testfacts_leave_cpp_plain.out $leave --facts_plain
+exits 1 $leave
+says  "reached: ReturnHelperGoesOn went on after its helper returned" $leave --facts_plain
+says  "reached: CGroupHelperReturns went on after its helper returned" $leave --facts_plain
+if ($leave --facts_plain 2>&1 || true) | grep -q '^not reached'; then
+  echo "FAIL: $leave went on past a fiction that leaves its group"; fail=1
+fi
+# The same under --facts_unsafe: the run, not the child process, catches the fiction.
+says  "7 (46.7%) truths and 8 (53.3%) fictions checked." $leave --facts_plain --facts_unsafe
+# Built without exceptions, FACT leaves by return and the report is the same.
+golden testfacts_cpp_plain.out bin/testfacts_noexc_cpp --facts_plain
 
 # REQ1/RG-3 include narrows what find registered, whichever option comes first.
 for order in "--facts_find test/testfacts.c ; --facts_include=Integer" "--facts_include=Integer --facts_find test/testfacts.c ;"; do
