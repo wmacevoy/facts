@@ -1,7 +1,8 @@
 # facts quick reference: C++
 
 One page for a person or an agent writing facts in C++ (C++11 or later). For C see
-[QUICKREF-C.md](QUICKREF-C.md); for the full story, [README.md](README.md).
+[QUICKREF-C.md](QUICKREF-C.md); for the full story, [README.md](README.md); to move a suite with
+hand-built checks, [MOVING-CC.md](MOVING-CC.md).
 Every example here was compiled and run with facts 2.2.0; the options and the interval were
 checked at 2.3.0, and helpers, `FactsCurrent()`, and the values a fiction shows at 2.4.0.
 
